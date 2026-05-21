@@ -1,3 +1,5 @@
 node_modules/
 .env
 *.log
+bik0/
+biko/
