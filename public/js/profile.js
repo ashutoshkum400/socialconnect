@@ -772,9 +772,9 @@ async function saveProfile() {
     const relationshipStatus = document.getElementById('editRelationshipStatus')?.value;
     const interests          = SC.getSelectedInterests('editInterestTags');
 
-    // Avatar: staged base64 → URL field → existing avatar
+    // Avatar: URL field → existing avatar (immediate upload handles file selection)
     const avatarUrlInput = document.getElementById('editAvatarUrl')?.value.trim();
-    const avatar = pendingAvatarBase64 || avatarUrlInput || profileUser.avatar;
+    const avatar = avatarUrlInput || profileUser.avatar;
 
     // Cover: URL field → existing cover
     const coverUrlInput = document.getElementById('editCoverUrl')?.value.trim();
@@ -816,25 +816,39 @@ async function saveProfile() {
 // ═══════════════════════════════════════════════════════════════
 
 /**
- * Read the chosen avatar file as base64 and stage it in pendingAvatarBase64.
- * The actual PUT happens only when the user clicks "Save Changes".
+ * Upload a new profile photo immediately (like Facebook) —
+ * reads the file as base64 and persists it to the server right away.
+ * No extra "Save Changes" step needed.
  */
 async function uploadAvatar(file) {
   if (!file) return;
   try {
+    SC.showInfo('Uploading profile photo…');
     const base64 = await SC.fileToBase64(file);
-    pendingAvatarBase64 = base64;
 
-    // Update previews immediately for visual feedback
-    const editPreview = document.getElementById('editAvatarPreview');
-    if (editPreview) editPreview.src = base64;
+    const updated = await apiFetch('/api/me', {
+      method: 'PUT',
+      body: JSON.stringify({ avatar: base64 })
+    });
 
+    // Persist to localStorage so nav / sidebar / etc. update
+    const merged = { ...currentUser, ...updated };
+    localStorage.setItem('sc_user', JSON.stringify(merged));
+
+    // Update profile-page avatar
     const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) profileAvatar.src = base64;
 
-    SC.showInfo('Preview updated. Click "Save Changes" to confirm.');
+    // Update edit-modal preview if it is open
+    const editPreview = document.getElementById('editAvatarPreview');
+    if (editPreview) editPreview.src = base64;
+
+    // Also sync nav avatar if user is on their own profile
+    SC.initNavbar();
+
+    SC.showSuccess('Profile photo updated!');
   } catch (err) {
-    SC.showError('Could not read file.');
+    SC.showError(`Could not upload profile photo: ${err.message}`);
     console.error('[uploadAvatar]', err);
   }
 }
