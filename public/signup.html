@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — SocialConnect</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <style>
+    /* ── Wider card for multi-step form ──────────────────────── */
+    .auth-card { max-width: 500px; }
+
+    /* ── Animated background blobs ───────────────────────────── */
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .blob--1 {
+      width: 380px;
+      height: 380px;
+      top: -120px;
+      left: -110px;
+      animation: floatBlob 9s ease-in-out infinite;
+    }
+    .blob--2 {
+      width: 260px;
+      height: 260px;
+      bottom: -70px;
+      right: -80px;
+      animation: floatBlob 11s ease-in-out infinite reverse;
+    }
+    .blob--3 {
+      width: 180px;
+      height: 180px;
+      top: 42%;
+      right: 10%;
+      animation: floatBlob 7s ease-in-out infinite 1.8s;
+    }
+
+    /* ── Error alert ─────────────────────────────────────────── */
+    .error-msg {
+      display: none;
+      align-items: center;
+      gap: var(--space-sm);
+      background: var(--danger-light);
+      border: 1.5px solid var(--danger);
+      border-radius: var(--radius-sm);
+      padding: var(--space-sm) var(--space-md);
+      color: var(--danger);
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      margin-bottom: var(--space-md);
+    }
+    .error-msg.visible {
+      display: flex;
+      animation: slideUpFade 0.2s ease both;
+    }
+    .error-msg svg { flex-shrink: 0; }
+
+    /* ── Step title ──────────────────────────────────────────── */
+    .step-title {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: var(--space-xs);
+    }
+    .step-sub {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: var(--space-xl);
+    }
+
+    /* ── Password strength bar ───────────────────────────────── */
+    .pw-strength {
+      margin-top: 6px;
+    }
+    .pw-strength__track {
+      height: 4px;
+      background: var(--border);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .pw-strength__fill {
+      height: 100%;
+      width: 0;
+      border-radius: var(--radius-full);
+      transition: width 0.3s ease, background 0.3s ease;
+    }
+    .pw-strength__label {
+      font-size: var(--font-size-xs);
+    }
+
+    /* ── Step nav buttons row ────────────────────────────────── */
+    .step-actions {
+      display: flex;
+      gap: var(--space-sm);
+      margin-top: var(--space-lg);
+    }
+    .step-actions .btn--back {
+      flex: 0 0 auto;
+      min-width: 90px;
+    }
+    .step-actions .btn--next {
+      flex: 1;
+    }
+
+    /* ── Interest tags grid ──────────────────────────────────── */
+    .interests-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+    .interest-count-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-md);
+    }
+    .interest-count-label {
+      font-size: var(--font-size-sm);
+      font-weight: 600;
+      color: var(--text);
+    }
+    .interest-count-hint {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
+
+    /* ── Toggle password button ──────────────────────────────── */
+    .form-input-suffix.pw-toggle {
+      background: none;
+      border: none;
+      padding: 0;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      color: var(--text-muted);
+    }
+    .form-input-suffix.pw-toggle:hover { color: var(--text); }
+
+    /* ── 2-col grid for paired fields ────────────────────────── */
+    .form-row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-md);
+    }
+    @media (max-width: 480px) {
+      .form-row-2 { grid-template-columns: 1fr; }
+    }
+
+    /* Step panels: overflow hidden while animating */
+    .step-panel { overflow: hidden; }
+  </style>
+</head>
+<body class="auth-page" data-page="signup">
+
+  <!-- Animated background blobs -->
+  <div class="blob blob--1"></div>
+  <div class="blob blob--2"></div>
+  <div class="blob blob--3"></div>
+
+  <div class="auth-card">
+
+    <!-- ── Logo ─────────────────────────────────────────────── -->
+    <div class="auth-card__logo">
+      <div class="auth-card__logo-icon">💜</div>
+      <div class="auth-card__logo-name">SocialConnect</div>
+    </div>
+
+    <!-- ── Step indicators ───────────────────────────────────── -->
+    <div class="auth-steps">
+      <div class="auth-steps__step active" id="stepIndicator1">
+        <div class="auth-steps__circle">1</div>
+        <div class="auth-steps__label">Basic Info</div>
+      </div>
+      <div class="auth-steps__step" id="stepIndicator2">
+        <div class="auth-steps__circle">2</div>
+        <div class="auth-steps__label">Profile</div>
+      </div>
+      <div class="auth-steps__step" id="stepIndicator3">
+        <div class="auth-steps__circle">3</div>
+        <div class="auth-steps__label">Interests</div>
+      </div>
+    </div>
+
+    <!-- ── Global error banner ───────────────────────────────── -->
+    <div id="signupError" class="error-msg" role="alert">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="12"/>
+        <line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="signupErrorText"></span>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         FORM  (all steps share one <form> element)
+    ═══════════════════════════════════════════════════════════ -->
+    <form id="signupForm" novalidate>
+
+      <!-- ──────────────────────────────────────────────────────
+           STEP 1 — Basic Info
+      ─────────────────────────────────────────────────────── -->
+      <div id="step1" class="step-panel">
+        <h2 class="step-title">Create your account</h2>
+        <p class="step-sub">Start with the basics — it only takes a minute.</p>
+
+        <!-- Full Name -->
+        <div class="form-group">
+          <label for="regName" class="form-label form-label--required">Full Name</label>
+          <div class="form-input-wrap">
+            <svg class="form-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            <input
+              type="text"
+              id="regName"
+              class="form-input"
+              placeholder="Your full name"
+              autocomplete="name"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div class="form-group">
+          <label for="regUsername" class="form-label form-label--required">Username</label>
+          <div class="form-input-wrap">
+            <span class="form-input-icon" style="font-weight:700; font-size:0.95rem; color:var(--text-secondary);">@</span>
+            <input
+              type="text"
+              id="regUsername"
+              class="form-input"
+              placeholder="username"
+              autocomplete="username"
+              spellcheck="false"
+              required
+            />
+          </div>
+          <p class="form-hint">3–20 characters: letters, numbers, underscores</p>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+          <label for="regEmail" class="form-label form-label--required">Email address</label>
+          <div class="form-input-wrap">
+            <svg class="form-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
+            <input
+              type="email"
+              id="regEmail"
+              class="form-input"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+          <label for="regPassword" class="form-label form-label--required">Password</label>
+          <div class="form-input-wrap has-suffix">
+            <svg class="form-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            <input
+              type="password"
+              id="regPassword"
+              class="form-input"
+              placeholder="Min. 8 chars with a number"
+              autocomplete="new-password"
+              required
+            />
+            <button
+              type="button"
+              id="signupTogglePassword"
+              class="form-input-suffix pw-toggle"
+              aria-label="Toggle password visibility"
+            >
+              <svg id="signupEyeOff" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                <line x1="1" y1="1" x2="23" y2="23"/>
+              </svg>
+              <svg id="signupEyeOn" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <!-- Strength indicator -->
+          <div id="passwordStrength" class="pw-strength" style="display:none">
+            <div class="pw-strength__track">
+              <div id="strengthFill" class="pw-strength__fill"></div>
+            </div>
+            <span id="strengthLabel" class="pw-strength__label"></span>
+          </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+          <label for="regConfirm" class="form-label form-label--required">Confirm Password</label>
+          <div class="form-input-wrap">
+            <svg class="form-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <input
+              type="password"
+              id="regConfirm"
+              class="form-input"
+              placeholder="Repeat your password"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+        </div>
+
+        <button type="button" id="step1Next" class="btn btn--primary btn--lg btn--full" style="margin-top:var(--space-sm)">
+          Continue
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div><!-- /#step1 -->
+
+
+      <!-- ──────────────────────────────────────────────────────
+           STEP 2 — Profile Details
+      ─────────────────────────────────────────────────────── -->
+      <div id="step2" class="step-panel" style="display:none">
+        <h2 class="step-title">Tell us about you</h2>
+        <p class="step-sub">Help others find the right connection.</p>
+
+        <!-- Gender + Birth Date (2 columns) -->
+        <div class="form-row-2">
+          <div class="form-group">
+            <label for="regGender" class="form-label form-label--required">Gender</label>
+            <select id="regGender" class="form-select">
+              <option value="">Select gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="non-binary">Non-binary</option>
+              <option value="prefer-not-to-say">Prefer not to say</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="regBirthDate" class="form-label form-label--required">Birth Date</label>
+            <input
+              type="date"
+              id="regBirthDate"
+              class="form-input"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Location -->
+        <div class="form-group">
+          <label for="regLocation" class="form-label form-label--required">Location</label>
+          <div class="form-input-wrap">
+            <svg class="form-input-icon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            <input
+              type="text"
+              id="regLocation"
+              class="form-input"
+              placeholder="City, Country"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <!-- Bio -->
+        <div class="form-group">
+          <label for="regBio" class="form-label">Bio <span style="color:var(--text-muted); font-weight:400">(optional)</span></label>
+          <textarea
+            id="regBio"
+            class="form-textarea"
+            placeholder="Tell us about yourself..."
+            rows="3"
+            maxlength="300"
+          ></textarea>
+        </div>
+
+        <!-- Looking For -->
+        <div class="form-group">
+          <label for="regLookingFor" class="form-label">Looking For <span style="color:var(--text-muted); font-weight:400">(optional)</span></label>
+          <select id="regLookingFor" class="form-select">
+            <option value="">Select what you're looking for</option>
+            <option value="friendship">Friendship</option>
+            <option value="dating">Dating</option>
+            <option value="relationship">Relationship</option>
+            <option value="casual">Casual</option>
+            <option value="networking">Networking</option>
+          </select>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" id="step2Back" class="btn btn--outline-secondary btn--lg btn--back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back
+          </button>
+          <button type="button" id="step2Next" class="btn btn--primary btn--lg btn--next">
+            Continue
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        </div>
+      </div><!-- /#step2 -->
+
+
+      <!-- ──────────────────────────────────────────────────────
+           STEP 3 — Interests
+      ─────────────────────────────────────────────────────── -->
+      <div id="step3" class="step-panel" style="display:none">
+        <h2 class="step-title">Pick your interests</h2>
+        <p class="step-sub">Select topics you love — minimum 3.</p>
+
+        <!-- Counter row -->
+        <div class="interest-count-row">
+          <span class="interest-count-label">Your interests</span>
+          <span id="interestCount" class="interest-count-hint">0 selected</span>
+        </div>
+
+        <!-- Interest pills -->
+        <div class="interests-grid">
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Travel">✈️ Travel</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Photography">📷 Photography</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Music">🎵 Music</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Art">🎨 Art</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Fitness">💪 Fitness</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Gaming">🎮 Gaming</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Cooking">🍳 Cooking</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Reading">📚 Reading</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Movies">🎬 Movies</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Sports">⚽ Sports</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Technology">💻 Technology</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Fashion">👗 Fashion</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Nature">🌿 Nature</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Yoga">🧘 Yoga</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Dancing">💃 Dancing</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Writing">✍️ Writing</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Coffee">☕ Coffee</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Pets">🐾 Pets</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Hiking">🥾 Hiking</span>
+          <span class="tag tag--gray tag--interactive interest-tag" data-interest="Nightlife">🌙 Nightlife</span>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" id="step3Back" class="btn btn--outline-secondary btn--lg btn--back">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Back
+          </button>
+          <button type="button" id="step3Submit" class="btn btn--primary btn--lg btn--next">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+            Create Account
+          </button>
+        </div>
+      </div><!-- /#step3 -->
+
+    </form><!-- /#signupForm -->
+
+    <!-- ── Footer link ───────────────────────────────────────── -->
+    <div class="auth-card__footer">
+      Already have an account? <a href="/index.html">Log In</a>
+    </div>
+
+  </div><!-- /.auth-card -->
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/auth.js"></script>
+</body>
+</html>
