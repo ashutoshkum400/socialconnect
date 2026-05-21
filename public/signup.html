@@ -178,28 +178,6 @@
         <div class="blob blob--3"></div>
 
         <div class="auth-card">
-            <!-- ── Logo ─────────────────────────────────────────────── -->
-            <div class="auth-card__logo">
-                <div class="auth-card__logo-icon">💜</div>
-                <div class="auth-card__logo-name">SocialConnect</div>
-            </div>
-
-            <!-- ── Step indicators ───────────────────────────────────── -->
-            <div class="auth-steps">
-                <div class="auth-steps__step active" id="stepIndicator1">
-                    <div class="auth-steps__circle">1</div>
-                    <div class="auth-steps__label">Basic Info</div>
-                </div>
-                <div class="auth-steps__step" id="stepIndicator2">
-                    <div class="auth-steps__circle">2</div>
-                    <div class="auth-steps__label">Profile</div>
-                </div>
-                <div class="auth-steps__step" id="stepIndicator3">
-                    <div class="auth-steps__circle">3</div>
-                    <div class="auth-steps__label">Interests</div>
-                </div>
-            </div>
-
             <!-- ── Global error banner ───────────────────────────────── -->
             <div id="signupError" class="error-msg" role="alert">
                 <svg
@@ -225,11 +203,6 @@
            STEP 1 — Basic Info
       ─────────────────────────────────────────────────────── -->
                 <div id="step1" class="step-panel">
-                    <h2 class="step-title">Create your account</h2>
-                    <p class="step-sub">
-                        Start with the basics — it only takes a minute.
-                    </p>
-
                     <!-- Full Name -->
                     <div class="form-group">
                         <label
@@ -800,5 +773,6 @@
 
         <script src="/socket.io/socket.io.js"></script>
         <script src="/js/auth.js"></script>
+        <script src="/js/scroll-nav.js"></script>
     </body>
 </html>

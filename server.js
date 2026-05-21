@@ -12,6 +12,7 @@ const cors = require("cors");
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "socialconnect-secret-key-2024";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "Admin@2024";
 
 // ─── App / Server ─────────────────────────────────────────────────────────────
 const app = express();
@@ -32,8 +33,8 @@ const onlineUsers = new Map(); // userId -> socketId
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.static(path.join(__dirname, "public")));
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -375,6 +376,61 @@ app.post("/api/auth/login", async (req, res) => {
       expiresIn: "7d",
     });
     res.json({ token, user: sanitizeUser(user) });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── ADMIN AUTH ROUTES (for triple-space popup) ───────────────────────────────
+app.post("/api/auth/admin-register", async (req, res) => {
+  try {
+    const { name, email, password, adminSecret } = req.body;
+    if (!name || !email || !password || !adminSecret)
+      return res.status(400).json({ error: "All fields including admin secret are required" });
+
+    if (adminSecret !== ADMIN_SECRET)
+      return res.status(403).json({ error: "Invalid admin secret key" });
+
+    for (const u of db.users.values()) {
+      if (u.email === email)
+        return res.status(409).json({ error: "Email already registered" });
+    }
+
+    const id = uuidv4();
+    const user = {
+      id,
+      username: `admin_${id.slice(0, 6)}`,
+      email,
+      password: await bcrypt.hash(password, 10),
+      role: "admin",
+      name,
+      bio: "Administrator",
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`,
+      coverPhoto: `https://picsum.photos/seed/${id}/800/300`,
+      photos: [],
+      friends: [],
+      followers: [],
+      following: [],
+      connections: [],
+      blocked: false,
+      joinedAt: new Date().toISOString(),
+      lastSeen: new Date().toISOString(),
+      location: "",
+      birthDate: "",
+      gender: "",
+      interests: [],
+      lookingFor: null,
+      relationshipStatus: null,
+    };
+
+    db.users.set(id, user);
+    db.notifications.set(id, []);
+    db.friendRequests.set(id, []);
+
+    const token = jwt.sign({ id, role: "admin" }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+    res.status(201).json({ token, user: sanitizeUser(user) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

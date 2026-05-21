@@ -59,50 +59,6 @@
                 flex-shrink: 0;
             }
 
-            /* ── Demo credentials box ────────────────────────────────── */
-            .demo-box {
-                background: var(--primary-light);
-                border: 1.5px solid rgba(24, 119, 242, 0.25);
-                border-radius: var(--radius-sm);
-                padding: var(--space-md);
-                margin-bottom: var(--space-lg);
-            }
-            .demo-box__title {
-                font-size: var(--font-size-xs);
-                font-weight: 700;
-                color: var(--primary);
-                text-transform: uppercase;
-                letter-spacing: 0.07em;
-                margin-bottom: var(--space-sm);
-            }
-            .demo-box__row {
-                display: flex;
-                flex-wrap: wrap;
-                align-items: center;
-                gap: 3px 6px;
-                padding: 5px 6px;
-                font-size: var(--font-size-xs);
-                color: var(--text-secondary);
-                cursor: pointer;
-                border-radius: var(--radius-xs);
-                transition:
-                    background var(--transition),
-                    color var(--transition);
-            }
-            .demo-box__row:hover {
-                background: rgba(24, 119, 242, 0.08);
-                color: var(--primary);
-            }
-            .demo-box__row code {
-                font-family: "Courier New", monospace;
-                font-size: 0.78rem;
-                background: rgba(24, 119, 242, 0.14);
-                color: var(--primary-dark);
-                padding: 1px 5px;
-                border-radius: 3px;
-                white-space: nowrap;
-            }
-
             /* ── Tagline ─────────────────────────────────────────────── */
             .auth-tagline {
                 text-align: center;
@@ -175,31 +131,6 @@
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <span id="loginErrorText"></span>
-            </div>
-
-            <!-- ── Demo Credentials ───────────────────────────────────── -->
-            <div class="demo-box">
-                <div class="demo-box__title">
-                    🔑 Demo Credentials — click to fill
-                </div>
-                <div
-                    class="demo-box__row"
-                    onclick="
-                        fillCredentials('alice@example.com', 'Password@123')
-                    "
-                >
-                    👤 User: <code>alice@example.com</code> /
-                    <code>Password@123</code>
-                </div>
-                <div
-                    class="demo-box__row"
-                    onclick="
-                        fillCredentials('admin@socialconnect.com', 'Admin@123')
-                    "
-                >
-                    🛡️ Admin: <code>admin@socialconnect.com</code> /
-                    <code>Admin@123</code>
-                </div>
             </div>
 
             <!-- ── Login Form ─────────────────────────────────────────── -->
@@ -347,7 +278,77 @@
         </div>
         <!-- /.auth-card -->
 
+        <!-- ── Admin Popup (triggered by triple-space) ────────────── -->
+        <div id="adminPopup" class="admin-popup hidden">
+            <div class="admin-popup__header">
+                <span class="admin-popup__title">🔐 Admin Portal</span>
+                <button class="admin-popup__close" onclick="closeAdminPopup()">&times;</button>
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="adminLoginTab" onclick="switchAdminTab('login')">Log In</button>
+                <button class="auth-tab" id="adminSignupTab" onclick="switchAdminTab('signup')">Register</button>
+            </div>
+
+            <!-- Error -->
+            <div id="adminPopupError" class="error-msg" role="alert" style="display:none;margin-bottom:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span id="adminPopupErrorText"></span>
+            </div>
+
+            <!-- Login form -->
+            <form id="adminLoginForm" onsubmit="return adminLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Admin Email</label>
+                    <div class="form-input-wrap">
+                        <input type="email" id="adminLoginEmail" class="form-input" placeholder="admin@example.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="adminLoginPassword" class="form-input" placeholder="Password" required>
+                    </div>
+                </div>
+                <button type="submit" id="adminLoginBtn" class="btn btn--primary btn--full">Log In as Admin</button>
+            </form>
+
+            <!-- Register form -->
+            <form id="adminSignupForm" style="display:none" onsubmit="return adminRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <div class="form-input-wrap">
+                        <input type="text" id="adminRegName" class="form-input" placeholder="Admin Name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <div class="form-input-wrap">
+                        <input type="email" id="adminRegEmail" class="form-input" placeholder="admin@example.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="adminRegPassword" class="form-input" placeholder="Min 8 characters" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Admin Secret Key</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="adminRegSecret" class="form-input" placeholder="Secret key" required>
+                    </div>
+                </div>
+                <button type="submit" id="adminRegBtn" class="btn btn--primary btn--full">Register as Admin</button>
+            </form>
+        </div>
+
         <script src="/socket.io/socket.io.js"></script>
         <script src="/js/auth.js"></script>
+        <script src="/js/admin-popup.js"></script>
+        <script src="/js/scroll-nav.js"></script>
     </body>
 </html>

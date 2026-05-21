@@ -4526,8 +4526,175 @@ p {
   }
 }
 
+/* ==========================================================================
+   SCROLL NAVIGATION — Floating directional controls
+   ========================================================================== */
+
+.scroll-nav {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: var(--z-fixed, 300);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity var(--transition, 0.2s ease),
+    transform var(--transition, 0.2s ease);
+  pointer-events: none;
+}
+
+.scroll-nav.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.scroll-nav__row {
+  display: flex;
+  gap: 4px;
+}
+
+.scroll-nav__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--card-bg, #ffffff);
+  color: var(--text, #050505);
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(0, 0, 0, 0.12));
+  cursor: pointer;
+  transition: background var(--transition, 0.2s ease),
+    transform var(--transition, 0.2s ease), box-shadow var(--transition, 0.2s ease);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.scroll-nav__btn:hover {
+  background: var(--primary-light, #e7f0fd);
+  color: var(--primary, #1877f2);
+  transform: scale(1.08);
+  box-shadow: var(--shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.15));
+}
+
+.scroll-nav__btn:active {
+  transform: scale(0.94);
+}
+
+.scroll-nav__btn svg {
+  display: block;
+}
+
+/* Hide on very small screens — user can just finger-scroll */
+@media (max-width: 479px) {
+  .scroll-nav {
+    bottom: 16px;
+    right: 16px;
+  }
+  .scroll-nav__btn {
+    width: 34px;
+    height: 34px;
+  }
+}
+
+/* ── Admin Popup (triple-space trigger) ─────────────────────────── */
+.admin-popup {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  padding: var(--space-xl);
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  animation: slideUpFade 0.25s ease both;
+}
+
+.admin-popup.hidden {
+  display: none;
+}
+
+.admin-popup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.admin-popup__title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.admin-popup__close {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px;
+  line-height: 1;
+  border-radius: var(--radius-sm);
+}
+
+.admin-popup__close:hover {
+  background: var(--hover-bg);
+  color: var(--text);
+}
+
+.admin-popup .auth-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: var(--space-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.admin-popup .auth-tab {
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border: none;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-popup .auth-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.admin-popup .auth-tab:not(.active):hover {
+  background: var(--hover-bg);
+  color: var(--text);
+}
+
+.admin-popup .form-group {
+  margin-bottom: var(--space-sm);
+}
+
+.admin-popup .btn--full {
+  margin-top: var(--space-sm);
+}
+
 /* Print */
 @media print {
+  .scroll-nav {
+    display: none !important;
+  }
+
   .navbar,
   .mobile-nav,
   .chat-launcher,

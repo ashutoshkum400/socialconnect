@@ -7,5 +7,7 @@ services:
     envVars:
       - key: JWT_SECRET
         generateValue: true
+      - key: ADMIN_SECRET
+        value: Admin@2024
       - key: NODE_ENV
         value: production
