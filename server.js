@@ -1031,6 +1031,69 @@ io.on("connection", (socket) => {
     socket.to(room).emit("typing", { userId: socket.userId, typing });
   });
 
+  // ─── WebRTC Calling ───────────────────────────────────────────────────────
+  socket.on("call_user", ({ toUserId, callType }) => {
+    if (!socket.userId) return;
+    const caller = db.users.get(socket.userId);
+    const recipientSocket = onlineUsers.get(toUserId);
+    if (recipientSocket) {
+      io.to(recipientSocket).emit("incoming_call", {
+        from: caller ? sanitizeUser(caller) : { id: socket.userId },
+        callType,
+      });
+    } else {
+      socket.emit("user_not_available", { toUserId });
+    }
+  });
+
+  socket.on("call_accepted", ({ toUserId }) => {
+    if (!socket.userId) return;
+    const callerSocket = onlineUsers.get(toUserId);
+    if (callerSocket) {
+      io.to(callerSocket).emit("call_accepted", { from: socket.userId });
+    }
+  });
+
+  socket.on("call_rejected", ({ toUserId }) => {
+    if (!socket.userId) return;
+    const callerSocket = onlineUsers.get(toUserId);
+    if (callerSocket) {
+      io.to(callerSocket).emit("call_rejected", { from: socket.userId });
+    }
+  });
+
+  socket.on("call_end", ({ toUserId }) => {
+    if (!socket.userId) return;
+    const targetSocket = onlineUsers.get(toUserId);
+    if (targetSocket) {
+      io.to(targetSocket).emit("call_ended", { from: socket.userId });
+    }
+  });
+
+  socket.on("webrtc_offer", ({ toUserId, offer }) => {
+    if (!socket.userId) return;
+    const targetSocket = onlineUsers.get(toUserId);
+    if (targetSocket) {
+      io.to(targetSocket).emit("webrtc_offer", { from: socket.userId, offer });
+    }
+  });
+
+  socket.on("webrtc_answer", ({ toUserId, answer }) => {
+    if (!socket.userId) return;
+    const targetSocket = onlineUsers.get(toUserId);
+    if (targetSocket) {
+      io.to(targetSocket).emit("webrtc_answer", { from: socket.userId, answer });
+    }
+  });
+
+  socket.on("webrtc_ice_candidate", ({ toUserId, candidate }) => {
+    if (!socket.userId) return;
+    const targetSocket = onlineUsers.get(toUserId);
+    if (targetSocket) {
+      io.to(targetSocket).emit("webrtc_ice_candidate", { from: socket.userId, candidate });
+    }
+  });
+
   socket.on("disconnect", () => {
     if (socket.userId) {
       onlineUsers.delete(socket.userId);

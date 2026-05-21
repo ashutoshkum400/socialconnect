@@ -4694,6 +4694,318 @@ p {
   .scroll-nav {
     display: none !important;
   }
+  
+  /* ═══════════════════════════════════════════════════════════════════════
+     CALL UI OVERLAY — WebRTC Audio/Video Calling
+     ═══════════════════════════════════════════════════════════════════════ */
+  
+  .call-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10000;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    animation: callOverlayIn 0.3s ease-out;
+  }
+  
+  @keyframes callOverlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  
+  /* ── Incoming call content ──────────────────────────────────────────── */
+  
+  .call-overlay__content {
+    text-align: center;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  /* Ring pulse animation */
+  .call-overlay__ring-pulse {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    position: relative;
+    margin-bottom: 8px;
+  }
+  
+  .call-overlay__ring-pulse::before,
+  .call-overlay__ring-pulse::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid rgba(24, 119, 242, 0.4);
+    animation: ringPulse 1.5s ease-out infinite;
+  }
+  
+  .call-overlay__ring-pulse::after {
+    animation-delay: 0.75s;
+  }
+  
+  .call-overlay__ring-pulse--slow::before,
+  .call-overlay__ring-pulse--slow::after {
+    animation: ringPulse 3s ease-out infinite;
+  }
+  
+  .call-overlay__ring-pulse--slow::after {
+    animation-delay: 1.5s;
+  }
+  
+  @keyframes ringPulse {
+    0%   { transform: translate(-50%, -50%) scale(1);   opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+  }
+  
+  .call-overlay__avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  .call-overlay__avatar--large {
+    width: 120px;
+    height: 120px;
+    border-width: 4px;
+  }
+  
+  .call-overlay__name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    margin-top: 4px;
+  }
+  
+  .call-overlay__status {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 16px;
+  }
+  
+  /* ── Action buttons (Accept / Reject) ──────────────────────────────── */
+  
+  .call-overlay__actions {
+    display: flex;
+    gap: 32px;
+    margin-top: 8px;
+  }
+  
+  .call-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    color: #fff;
+  }
+  
+  .call-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .call-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .call-btn--accept {
+    background: #31a24c;
+  }
+  
+  .call-btn--reject {
+    background: #e53935;
+  }
+  
+  /* ── Active call overlay ────────────────────────────────────────────── */
+  
+  .call-overlay--active {
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+    background: #000;
+  }
+  
+  .call-overlay__remote-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  
+  .call-overlay__local-video {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 120px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 12px;
+    z-index: 1;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    background: #1a1a2e;
+  }
+  
+  /* Audio call background */
+  .call-overlay__audio-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+  }
+  
+  /* Info (name + timer) */
+  .call-overlay__info {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  
+  .call-overlay__timer {
+    font-size: 2rem;
+    font-weight: 300;
+    color: rgba(255, 255, 255, 0.9);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 2px;
+  }
+  
+  /* ── Control buttons (mute, video, speaker, end) ───────────────────── */
+  
+  .call-overlay__controls {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 16px 0;
+  }
+  
+  .call-control-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    cursor: pointer;
+    color: #fff;
+    transition: background 0.2s, transform 0.2s;
+    padding: 0;
+  }
+  
+  .call-control-btn svg {
+    margin-top: 14px;
+  }
+  
+  .call-control-btn span {
+    display: none; /* Labels hidden by default, shown on hover */
+  }
+  
+  .call-control-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+  }
+  
+  .call-control-btn:active {
+    transform: scale(0.95);
+  }
+  
+  .call-control-btn--active {
+    background: rgba(229, 57, 53, 0.7) !important;
+  }
+  
+  .call-control-btn--active:hover {
+    background: rgba(229, 57, 53, 0.85) !important;
+  }
+  
+  .call-control-btn--end {
+    background: #e53935 !important;
+    width: 64px;
+    height: 64px;
+  }
+  
+  .call-control-btn--end:hover {
+    background: #c62828 !important;
+  }
+  
+  .call-control-btn--end svg {
+    margin-top: 18px;
+  }
+  
+  /* ── Responsive ─────────────────────────────────────────────────────── */
+  
+  @media (max-width: 480px) {
+    .call-overlay__local-video {
+      width: 90px;
+      height: 120px;
+      top: 12px;
+      right: 12px;
+    }
+  
+    .call-control-btn {
+      width: 48px;
+      height: 48px;
+    }
+  
+    .call-control-btn--end {
+      width: 56px;
+      height: 56px;
+    }
+  
+    .call-overlay__controls {
+      gap: 14px;
+    }
+  }
+
+  /* Chat window call buttons */
+  .chat-window__call-btn {
+    color: var(--text-secondary, #65676b) !important;
+    transition: color 0.2s, background-color 0.2s !important;
+  }
+  .chat-window__call-btn:hover {
+    color: var(--primary-color, #1877f2) !important;
+    background-color: rgba(24, 119, 242, 0.1) !important;
+  }
+  .chat-window__call-btn[title="Video call"]:hover {
+    color: #e4405f !important;
+    background-color: rgba(228, 64, 95, 0.1) !important;
+  }
 
   .navbar,
   .mobile-nav,
