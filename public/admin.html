@@ -1,824 +1,1842 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard — SocialConnect</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>">
-  <link rel="stylesheet" href="/css/style.css">
-  <style>
-    /* ── Toggle Switch ───────────────────────────────────────── */
-    .admin-toggle {
-      position: relative;
-      display: inline-block;
-      width: 46px;
-      height: 26px;
-      flex-shrink: 0;
-      cursor: pointer;
-    }
-    .admin-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
-    .admin-toggle__slider {
-      position: absolute;
-      inset: 0;
-      background: var(--border);
-      border-radius: 26px;
-      transition: background var(--transition);
-    }
-    .admin-toggle__slider::before {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      left: 3px;
-      bottom: 3px;
-      background: white;
-      border-radius: 50%;
-      transition: transform var(--transition);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-    }
-    .admin-toggle input:checked + .admin-toggle__slider { background: var(--primary); }
-    .admin-toggle input:checked + .admin-toggle__slider::before { transform: translateX(20px); }
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Admin Dashboard — SocialConnect</title>
+        <link
+            rel="icon"
+            href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>"
+        />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/responsive.css" />
+        <style>
+            /* ── Toggle Switch ───────────────────────────────────────── */
+            .admin-toggle {
+                position: relative;
+                display: inline-block;
+                width: 46px;
+                height: 26px;
+                flex-shrink: 0;
+                cursor: pointer;
+            }
+            .admin-toggle input {
+                opacity: 0;
+                width: 0;
+                height: 0;
+                position: absolute;
+            }
+            .admin-toggle__slider {
+                position: absolute;
+                inset: 0;
+                background: var(--border);
+                border-radius: 26px;
+                transition: background var(--transition);
+            }
+            .admin-toggle__slider::before {
+                content: "";
+                position: absolute;
+                width: 20px;
+                height: 20px;
+                left: 3px;
+                bottom: 3px;
+                background: white;
+                border-radius: 50%;
+                transition: transform var(--transition);
+                box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+            }
+            .admin-toggle input:checked + .admin-toggle__slider {
+                background: var(--primary);
+            }
+            .admin-toggle input:checked + .admin-toggle__slider::before {
+                transform: translateX(20px);
+            }
 
-    /* ── Analytics ───────────────────────────────────────────── */
-    .analytics-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    .analytics-card {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: var(--shadow);
-    }
-    .analytics-card__title {
-      font-weight: 700;
-      font-size: var(--font-size-base);
-      margin-bottom: 16px;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .bar-chart { display: flex; flex-direction: column; gap: 10px; }
-    .bar-row { display: flex; align-items: center; gap: 10px; }
-    .bar-label {
-      width: 110px;
-      font-size: 0.78rem;
-      color: var(--text-secondary);
-      text-align: right;
-      flex-shrink: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .bar-track {
-      flex: 1;
-      background: var(--bg);
-      border-radius: 99px;
-      height: 22px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 99px;
-      transition: width 0.7s cubic-bezier(.22,.68,0,1.2);
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding-right: 8px;
-      min-width: 28px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      color: white;
-    }
-    .bar-fill--blue   { background: linear-gradient(90deg,#1877f2,#1558b0); }
-    .bar-fill--green  { background: linear-gradient(90deg,#42b72a,#2d8a1b); }
-    .bar-fill--pink   { background: linear-gradient(90deg,#e4405f,#c0314f); }
-    .bar-fill--purple { background: linear-gradient(90deg,#7c3aed,#5b21b6); }
-    .bar-fill--orange { background: linear-gradient(90deg,#f7b928,#e09000); }
-    .bar-fill--teal   { background: linear-gradient(90deg,#0891b2,#0e7490); }
+            /* ── Analytics ───────────────────────────────────────────── */
+            .analytics-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                margin-bottom: 24px;
+            }
+            .analytics-card {
+                background: var(--card-bg);
+                border-radius: var(--radius);
+                padding: 20px;
+                box-shadow: var(--shadow);
+            }
+            .analytics-card__title {
+                font-weight: 700;
+                font-size: var(--font-size-base);
+                margin-bottom: 16px;
+                color: var(--text);
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .bar-chart {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .bar-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .bar-label {
+                width: 110px;
+                font-size: 0.78rem;
+                color: var(--text-secondary);
+                text-align: right;
+                flex-shrink: 0;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .bar-track {
+                flex: 1;
+                background: var(--bg);
+                border-radius: 99px;
+                height: 22px;
+                overflow: hidden;
+            }
+            .bar-fill {
+                height: 100%;
+                border-radius: 99px;
+                transition: width 0.7s cubic-bezier(0.22, 0.68, 0, 1.2);
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 8px;
+                min-width: 28px;
+                font-size: 0.7rem;
+                font-weight: 700;
+                color: white;
+            }
+            .bar-fill--blue {
+                background: linear-gradient(90deg, #1877f2, #1558b0);
+            }
+            .bar-fill--green {
+                background: linear-gradient(90deg, #42b72a, #2d8a1b);
+            }
+            .bar-fill--pink {
+                background: linear-gradient(90deg, #e4405f, #c0314f);
+            }
+            .bar-fill--purple {
+                background: linear-gradient(90deg, #7c3aed, #5b21b6);
+            }
+            .bar-fill--orange {
+                background: linear-gradient(90deg, #f7b928, #e09000);
+            }
+            .bar-fill--teal {
+                background: linear-gradient(90deg, #0891b2, #0e7490);
+            }
 
-    /* ── Pie / Donut ─────────────────────────────────────────── */
-    .pie-chart {
-      width: 140px;
-      height: 140px;
-      border-radius: 50%;
-      margin: 12px auto 16px;
-    }
-    .pie-legend { display: flex; flex-direction: column; gap: 8px; }
-    .pie-legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: var(--text-secondary); }
-    .pie-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+            /* ── Pie / Donut ─────────────────────────────────────────── */
+            .pie-chart {
+                width: 140px;
+                height: 140px;
+                border-radius: 50%;
+                margin: 12px auto 16px;
+            }
+            .pie-legend {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .pie-legend-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+            }
+            .pie-legend-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                flex-shrink: 0;
+            }
 
-    /* ── Sortable columns ────────────────────────────────────── */
-    .sortable { cursor: pointer; user-select: none; }
-    .sortable:hover { background: var(--primary-light) !important; color: var(--primary); }
-    .sort-icon { opacity: 0.35; font-size: 0.7rem; margin-left: 2px; }
-    .sort-icon.asc, .sort-icon.desc { opacity: 1; color: var(--primary); }
+            /* ── Sortable columns ────────────────────────────────────── */
+            .sortable {
+                cursor: pointer;
+                user-select: none;
+            }
+            .sortable:hover {
+                background: var(--primary-light) !important;
+                color: var(--primary);
+            }
+            .sort-icon {
+                opacity: 0.35;
+                font-size: 0.7rem;
+                margin-left: 2px;
+            }
+            .sort-icon.asc,
+            .sort-icon.desc {
+                opacity: 1;
+                color: var(--primary);
+            }
 
-    /* ── Action buttons in table ─────────────────────────────── */
-    .action-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-      padding: 4px 9px;
-      border: none;
-      border-radius: var(--radius-xs);
-      cursor: pointer;
-      font-size: 0.72rem;
-      font-weight: 700;
-      transition: all var(--transition);
-      white-space: nowrap;
-      line-height: 1.4;
-    }
-    .action-btn:hover { opacity: 0.82; transform: translateY(-1px); }
-    .action-btn:active { transform: scale(0.96); }
-    .action-btn--view    { background: var(--primary-light); color: var(--primary); }
-    .action-btn--edit    { background: var(--warning-light);  color: #a07000; }
-    .action-btn--block   { background: var(--danger-light);   color: var(--danger); }
-    .action-btn--unblock { background: var(--success-light);  color: var(--success); }
-    .action-btn--delete  { background: #fde8e8; color: #c00; }
+            /* ── Action buttons in table ─────────────────────────────── */
+            .action-btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 3px;
+                padding: 4px 9px;
+                border: none;
+                border-radius: var(--radius-xs);
+                cursor: pointer;
+                font-size: 0.72rem;
+                font-weight: 700;
+                transition: all var(--transition);
+                white-space: nowrap;
+                line-height: 1.4;
+            }
+            .action-btn:hover {
+                opacity: 0.82;
+                transform: translateY(-1px);
+            }
+            .action-btn:active {
+                transform: scale(0.96);
+            }
+            .action-btn--view {
+                background: var(--primary-light);
+                color: var(--primary);
+            }
+            .action-btn--edit {
+                background: var(--warning-light);
+                color: #a07000;
+            }
+            .action-btn--block {
+                background: var(--danger-light);
+                color: var(--danger);
+            }
+            .action-btn--unblock {
+                background: var(--success-light);
+                color: var(--success);
+            }
+            .action-btn--delete {
+                background: #fde8e8;
+                color: #c00;
+            }
 
-    /* ── User stat mini (edit modal) ─────────────────────────── */
-    .user-stat-mini {
-      text-align: center;
-      padding: 10px 8px;
-      background: var(--card-bg);
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border-light);
-    }
-    .user-stat-mini__value { font-size: 1.4rem; font-weight: 900; color: var(--primary); line-height: 1.2; }
-    .user-stat-mini__label { font-size: 0.68rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+            /* ── User stat mini (edit modal) ─────────────────────────── */
+            .user-stat-mini {
+                text-align: center;
+                padding: 10px 8px;
+                background: var(--card-bg);
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border-light);
+            }
+            .user-stat-mini__value {
+                font-size: 1.4rem;
+                font-weight: 900;
+                color: var(--primary);
+                line-height: 1.2;
+            }
+            .user-stat-mini__label {
+                font-size: 0.68rem;
+                color: var(--text-muted);
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                margin-top: 2px;
+            }
 
-    /* ── View user card ──────────────────────────────────────── */
-    .view-user-cover { width: 100%; height: 120px; object-fit: cover; display: block; }
-    .view-user-body { padding: 0 24px 24px; }
-    .view-user-avatar-row { display: flex; align-items: flex-end; gap: 14px; margin-top: -36px; margin-bottom: 14px; flex-wrap: wrap; }
-    .view-user-avatar { width: 74px; height: 74px; border-radius: 50%; object-fit: cover; border: 4px solid var(--card-bg); flex-shrink: 0; }
-    .view-user-name { font-size: 1.2rem; font-weight: 800; }
-    .view-user-username { color: var(--text-secondary); font-size: 0.875rem; margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .view-user-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin: 14px 0; }
-    .view-user-stat { text-align: center; padding: 10px 6px; background: var(--bg); border-radius: var(--radius-sm); }
-    .view-user-stat__value { font-size: 1.2rem; font-weight: 900; color: var(--primary); }
-    .view-user-stat__label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
-    .view-user-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-    .view-user-info-item { display: flex; flex-direction: column; gap: 2px; }
-    .view-user-info-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.05em; }
-    .view-user-info-value { font-size: 0.875rem; color: var(--text); font-weight: 500; }
+            /* ── View user card ──────────────────────────────────────── */
+            .view-user-cover {
+                width: 100%;
+                height: 120px;
+                object-fit: cover;
+                display: block;
+            }
+            .view-user-body {
+                padding: 0 24px 24px;
+            }
+            .view-user-avatar-row {
+                display: flex;
+                align-items: flex-end;
+                gap: 14px;
+                margin-top: -36px;
+                margin-bottom: 14px;
+                flex-wrap: wrap;
+            }
+            .view-user-avatar {
+                width: 74px;
+                height: 74px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 4px solid var(--card-bg);
+                flex-shrink: 0;
+            }
+            .view-user-name {
+                font-size: 1.2rem;
+                font-weight: 800;
+            }
+            .view-user-username {
+                color: var(--text-secondary);
+                font-size: 0.875rem;
+                margin-top: 2px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .view-user-stats {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+                margin: 14px 0;
+            }
+            .view-user-stat {
+                text-align: center;
+                padding: 10px 6px;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+            }
+            .view-user-stat__value {
+                font-size: 1.2rem;
+                font-weight: 900;
+                color: var(--primary);
+            }
+            .view-user-stat__label {
+                font-size: 0.65rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+            }
+            .view-user-info-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 14px;
+            }
+            .view-user-info-item {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+            .view-user-info-label {
+                font-size: 0.68rem;
+                color: var(--text-muted);
+                text-transform: uppercase;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+            }
+            .view-user-info-value {
+                font-size: 0.875rem;
+                color: var(--text);
+                font-weight: 500;
+            }
 
-    /* ── Loading states ──────────────────────────────────────── */
-    .loading-row td {
-      text-align: center !important;
-      padding: 48px !important;
-      color: var(--text-muted) !important;
-      background: none !important;
-    }
-    .loading-spinner {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
+            /* ── Loading states ──────────────────────────────────────── */
+            .loading-row td {
+                text-align: center !important;
+                padding: 48px !important;
+                color: var(--text-muted) !important;
+                background: none !important;
+            }
+            .loading-spinner {
+                display: inline-block;
+                width: 20px;
+                height: 20px;
+                border: 3px solid var(--border);
+                border-top-color: var(--primary);
+                border-radius: 50%;
+                animation: spin 0.75s linear infinite;
+                margin-right: 8px;
+                vertical-align: middle;
+            }
 
-    /* ── Post thumbnail ──────────────────────────────────────── */
-    .post-thumb {
-      width: 46px;
-      height: 46px;
-      object-fit: cover;
-      border-radius: var(--radius-xs);
-      border: 1px solid var(--border-light);
-    }
+            /* ── Post thumbnail ──────────────────────────────────────── */
+            .post-thumb {
+                width: 46px;
+                height: 46px;
+                object-fit: cover;
+                border-radius: var(--radius-xs);
+                border: 1px solid var(--border-light);
+            }
 
-    /* ── Settings row ────────────────────────────────────────── */
-    .settings-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 14px 16px;
-      background: var(--bg);
-      border-radius: var(--radius-sm);
-      margin-bottom: 12px;
-    }
-    .settings-row__label { font-weight: 600; font-size: 0.9375rem; }
-    .settings-row__hint  { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+            /* ── Settings row ────────────────────────────────────────── */
+            .settings-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 14px 16px;
+                background: var(--bg);
+                border-radius: var(--radius-sm);
+                margin-bottom: 12px;
+            }
+            .settings-row__label {
+                font-weight: 600;
+                font-size: 0.9375rem;
+            }
+            .settings-row__hint {
+                font-size: 0.8rem;
+                color: var(--text-muted);
+                margin-top: 2px;
+            }
 
-    /* ── Mobile sidebar ──────────────────────────────────────── */
-    @media (max-width: 767px) {
-      .admin-sidebar { transform: translateX(-100%); transition: transform 0.28s ease; }
-      .admin-sidebar.open { transform: translateX(0); }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        z-index: calc(var(--z-fixed) - 1);
-        backdrop-filter: blur(2px);
-      }
-      .sidebar-overlay.visible { display: block; animation: fadeIn 0.2s ease both; }
-      #sidebarToggle { display: flex !important; }
-    }
-    @media (min-width: 768px) { #sidebarToggle { display: none !important; } }
-  </style>
-</head>
-<body>
+            /* ── Mobile sidebar ──────────────────────────────────────── */
+            @media (max-width: 767px) {
+                .admin-sidebar {
+                    transform: translateX(-100%);
+                    transition: transform 0.28s ease;
+                }
+                .admin-sidebar.open {
+                    transform: translateX(0);
+                }
+                .sidebar-overlay {
+                    display: none;
+                    position: fixed;
+                    inset: 0;
+                    background: rgba(0, 0, 0, 0.5);
+                    z-index: calc(var(--z-fixed) - 1);
+                    backdrop-filter: blur(2px);
+                }
+                .sidebar-overlay.visible {
+                    display: block;
+                    animation: fadeIn 0.2s ease both;
+                }
+                #sidebarToggle {
+                    display: flex !important;
+                }
+            }
+            @media (min-width: 768px) {
+                #sidebarToggle {
+                    display: none !important;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Toast Container -->
+        <div class="toast-container" id="toastContainer"></div>
 
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer"></div>
+        <!-- Mobile sidebar overlay -->
+        <div
+            class="sidebar-overlay"
+            id="sidebarOverlay"
+            onclick="closeSidebar()"
+        ></div>
 
-<!-- Mobile sidebar overlay -->
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+        <div class="admin-layout">
+            <!-- ════════════════════════════ SIDEBAR ════════════════════════════════════ -->
+            <aside class="admin-sidebar" id="adminSidebar">
+                <!-- Logo -->
+                <a
+                    class="admin-sidebar__logo"
+                    href="#"
+                    onclick="navClick(event, 'dashboard')"
+                >
+                    <div class="admin-sidebar__logo-icon">🛡️</div>
+                    <span class="admin-sidebar__logo-text">SocialConnect</span>
+                    <span class="admin-sidebar__logo-badge">Admin</span>
+                </a>
 
-<div class="admin-layout">
+                <!-- Navigation -->
+                <nav class="admin-nav">
+                    <div class="admin-nav__section-title">Overview</div>
+                    <a
+                        class="admin-nav__item active"
+                        data-section="dashboard"
+                        href="#dashboard"
+                        onclick="navClick(event, 'dashboard')"
+                    >
+                        <span class="admin-nav__icon">📊</span>
+                        Dashboard
+                    </a>
 
-  <!-- ════════════════════════════ SIDEBAR ════════════════════════════════════ -->
-  <aside class="admin-sidebar" id="adminSidebar">
+                    <div class="admin-nav__section-title">Management</div>
+                    <a
+                        class="admin-nav__item"
+                        data-section="users"
+                        href="#users"
+                        onclick="navClick(event, 'users')"
+                    >
+                        <span class="admin-nav__icon">👥</span>
+                        Users
+                        <span
+                            class="admin-nav__badge"
+                            id="navUsersBadge"
+                            style="display: none"
+                            >0</span
+                        >
+                    </a>
+                    <a
+                        class="admin-nav__item"
+                        data-section="posts"
+                        href="#posts"
+                        onclick="navClick(event, 'posts')"
+                    >
+                        <span class="admin-nav__icon">📝</span>
+                        Posts
+                        <span
+                            class="admin-nav__badge"
+                            id="navPostsBadge"
+                            style="display: none"
+                            >0</span
+                        >
+                    </a>
+                    <a
+                        class="admin-nav__item"
+                        data-section="messages"
+                        href="#messages"
+                        onclick="navClick(event, 'messages')"
+                    >
+                        <span class="admin-nav__icon">💬</span>
+                        Messages
+                    </a>
 
-    <!-- Logo -->
-    <a class="admin-sidebar__logo" href="#" onclick="navClick(event,'dashboard')">
-      <div class="admin-sidebar__logo-icon">🛡️</div>
-      <span class="admin-sidebar__logo-text">SocialConnect</span>
-      <span class="admin-sidebar__logo-badge">Admin</span>
-    </a>
+                    <div class="admin-nav__section-title">Insights</div>
+                    <a
+                        class="admin-nav__item"
+                        data-section="analytics"
+                        href="#analytics"
+                        onclick="navClick(event, 'analytics')"
+                    >
+                        <span class="admin-nav__icon">📈</span>
+                        Analytics
+                    </a>
 
-    <!-- Navigation -->
-    <nav class="admin-nav">
-      <div class="admin-nav__section-title">Overview</div>
-      <a class="admin-nav__item active" data-section="dashboard" href="#dashboard" onclick="navClick(event,'dashboard')">
-        <span class="admin-nav__icon">📊</span>
-        Dashboard
-      </a>
+                    <div class="admin-nav__section-title">System</div>
+                    <a
+                        class="admin-nav__item"
+                        data-section="settings"
+                        href="#settings"
+                        onclick="navClick(event, 'settings')"
+                    >
+                        <span class="admin-nav__icon">⚙️</span>
+                        Settings
+                    </a>
+                </nav>
 
-      <div class="admin-nav__section-title">Management</div>
-      <a class="admin-nav__item" data-section="users" href="#users" onclick="navClick(event,'users')">
-        <span class="admin-nav__icon">👥</span>
-        Users
-        <span class="admin-nav__badge" id="navUsersBadge" style="display:none;">0</span>
-      </a>
-      <a class="admin-nav__item" data-section="posts" href="#posts" onclick="navClick(event,'posts')">
-        <span class="admin-nav__icon">📝</span>
-        Posts
-        <span class="admin-nav__badge" id="navPostsBadge" style="display:none;">0</span>
-      </a>
-      <a class="admin-nav__item" data-section="messages" href="#messages" onclick="navClick(event,'messages')">
-        <span class="admin-nav__icon">💬</span>
-        Messages
-      </a>
+                <!-- Footer: admin info + logout -->
+                <div class="admin-sidebar__footer">
+                    <img
+                        id="sidebarAvatar"
+                        class="admin-sidebar__footer-avatar"
+                        src="https://ui-avatars.com/api/?name=Admin&background=1877f2&color=fff&size=128"
+                        alt="Admin"
+                    />
+                    <div class="admin-sidebar__footer-info">
+                        <div
+                            class="admin-sidebar__footer-name"
+                            id="sidebarName"
+                        >
+                            Admin User
+                        </div>
+                        <div class="admin-sidebar__footer-role">
+                            Administrator
+                        </div>
+                    </div>
+                    <button
+                        class="btn btn--ghost btn--icon btn--sm"
+                        onclick="logout()"
+                        title="Logout"
+                        style="
+                            color: rgba(255, 255, 255, 0.55);
+                            font-size: 1rem;
+                            flex-shrink: 0;
+                        "
+                    >
+                        🚪
+                    </button>
+                </div>
+            </aside>
 
-      <div class="admin-nav__section-title">Insights</div>
-      <a class="admin-nav__item" data-section="analytics" href="#analytics" onclick="navClick(event,'analytics')">
-        <span class="admin-nav__icon">📈</span>
-        Analytics
-      </a>
+            <!-- ══════════════════════════════ MAIN ═════════════════════════════════════ -->
+            <main class="admin-main">
+                <!-- Topbar -->
+                <div class="admin-topbar">
+                    <button
+                        class="btn btn--ghost btn--icon"
+                        id="sidebarToggle"
+                        onclick="toggleSidebar()"
+                        style="display: none"
+                        title="Toggle sidebar"
+                    >
+                        ☰
+                    </button>
+                    <h1 class="admin-topbar__title" id="pageTitle">
+                        Dashboard
+                    </h1>
+                    <div class="admin-topbar__spacer"></div>
+                    <div class="form-input-wrap" style="max-width: 260px">
+                        <span
+                            class="form-input-icon"
+                            style="font-size: 0.875rem; pointer-events: none"
+                            >🔍</span
+                        >
+                        <input
+                            type="search"
+                            class="form-input"
+                            id="adminSearch"
+                            placeholder="Search users…"
+                            style="
+                                height: 36px;
+                                font-size: 0.8rem;
+                                padding-left: 36px;
+                            "
+                            oninput="adminSearchHandler(this.value)"
+                        />
+                    </div>
+                    <div
+                        style="
+                            display: flex;
+                            align-items: center;
+                            gap: 10px;
+                            margin-left: 16px;
+                            flex-shrink: 0;
+                        "
+                    >
+                        <img
+                            id="topbarAvatar"
+                            src="https://ui-avatars.com/api/?name=Admin&background=1877f2&color=fff&size=128"
+                            alt="Admin"
+                            style="
+                                width: 34px;
+                                height: 34px;
+                                border-radius: 50%;
+                                object-fit: cover;
+                                border: 2px solid var(--border);
+                            "
+                        />
+                        <span
+                            id="topbarName"
+                            style="
+                                font-weight: 700;
+                                font-size: 0.875rem;
+                                white-space: nowrap;
+                                color: var(--text);
+                            "
+                            >Admin User</span
+                        >
+                    </div>
+                </div>
+                <!-- /topbar -->
 
-      <div class="admin-nav__section-title">System</div>
-      <a class="admin-nav__item" data-section="settings" href="#settings" onclick="navClick(event,'settings')">
-        <span class="admin-nav__icon">⚙️</span>
-        Settings
-      </a>
-    </nav>
+                <!-- Content -->
+                <div class="admin-content">
+                    <!-- ████ SECTION: DASHBOARD ████ -->
+                    <section id="dashboardSection">
+                        <h2 class="admin-page-title">📊 Dashboard Overview</h2>
 
-    <!-- Footer: admin info + logout -->
-    <div class="admin-sidebar__footer">
-      <img id="sidebarAvatar" class="admin-sidebar__footer-avatar"
-        src="https://ui-avatars.com/api/?name=Admin&background=1877f2&color=fff&size=128" alt="Admin">
-      <div class="admin-sidebar__footer-info">
-        <div class="admin-sidebar__footer-name" id="sidebarName">Admin User</div>
-        <div class="admin-sidebar__footer-role">Administrator</div>
-      </div>
-      <button class="btn btn--ghost btn--icon btn--sm" onclick="logout()" title="Logout"
-        style="color:rgba(255,255,255,0.55); font-size:1rem; flex-shrink:0;">🚪</button>
-    </div>
-  </aside>
+                        <!-- Stats cards -->
+                        <div class="admin-stats-grid">
+                            <div class="admin-stat-card admin-stat-card--blue">
+                                <div class="admin-stat-card__label">
+                                    Total Users
+                                </div>
+                                <div
+                                    class="admin-stat-card__value"
+                                    id="statTotalUsers"
+                                >
+                                    —
+                                </div>
+                                <div class="admin-stat-card__change">
+                                    ↑ All registered members
+                                </div>
+                                <div class="admin-stat-card__icon">👥</div>
+                            </div>
+                            <div class="admin-stat-card admin-stat-card--green">
+                                <div class="admin-stat-card__label">
+                                    Active Users
+                                </div>
+                                <div
+                                    class="admin-stat-card__value"
+                                    id="statActiveUsers"
+                                >
+                                    —
+                                </div>
+                                <div class="admin-stat-card__change">
+                                    🟢 Currently online
+                                </div>
+                                <div class="admin-stat-card__icon">✅</div>
+                            </div>
+                            <div class="admin-stat-card admin-stat-card--pink">
+                                <div class="admin-stat-card__label">
+                                    Blocked Users
+                                </div>
+                                <div
+                                    class="admin-stat-card__value"
+                                    id="statBlockedUsers"
+                                >
+                                    —
+                                </div>
+                                <div class="admin-stat-card__change">
+                                    🚫 Suspended accounts
+                                </div>
+                                <div class="admin-stat-card__icon">🚫</div>
+                            </div>
+                            <div
+                                class="admin-stat-card admin-stat-card--purple"
+                            >
+                                <div class="admin-stat-card__label">
+                                    Total Posts
+                                </div>
+                                <div
+                                    class="admin-stat-card__value"
+                                    id="statTotalPosts"
+                                >
+                                    —
+                                </div>
+                                <div class="admin-stat-card__change">
+                                    📝 Published content
+                                </div>
+                                <div class="admin-stat-card__icon">📝</div>
+                            </div>
+                            <div
+                                class="admin-stat-card admin-stat-card--orange"
+                            >
+                                <div class="admin-stat-card__label">
+                                    Total Messages
+                                </div>
+                                <div
+                                    class="admin-stat-card__value"
+                                    id="statTotalMessages"
+                                >
+                                    —
+                                </div>
+                                <div class="admin-stat-card__change">
+                                    💬 All-time messages
+                                </div>
+                                <div class="admin-stat-card__icon">💬</div>
+                            </div>
+                        </div>
 
-  <!-- ══════════════════════════════ MAIN ═════════════════════════════════════ -->
-  <main class="admin-main">
+                        <!-- Recently joined users -->
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <div class="admin-table-title">
+                                    🆕 Recently Joined Users
+                                </div>
+                                <div
+                                    style="
+                                        display: flex;
+                                        gap: 8px;
+                                        flex-wrap: wrap;
+                                    "
+                                >
+                                    <button
+                                        class="btn btn--primary btn--sm"
+                                        onclick="openAddUserModal()"
+                                    >
+                                        + Add New User
+                                    </button>
+                                    <button
+                                        class="btn btn--outline-primary btn--sm"
+                                        onclick="switchSection('users')"
+                                    >
+                                        View All →
+                                    </button>
+                                </div>
+                            </div>
+                            <div style="overflow-x: auto">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>User</th>
+                                            <th>Username</th>
+                                            <th>Location</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentUsersBody">
+                                        <tr class="loading-row">
+                                            <td colspan="6">
+                                                <span
+                                                    class="loading-spinner"
+                                                ></span
+                                                >Loading…
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- /dashboardSection -->
 
-    <!-- Topbar -->
-    <div class="admin-topbar">
-      <button class="btn btn--ghost btn--icon" id="sidebarToggle" onclick="toggleSidebar()" style="display:none;" title="Toggle sidebar">☰</button>
-      <h1 class="admin-topbar__title" id="pageTitle">Dashboard</h1>
-      <div class="admin-topbar__spacer"></div>
-      <div class="form-input-wrap" style="max-width:260px;">
-        <span class="form-input-icon" style="font-size:0.875rem; pointer-events:none;">🔍</span>
-        <input type="search" class="form-input" id="adminSearch"
-          placeholder="Search users…"
-          style="height:36px; font-size:0.8rem; padding-left:36px;"
-          oninput="adminSearchHandler(this.value)">
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;margin-left:16px;flex-shrink:0;">
-        <img id="topbarAvatar"
-          src="https://ui-avatars.com/api/?name=Admin&background=1877f2&color=fff&size=128"
-          alt="Admin"
-          style="width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid var(--border);">
-        <span id="topbarName" style="font-weight:700;font-size:0.875rem;white-space:nowrap;color:var(--text);">Admin User</span>
-      </div>
-    </div><!-- /topbar -->
+                    <!-- ████ SECTION: USERS ████ -->
+                    <section id="usersSection" class="hidden">
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                margin-bottom: 24px;
+                                flex-wrap: wrap;
+                                gap: 12px;
+                            "
+                        >
+                            <h2 class="admin-page-title" style="margin: 0">
+                                👥 User Management
+                            </h2>
+                            <button
+                                class="btn btn--primary"
+                                id="addUserBtn"
+                                onclick="openAddUserModal()"
+                            >
+                                + Add New User
+                            </button>
+                        </div>
 
-    <!-- Content -->
-    <div class="admin-content">
+                        <!-- Filter bar -->
+                        <div
+                            class="admin-table-wrap"
+                            style="margin-bottom: 14px"
+                        >
+                            <div
+                                style="
+                                    display: flex;
+                                    gap: 12px;
+                                    padding: 13px 18px;
+                                    flex-wrap: wrap;
+                                    align-items: center;
+                                "
+                            >
+                                <div
+                                    class="form-input-wrap"
+                                    style="
+                                        flex: 1;
+                                        min-width: 180px;
+                                        max-width: 320px;
+                                    "
+                                >
+                                    <span
+                                        class="form-input-icon"
+                                        style="font-size: 0.875rem"
+                                        >🔍</span
+                                    >
+                                    <input
+                                        type="search"
+                                        class="form-input"
+                                        id="usersSearch"
+                                        placeholder="Search name, email, username…"
+                                        style="
+                                            height: 36px;
+                                            font-size: 0.8rem;
+                                            padding-left: 36px;
+                                        "
+                                        oninput="applyFilters()"
+                                    />
+                                </div>
+                                <select
+                                    class="form-select"
+                                    id="filterRole"
+                                    style="width: 140px; height: 36px"
+                                    onchange="applyFilters()"
+                                >
+                                    <option value="">All Roles</option>
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                                <select
+                                    class="form-select"
+                                    id="filterStatus"
+                                    style="width: 150px; height: 36px"
+                                    onchange="applyFilters()"
+                                >
+                                    <option value="">All Status</option>
+                                    <option value="active">Active</option>
+                                    <option value="blocked">Blocked</option>
+                                </select>
+                                <button
+                                    class="btn btn--ghost btn--sm"
+                                    onclick="clearFilters()"
+                                    title="Clear filters"
+                                >
+                                    ✕ Clear
+                                </button>
+                                <span
+                                    id="usersCount"
+                                    style="
+                                        color: var(--text-muted);
+                                        font-size: 0.8125rem;
+                                        margin-left: auto;
+                                    "
+                                ></span>
+                            </div>
+                        </div>
 
-      <!-- ████ SECTION: DASHBOARD ████ -->
-      <section id="dashboardSection">
-        <h2 class="admin-page-title">📊 Dashboard Overview</h2>
+                        <!-- Users table -->
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <div class="admin-table-title">All Members</div>
+                                <button
+                                    class="btn btn--ghost btn--sm"
+                                    onclick="loadUsers()"
+                                    title="Refresh table"
+                                >
+                                    🔄 Refresh
+                                </button>
+                            </div>
+                            <div style="overflow-x: auto">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th
+                                                class="sortable"
+                                                onclick="sortTable('name')"
+                                                data-col="name"
+                                            >
+                                                User
+                                                <span
+                                                    class="sort-icon"
+                                                    id="sort-name"
+                                                    >↕</span
+                                                >
+                                            </th>
+                                            <th
+                                                class="sortable"
+                                                onclick="sortTable('username')"
+                                                data-col="username"
+                                            >
+                                                Username
+                                                <span
+                                                    class="sort-icon"
+                                                    id="sort-username"
+                                                    >↕</span
+                                                >
+                                            </th>
+                                            <th
+                                                class="sortable"
+                                                onclick="sortTable('email')"
+                                                data-col="email"
+                                            >
+                                                Email
+                                                <span
+                                                    class="sort-icon"
+                                                    id="sort-email"
+                                                    >↕</span
+                                                >
+                                            </th>
+                                            <th>Role</th>
+                                            <th
+                                                class="sortable"
+                                                onclick="sortTable('location')"
+                                                data-col="location"
+                                            >
+                                                Location
+                                                <span
+                                                    class="sort-icon"
+                                                    id="sort-location"
+                                                    >↕</span
+                                                >
+                                            </th>
+                                            <th>Status</th>
+                                            <th
+                                                class="sortable"
+                                                onclick="sortTable('joinedAt')"
+                                                data-col="joinedAt"
+                                            >
+                                                Joined
+                                                <span
+                                                    class="sort-icon desc"
+                                                    id="sort-joinedAt"
+                                                    >↓</span
+                                                >
+                                            </th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="usersTableBody">
+                                        <tr class="loading-row">
+                                            <td colspan="8">
+                                                <span
+                                                    class="loading-spinner"
+                                                ></span
+                                                >Loading users…
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- Pagination -->
+                            <div
+                                id="usersPagination"
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: space-between;
+                                    padding: 12px 18px;
+                                    border-top: 1px solid var(--border-light);
+                                    flex-wrap: wrap;
+                                    gap: 8px;
+                                "
+                            >
+                                <span
+                                    id="paginationInfo"
+                                    style="
+                                        font-size: 0.8125rem;
+                                        color: var(--text-muted);
+                                    "
+                                ></span>
+                                <div
+                                    id="paginationButtons"
+                                    style="
+                                        display: flex;
+                                        gap: 4px;
+                                        flex-wrap: wrap;
+                                    "
+                                ></div>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- /usersSection -->
 
-        <!-- Stats cards -->
-        <div class="admin-stats-grid">
-          <div class="admin-stat-card admin-stat-card--blue">
-            <div class="admin-stat-card__label">Total Users</div>
-            <div class="admin-stat-card__value" id="statTotalUsers">—</div>
-            <div class="admin-stat-card__change">↑ All registered members</div>
-            <div class="admin-stat-card__icon">👥</div>
-          </div>
-          <div class="admin-stat-card admin-stat-card--green">
-            <div class="admin-stat-card__label">Active Users</div>
-            <div class="admin-stat-card__value" id="statActiveUsers">—</div>
-            <div class="admin-stat-card__change">🟢 Currently online</div>
-            <div class="admin-stat-card__icon">✅</div>
-          </div>
-          <div class="admin-stat-card admin-stat-card--pink">
-            <div class="admin-stat-card__label">Blocked Users</div>
-            <div class="admin-stat-card__value" id="statBlockedUsers">—</div>
-            <div class="admin-stat-card__change">🚫 Suspended accounts</div>
-            <div class="admin-stat-card__icon">🚫</div>
-          </div>
-          <div class="admin-stat-card admin-stat-card--purple">
-            <div class="admin-stat-card__label">Total Posts</div>
-            <div class="admin-stat-card__value" id="statTotalPosts">—</div>
-            <div class="admin-stat-card__change">📝 Published content</div>
-            <div class="admin-stat-card__icon">📝</div>
-          </div>
-          <div class="admin-stat-card admin-stat-card--orange">
-            <div class="admin-stat-card__label">Total Messages</div>
-            <div class="admin-stat-card__value" id="statTotalMessages">—</div>
-            <div class="admin-stat-card__change">💬 All-time messages</div>
-            <div class="admin-stat-card__icon">💬</div>
-          </div>
+                    <!-- ████ SECTION: POSTS ████ -->
+                    <section id="postsSection" class="hidden">
+                        <div
+                            style="
+                                display: flex;
+                                align-items: center;
+                                justify-content: space-between;
+                                margin-bottom: 24px;
+                                flex-wrap: wrap;
+                                gap: 12px;
+                            "
+                        >
+                            <h2 class="admin-page-title" style="margin: 0">
+                                📝 Posts Management
+                            </h2>
+                            <button
+                                class="btn btn--ghost btn--sm"
+                                onclick="loadPosts()"
+                            >
+                                🔄 Refresh
+                            </button>
+                        </div>
+
+                        <div
+                            class="admin-table-wrap"
+                            style="margin-bottom: 14px"
+                        >
+                            <div style="padding: 13px 18px">
+                                <div
+                                    class="form-input-wrap"
+                                    style="max-width: 380px"
+                                >
+                                    <span
+                                        class="form-input-icon"
+                                        style="font-size: 0.875rem"
+                                        >🔍</span
+                                    >
+                                    <input
+                                        type="search"
+                                        class="form-input"
+                                        id="postsSearch"
+                                        placeholder="Search by content or author…"
+                                        style="
+                                            height: 36px;
+                                            font-size: 0.8rem;
+                                            padding-left: 36px;
+                                        "
+                                        oninput="filterPosts(this.value)"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <div class="admin-table-title">All Posts</div>
+                                <span
+                                    id="postsCount"
+                                    style="
+                                        color: var(--text-muted);
+                                        font-size: 0.8125rem;
+                                    "
+                                ></span>
+                            </div>
+                            <div style="overflow-x: auto">
+                                <table class="admin-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Author</th>
+                                            <th>Content</th>
+                                            <th>Media</th>
+                                            <th style="text-align: center">
+                                                ❤️ Likes
+                                            </th>
+                                            <th style="text-align: center">
+                                                💬 Comments
+                                            </th>
+                                            <th>Posted</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="postsTableBody">
+                                        <tr class="loading-row">
+                                            <td colspan="7">
+                                                <span
+                                                    class="loading-spinner"
+                                                ></span
+                                                >Loading posts…
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- /postsSection -->
+
+                    <!-- ████ SECTION: MESSAGES ████ -->
+                    <section id="messagesSection" class="hidden">
+                        <h2 class="admin-page-title">💬 Messages Overview</h2>
+                        <div class="admin-table-wrap">
+                            <div class="admin-table-header">
+                                <div class="admin-table-title">
+                                    Message Statistics
+                                </div>
+                            </div>
+                            <div
+                                style="
+                                    padding: 56px 32px;
+                                    text-align: center;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                <div
+                                    style="
+                                        font-size: 4rem;
+                                        margin-bottom: 16px;
+                                        line-height: 1;
+                                    "
+                                >
+                                    💬
+                                </div>
+                                <p
+                                    style="
+                                        font-size: 1.05rem;
+                                        font-weight: 700;
+                                        color: var(--text);
+                                        margin-bottom: 8px;
+                                    "
+                                >
+                                    Platform Message Summary
+                                </p>
+                                <p>
+                                    Total messages across all conversations:
+                                    <strong
+                                        id="messagesTotal"
+                                        style="
+                                            color: var(--primary);
+                                            font-size: 1.1rem;
+                                        "
+                                        >—</strong
+                                    >
+                                </p>
+                                <p
+                                    style="
+                                        margin-top: 12px;
+                                        font-size: 0.875rem;
+                                    "
+                                >
+                                    For detailed per-user analytics, visit the
+                                    <a
+                                        href="#"
+                                        onclick="
+                                            switchSection('analytics');
+                                            return false;
+                                        "
+                                        style="
+                                            color: var(--primary);
+                                            font-weight: 700;
+                                        "
+                                        >Analytics</a
+                                    >
+                                    section.
+                                </p>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- /messagesSection -->
+
+                    <!-- ████ SECTION: ANALYTICS ████ -->
+                    <section id="analyticsSection" class="hidden">
+                        <h2 class="admin-page-title">📈 Analytics</h2>
+                        <div id="analyticsContent">
+                            <div
+                                style="
+                                    text-align: center;
+                                    padding: 56px;
+                                    color: var(--text-muted);
+                                "
+                            >
+                                <span class="loading-spinner"></span>Loading
+                                analytics…
+                            </div>
+                        </div>
+                    </section>
+                    <!-- /analyticsSection -->
+
+                    <!-- ████ SECTION: SETTINGS ████ -->
+                    <section id="settingsSection" class="hidden">
+                        <h2 class="admin-page-title">⚙️ Site Settings</h2>
+                        <div class="admin-table-wrap" style="max-width: 680px">
+                            <div class="admin-table-header">
+                                <div class="admin-table-title">
+                                    General Configuration
+                                </div>
+                            </div>
+                            <div style="padding: 24px">
+                                <form
+                                    id="settingsForm"
+                                    onsubmit="saveSettings(event)"
+                                >
+                                    <div
+                                        style="
+                                            display: grid;
+                                            grid-template-columns: 1fr 1fr;
+                                            gap: 16px;
+                                        "
+                                    >
+                                        <div class="form-group">
+                                            <label class="form-label"
+                                                >Site Name</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-input"
+                                                id="settingSiteName"
+                                                value="SocialConnect"
+                                            />
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label"
+                                                >Tagline</label
+                                            >
+                                            <input
+                                                type="text"
+                                                class="form-input"
+                                                id="settingTagline"
+                                                value="Connect, Date, Belong."
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label"
+                                            >Contact Email</label
+                                        >
+                                        <input
+                                            type="email"
+                                            class="form-input"
+                                            id="settingContactEmail"
+                                            value="support@socialconnect.com"
+                                        />
+                                    </div>
+                                    <div class="form-group">
+                                        <label
+                                            class="form-label"
+                                            style="margin-bottom: 10px"
+                                        >
+                                            Max Post Length:
+                                            <strong
+                                                id="maxPostVal"
+                                                style="color: var(--primary)"
+                                                >2000</strong
+                                            >
+                                            characters
+                                        </label>
+                                        <input
+                                            type="range"
+                                            id="settingMaxPost"
+                                            min="140"
+                                            max="5000"
+                                            step="10"
+                                            value="2000"
+                                            oninput="
+                                                document.getElementById(
+                                                    'maxPostVal',
+                                                ).textContent = this.value
+                                            "
+                                            style="
+                                                width: 100%;
+                                                accent-color: var(--primary);
+                                            "
+                                        />
+                                        <div
+                                            style="
+                                                display: flex;
+                                                justify-content: space-between;
+                                                font-size: 0.7rem;
+                                                color: var(--text-muted);
+                                                margin-top: 4px;
+                                            "
+                                        >
+                                            <span>140 chars</span
+                                            ><span>5000 chars</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-row">
+                                        <div>
+                                            <div class="settings-row__label">
+                                                Allow New Registrations
+                                            </div>
+                                            <div class="settings-row__hint">
+                                                Enable or disable new user
+                                                sign-ups
+                                            </div>
+                                        </div>
+                                        <label class="admin-toggle">
+                                            <input
+                                                type="checkbox"
+                                                id="settingRegistrations"
+                                                checked
+                                            />
+                                            <span
+                                                class="admin-toggle__slider"
+                                            ></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-row">
+                                        <div>
+                                            <div class="settings-row__label">
+                                                Maintenance Mode
+                                            </div>
+                                            <div class="settings-row__hint">
+                                                Block access for non-admin users
+                                            </div>
+                                        </div>
+                                        <label class="admin-toggle">
+                                            <input
+                                                type="checkbox"
+                                                id="settingMaintenance"
+                                            />
+                                            <span
+                                                class="admin-toggle__slider"
+                                            ></span>
+                                        </label>
+                                    </div>
+
+                                    <div class="settings-row">
+                                        <div>
+                                            <div class="settings-row__label">
+                                                Email Notifications
+                                            </div>
+                                            <div class="settings-row__hint">
+                                                Send system emails to users
+                                            </div>
+                                        </div>
+                                        <label class="admin-toggle">
+                                            <input
+                                                type="checkbox"
+                                                id="settingEmailNotifications"
+                                                checked
+                                            />
+                                            <span
+                                                class="admin-toggle__slider"
+                                            ></span>
+                                        </label>
+                                    </div>
+
+                                    <div
+                                        style="
+                                            display: flex;
+                                            gap: 10px;
+                                            margin-top: 24px;
+                                        "
+                                    >
+                                        <button
+                                            type="submit"
+                                            class="btn btn--primary"
+                                        >
+                                            💾 Save Settings
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn--secondary"
+                                            onclick="resetSettings()"
+                                        >
+                                            ↺ Reset Defaults
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+                    <!-- /settingsSection -->
+                </div>
+                <!-- /admin-content -->
+            </main>
+            <!-- /admin-main -->
         </div>
+        <!-- /admin-layout -->
 
-        <!-- Recently joined users -->
-        <div class="admin-table-wrap">
-          <div class="admin-table-header">
-            <div class="admin-table-title">🆕 Recently Joined Users</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn--primary btn--sm" onclick="openAddUserModal()">+ Add New User</button>
-              <button class="btn btn--outline-primary btn--sm" onclick="switchSection('users')">View All →</button>
+        <!-- ═══════════════════════════ MODALS ════════════════════════════════════════ -->
+
+        <!-- ADD USER MODAL -->
+        <div class="modal-overlay hidden" id="addUserModal">
+            <div class="modal">
+                <div class="modal__header">
+                    <h2 class="modal__title">➕ Add New User</h2>
+                    <button
+                        class="modal__close"
+                        onclick="closeModal('addUserModal')"
+                        title="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="modal__body">
+                    <div
+                        id="addUserError"
+                        style="
+                            display: none;
+                            margin-bottom: 14px;
+                            padding: 10px 14px;
+                            background: var(--danger-light);
+                            color: var(--danger);
+                            border-radius: var(--radius-sm);
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            border-left: 3px solid var(--danger);
+                        "
+                    ></div>
+                    <form id="addUserForm" onsubmit="event.preventDefault()">
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="form-group">
+                                <label class="form-label form-label--required"
+                                    >Full Name</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="addName"
+                                    placeholder="e.g. Jane Doe"
+                                    required
+                                    autocomplete="off"
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label form-label--required"
+                                    >Username</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="addUsername"
+                                    placeholder="e.g. janedoe"
+                                    required
+                                    autocomplete="off"
+                                />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label form-label--required"
+                                >Email Address</label
+                            >
+                            <input
+                                type="email"
+                                class="form-input"
+                                id="addEmail"
+                                placeholder="jane@example.com"
+                                required
+                                autocomplete="off"
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label form-label--required"
+                                >Password</label
+                            >
+                            <div class="form-input-wrap has-suffix">
+                                <input
+                                    type="password"
+                                    class="form-input"
+                                    id="addPassword"
+                                    placeholder="Min. 8 characters"
+                                    required
+                                    autocomplete="new-password"
+                                />
+                                <span
+                                    class="form-input-suffix"
+                                    onclick="
+                                        togglePasswordVisibility(
+                                            'addPassword',
+                                            this,
+                                        )
+                                    "
+                                    title="Show/hide password"
+                                    >👁️</span
+                                >
+                            </div>
+                        </div>
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr 1fr;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="form-group">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" id="addRole">
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gender</label>
+                                <select class="form-select" id="addGender">
+                                    <option value="">Select…</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="addLocation"
+                                    placeholder="City, Country"
+                                />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal__footer">
+                    <button
+                        class="btn btn--secondary"
+                        onclick="closeModal('addUserModal')"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        class="btn btn--primary"
+                        id="addUserSubmitBtn"
+                        onclick="submitAddUser()"
+                    >
+                        ✅ Create User
+                    </button>
+                </div>
             </div>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>User</th>
-                  <th>Username</th>
-                  <th>Location</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Joined</th>
-                </tr>
-              </thead>
-              <tbody id="recentUsersBody">
-                <tr class="loading-row"><td colspan="6"><span class="loading-spinner"></span>Loading…</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section><!-- /dashboardSection -->
-
-      <!-- ████ SECTION: USERS ████ -->
-      <section id="usersSection" class="hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-          <h2 class="admin-page-title" style="margin:0;">👥 User Management</h2>
-          <button class="btn btn--primary" id="addUserBtn" onclick="openAddUserModal()">+ Add New User</button>
         </div>
 
-        <!-- Filter bar -->
-        <div class="admin-table-wrap" style="margin-bottom:14px;">
-          <div style="display:flex;gap:12px;padding:13px 18px;flex-wrap:wrap;align-items:center;">
-            <div class="form-input-wrap" style="flex:1;min-width:180px;max-width:320px;">
-              <span class="form-input-icon" style="font-size:0.875rem;">🔍</span>
-              <input type="search" class="form-input" id="usersSearch"
-                placeholder="Search name, email, username…"
-                style="height:36px;font-size:0.8rem;padding-left:36px;"
-                oninput="applyFilters()">
+        <!-- EDIT USER MODAL -->
+        <div class="modal-overlay hidden" id="editUserModal">
+            <div class="modal modal--lg">
+                <div class="modal__header">
+                    <h2 class="modal__title">✏️ Edit User</h2>
+                    <button
+                        class="modal__close"
+                        onclick="closeModal('editUserModal')"
+                        title="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div class="modal__body">
+                    <div
+                        id="editUserError"
+                        style="
+                            display: none;
+                            margin-bottom: 14px;
+                            padding: 10px 14px;
+                            background: var(--danger-light);
+                            color: var(--danger);
+                            border-radius: var(--radius-sm);
+                            font-size: 0.875rem;
+                            font-weight: 600;
+                            border-left: 3px solid var(--danger);
+                        "
+                    ></div>
+                    <input type="hidden" id="editUserId" />
+                    <!-- Stats strip -->
+                    <div
+                        id="editUserStats"
+                        style="
+                            display: grid;
+                            grid-template-columns: repeat(4, 1fr);
+                            gap: 10px;
+                            margin-bottom: 20px;
+                        "
+                    ></div>
+                    <form id="editUserForm" onsubmit="event.preventDefault()">
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="form-group">
+                                <label class="form-label form-label--required"
+                                    >Full Name</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="editName"
+                                    required
+                                />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label form-label--required"
+                                    >Username</label
+                                >
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="editUsername"
+                                    required
+                                />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label form-label--required"
+                                >Email Address</label
+                            >
+                            <input
+                                type="email"
+                                class="form-input"
+                                id="editEmail"
+                                required
+                            />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Bio</label>
+                            <textarea
+                                class="form-textarea"
+                                id="editBio"
+                                placeholder="User bio…"
+                                style="min-height: 72px"
+                            ></textarea>
+                        </div>
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr 1fr;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="form-group">
+                                <label class="form-label">Role</label>
+                                <select class="form-select" id="editRole">
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Gender</label>
+                                <select class="form-select" id="editGender">
+                                    <option value="">Select…</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <input
+                                    type="text"
+                                    class="form-input"
+                                    id="editLocation"
+                                    placeholder="City, Country"
+                                />
+                            </div>
+                        </div>
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: 12px;
+                            "
+                        >
+                            <div class="form-group">
+                                <label class="form-label">Looking For</label>
+                                <select class="form-select" id="editLookingFor">
+                                    <option value="">—</option>
+                                    <option value="friends">Friends</option>
+                                    <option value="dating">Dating</option>
+                                    <option value="relationship">
+                                        Relationship
+                                    </option>
+                                    <option value="networking">
+                                        Networking
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label"
+                                    >Relationship Status</label
+                                >
+                                <select
+                                    class="form-select"
+                                    id="editRelationshipStatus"
+                                >
+                                    <option value="">—</option>
+                                    <option value="single">Single</option>
+                                    <option value="in_relationship">
+                                        In a Relationship
+                                    </option>
+                                    <option value="married">Married</option>
+                                    <option value="complicated">
+                                        It's Complicated
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal__footer">
+                    <button
+                        class="btn btn--secondary"
+                        onclick="closeModal('editUserModal')"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        class="btn btn--primary"
+                        id="editUserSubmitBtn"
+                        onclick="submitEditUser()"
+                    >
+                        💾 Save Changes
+                    </button>
+                </div>
             </div>
-            <select class="form-select" id="filterRole" style="width:140px;height:36px;" onchange="applyFilters()">
-              <option value="">All Roles</option>
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-            <select class="form-select" id="filterStatus" style="width:150px;height:36px;" onchange="applyFilters()">
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="blocked">Blocked</option>
-            </select>
-            <button class="btn btn--ghost btn--sm" onclick="clearFilters()" title="Clear filters">✕ Clear</button>
-            <span id="usersCount" style="color:var(--text-muted);font-size:0.8125rem;margin-left:auto;"></span>
-          </div>
         </div>
 
-        <!-- Users table -->
-        <div class="admin-table-wrap">
-          <div class="admin-table-header">
-            <div class="admin-table-title">All Members</div>
-            <button class="btn btn--ghost btn--sm" onclick="loadUsers()" title="Refresh table">🔄 Refresh</button>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th class="sortable" onclick="sortTable('name')" data-col="name">
-                    User <span class="sort-icon" id="sort-name">↕</span>
-                  </th>
-                  <th class="sortable" onclick="sortTable('username')" data-col="username">
-                    Username <span class="sort-icon" id="sort-username">↕</span>
-                  </th>
-                  <th class="sortable" onclick="sortTable('email')" data-col="email">
-                    Email <span class="sort-icon" id="sort-email">↕</span>
-                  </th>
-                  <th>Role</th>
-                  <th class="sortable" onclick="sortTable('location')" data-col="location">
-                    Location <span class="sort-icon" id="sort-location">↕</span>
-                  </th>
-                  <th>Status</th>
-                  <th class="sortable" onclick="sortTable('joinedAt')" data-col="joinedAt">
-                    Joined <span class="sort-icon desc" id="sort-joinedAt">↓</span>
-                  </th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="usersTableBody">
-                <tr class="loading-row"><td colspan="8"><span class="loading-spinner"></span>Loading users…</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <!-- Pagination -->
-          <div id="usersPagination"
-            style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--border-light);flex-wrap:wrap;gap:8px;">
-            <span id="paginationInfo" style="font-size:0.8125rem;color:var(--text-muted);"></span>
-            <div id="paginationButtons" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
-          </div>
-        </div>
-      </section><!-- /usersSection -->
-
-      <!-- ████ SECTION: POSTS ████ -->
-      <section id="postsSection" class="hidden">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
-          <h2 class="admin-page-title" style="margin:0;">📝 Posts Management</h2>
-          <button class="btn btn--ghost btn--sm" onclick="loadPosts()">🔄 Refresh</button>
-        </div>
-
-        <div class="admin-table-wrap" style="margin-bottom:14px;">
-          <div style="padding:13px 18px;">
-            <div class="form-input-wrap" style="max-width:380px;">
-              <span class="form-input-icon" style="font-size:0.875rem;">🔍</span>
-              <input type="search" class="form-input" id="postsSearch"
-                placeholder="Search by content or author…"
-                style="height:36px;font-size:0.8rem;padding-left:36px;"
-                oninput="filterPosts(this.value)">
+        <!-- DELETE CONFIRM MODAL -->
+        <div class="modal-overlay hidden" id="deleteConfirmModal">
+            <div class="modal modal--sm">
+                <div class="modal__header">
+                    <h2 class="modal__title" style="color: var(--danger)">
+                        🗑️ Delete User
+                    </h2>
+                    <button
+                        class="modal__close"
+                        onclick="closeModal('deleteConfirmModal')"
+                        title="Close"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div
+                    class="modal__body"
+                    style="text-align: center; padding: 28px 24px 20px"
+                >
+                    <div
+                        style="
+                            font-size: 3.5rem;
+                            margin-bottom: 12px;
+                            line-height: 1;
+                        "
+                    >
+                        ⚠️
+                    </div>
+                    <p
+                        style="
+                            font-weight: 700;
+                            font-size: 1rem;
+                            color: var(--text);
+                            margin-bottom: 6px;
+                        "
+                    >
+                        Are you sure you want to delete
+                    </p>
+                    <p
+                        style="
+                            font-weight: 900;
+                            font-size: 1.125rem;
+                            color: var(--danger);
+                            margin-bottom: 14px;
+                        "
+                        id="deleteUserName"
+                    >
+                        this user
+                    </p>
+                    <p
+                        style="
+                            color: var(--text-muted);
+                            font-size: 0.8125rem;
+                            line-height: 1.6;
+                        "
+                    >
+                        This action is <strong>permanent</strong> and cannot be
+                        undone.<br />
+                        All posts, messages, and data will be removed.
+                    </p>
+                </div>
+                <div
+                    class="modal__footer"
+                    style="justify-content: center; gap: 12px"
+                >
+                    <button
+                        class="btn btn--secondary"
+                        onclick="closeModal('deleteConfirmModal')"
+                    >
+                        Cancel
+                    </button>
+                    <button class="btn btn--danger" id="deleteConfirmBtn">
+                        🗑️ Yes, Delete
+                    </button>
+                </div>
             </div>
-          </div>
         </div>
 
-        <div class="admin-table-wrap">
-          <div class="admin-table-header">
-            <div class="admin-table-title">All Posts</div>
-            <span id="postsCount" style="color:var(--text-muted);font-size:0.8125rem;"></span>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Author</th>
-                  <th>Content</th>
-                  <th>Media</th>
-                  <th style="text-align:center;">❤️ Likes</th>
-                  <th style="text-align:center;">💬 Comments</th>
-                  <th>Posted</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="postsTableBody">
-                <tr class="loading-row"><td colspan="7"><span class="loading-spinner"></span>Loading posts…</td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section><!-- /postsSection -->
-
-      <!-- ████ SECTION: MESSAGES ████ -->
-      <section id="messagesSection" class="hidden">
-        <h2 class="admin-page-title">💬 Messages Overview</h2>
-        <div class="admin-table-wrap">
-          <div class="admin-table-header">
-            <div class="admin-table-title">Message Statistics</div>
-          </div>
-          <div style="padding:56px 32px;text-align:center;color:var(--text-muted);">
-            <div style="font-size:4rem;margin-bottom:16px;line-height:1;">💬</div>
-            <p style="font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:8px;">Platform Message Summary</p>
-            <p>Total messages across all conversations:
-              <strong id="messagesTotal" style="color:var(--primary);font-size:1.1rem;">—</strong>
-            </p>
-            <p style="margin-top:12px;font-size:0.875rem;">
-              For detailed per-user analytics, visit the
-              <a href="#" onclick="switchSection('analytics');return false;" style="color:var(--primary);font-weight:700;">Analytics</a> section.
-            </p>
-          </div>
-        </div>
-      </section><!-- /messagesSection -->
-
-      <!-- ████ SECTION: ANALYTICS ████ -->
-      <section id="analyticsSection" class="hidden">
-        <h2 class="admin-page-title">📈 Analytics</h2>
-        <div id="analyticsContent">
-          <div style="text-align:center;padding:56px;color:var(--text-muted);">
-            <span class="loading-spinner"></span>Loading analytics…
-          </div>
-        </div>
-      </section><!-- /analyticsSection -->
-
-      <!-- ████ SECTION: SETTINGS ████ -->
-      <section id="settingsSection" class="hidden">
-        <h2 class="admin-page-title">⚙️ Site Settings</h2>
-        <div class="admin-table-wrap" style="max-width:680px;">
-          <div class="admin-table-header">
-            <div class="admin-table-title">General Configuration</div>
-          </div>
-          <div style="padding:24px;">
-            <form id="settingsForm" onsubmit="saveSettings(event)">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
-                  <label class="form-label">Site Name</label>
-                  <input type="text" class="form-input" id="settingSiteName" value="SocialConnect">
+        <!-- VIEW USER MODAL -->
+        <div class="modal-overlay hidden" id="viewUserModal">
+            <div class="modal modal--lg">
+                <div class="modal__header">
+                    <h2 class="modal__title">👤 User Profile</h2>
+                    <button
+                        class="modal__close"
+                        onclick="closeModal('viewUserModal')"
+                        title="Close"
+                    >
+                        ✕
+                    </button>
                 </div>
-                <div class="form-group">
-                  <label class="form-label">Tagline</label>
-                  <input type="text" class="form-input" id="settingTagline" value="Connect, Date, Belong.">
+                <div
+                    class="modal__body"
+                    id="viewUserContent"
+                    style="padding: 0; overflow-y: auto; max-height: 72vh"
+                >
+                    <div
+                        style="
+                            text-align: center;
+                            padding: 48px;
+                            color: var(--text-muted);
+                        "
+                    >
+                        <span class="loading-spinner"></span>Loading profile…
+                    </div>
                 </div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Contact Email</label>
-                <input type="email" class="form-input" id="settingContactEmail" value="support@socialconnect.com">
-              </div>
-              <div class="form-group">
-                <label class="form-label" style="margin-bottom:10px;">
-                  Max Post Length: <strong id="maxPostVal" style="color:var(--primary);">2000</strong> characters
-                </label>
-                <input type="range" id="settingMaxPost" min="140" max="5000" step="10" value="2000"
-                  oninput="document.getElementById('maxPostVal').textContent=this.value"
-                  style="width:100%;accent-color:var(--primary);">
-                <div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--text-muted);margin-top:4px;">
-                  <span>140 chars</span><span>5000 chars</span>
+                <div class="modal__footer">
+                    <button
+                        class="btn btn--secondary"
+                        onclick="closeModal('viewUserModal')"
+                    >
+                        Close
+                    </button>
+                    <button class="btn btn--outline-primary" id="viewEditBtn">
+                        ✏️ Edit User
+                    </button>
                 </div>
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-row__label">Allow New Registrations</div>
-                  <div class="settings-row__hint">Enable or disable new user sign-ups</div>
-                </div>
-                <label class="admin-toggle">
-                  <input type="checkbox" id="settingRegistrations" checked>
-                  <span class="admin-toggle__slider"></span>
-                </label>
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-row__label">Maintenance Mode</div>
-                  <div class="settings-row__hint">Block access for non-admin users</div>
-                </div>
-                <label class="admin-toggle">
-                  <input type="checkbox" id="settingMaintenance">
-                  <span class="admin-toggle__slider"></span>
-                </label>
-              </div>
-
-              <div class="settings-row">
-                <div>
-                  <div class="settings-row__label">Email Notifications</div>
-                  <div class="settings-row__hint">Send system emails to users</div>
-                </div>
-                <label class="admin-toggle">
-                  <input type="checkbox" id="settingEmailNotifications" checked>
-                  <span class="admin-toggle__slider"></span>
-                </label>
-              </div>
-
-              <div style="display:flex;gap:10px;margin-top:24px;">
-                <button type="submit" class="btn btn--primary">💾 Save Settings</button>
-                <button type="button" class="btn btn--secondary" onclick="resetSettings()">↺ Reset Defaults</button>
-              </div>
-            </form>
-          </div>
+            </div>
         </div>
-      </section><!-- /settingsSection -->
 
-    </div><!-- /admin-content -->
-  </main><!-- /admin-main -->
-</div><!-- /admin-layout -->
-
-
-<!-- ═══════════════════════════ MODALS ════════════════════════════════════════ -->
-
-<!-- ADD USER MODAL -->
-<div class="modal-overlay hidden" id="addUserModal">
-  <div class="modal">
-    <div class="modal__header">
-      <h2 class="modal__title">➕ Add New User</h2>
-      <button class="modal__close" onclick="closeModal('addUserModal')" title="Close">✕</button>
-    </div>
-    <div class="modal__body">
-      <div id="addUserError"
-        style="display:none;margin-bottom:14px;padding:10px 14px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius-sm);font-size:0.875rem;font-weight:600;border-left:3px solid var(--danger);">
-      </div>
-      <form id="addUserForm" onsubmit="event.preventDefault();">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group">
-            <label class="form-label form-label--required">Full Name</label>
-            <input type="text" class="form-input" id="addName" placeholder="e.g. Jane Doe" required autocomplete="off">
-          </div>
-          <div class="form-group">
-            <label class="form-label form-label--required">Username</label>
-            <input type="text" class="form-input" id="addUsername" placeholder="e.g. janedoe" required autocomplete="off">
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label form-label--required">Email Address</label>
-          <input type="email" class="form-input" id="addEmail" placeholder="jane@example.com" required autocomplete="off">
-        </div>
-        <div class="form-group">
-          <label class="form-label form-label--required">Password</label>
-          <div class="form-input-wrap has-suffix">
-            <input type="password" class="form-input" id="addPassword" placeholder="Min. 8 characters" required autocomplete="new-password">
-            <span class="form-input-suffix" onclick="togglePasswordVisibility('addPassword',this)" title="Show/hide password">👁️</span>
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div class="form-group">
-            <label class="form-label">Role</label>
-            <select class="form-select" id="addRole">
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Gender</label>
-            <select class="form-select" id="addGender">
-              <option value="">Select…</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Location</label>
-            <input type="text" class="form-input" id="addLocation" placeholder="City, Country">
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--secondary" onclick="closeModal('addUserModal')">Cancel</button>
-      <button class="btn btn--primary" id="addUserSubmitBtn" onclick="submitAddUser()">✅ Create User</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT USER MODAL -->
-<div class="modal-overlay hidden" id="editUserModal">
-  <div class="modal modal--lg">
-    <div class="modal__header">
-      <h2 class="modal__title">✏️ Edit User</h2>
-      <button class="modal__close" onclick="closeModal('editUserModal')" title="Close">✕</button>
-    </div>
-    <div class="modal__body">
-      <div id="editUserError"
-        style="display:none;margin-bottom:14px;padding:10px 14px;background:var(--danger-light);color:var(--danger);border-radius:var(--radius-sm);font-size:0.875rem;font-weight:600;border-left:3px solid var(--danger);">
-      </div>
-      <input type="hidden" id="editUserId">
-      <!-- Stats strip -->
-      <div id="editUserStats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"></div>
-      <form id="editUserForm" onsubmit="event.preventDefault();">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group">
-            <label class="form-label form-label--required">Full Name</label>
-            <input type="text" class="form-input" id="editName" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label form-label--required">Username</label>
-            <input type="text" class="form-input" id="editUsername" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label form-label--required">Email Address</label>
-          <input type="email" class="form-input" id="editEmail" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Bio</label>
-          <textarea class="form-textarea" id="editBio" placeholder="User bio…" style="min-height:72px;"></textarea>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-          <div class="form-group">
-            <label class="form-label">Role</label>
-            <select class="form-select" id="editRole">
-              <option value="user">User</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Gender</label>
-            <select class="form-select" id="editGender">
-              <option value="">Select…</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Location</label>
-            <input type="text" class="form-input" id="editLocation" placeholder="City, Country">
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="form-group">
-            <label class="form-label">Looking For</label>
-            <select class="form-select" id="editLookingFor">
-              <option value="">—</option>
-              <option value="friends">Friends</option>
-              <option value="dating">Dating</option>
-              <option value="relationship">Relationship</option>
-              <option value="networking">Networking</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Relationship Status</label>
-            <select class="form-select" id="editRelationshipStatus">
-              <option value="">—</option>
-              <option value="single">Single</option>
-              <option value="in_relationship">In a Relationship</option>
-              <option value="married">Married</option>
-              <option value="complicated">It's Complicated</option>
-            </select>
-          </div>
-        </div>
-      </form>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--secondary" onclick="closeModal('editUserModal')">Cancel</button>
-      <button class="btn btn--primary" id="editUserSubmitBtn" onclick="submitEditUser()">💾 Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- DELETE CONFIRM MODAL -->
-<div class="modal-overlay hidden" id="deleteConfirmModal">
-  <div class="modal modal--sm">
-    <div class="modal__header">
-      <h2 class="modal__title" style="color:var(--danger);">🗑️ Delete User</h2>
-      <button class="modal__close" onclick="closeModal('deleteConfirmModal')" title="Close">✕</button>
-    </div>
-    <div class="modal__body" style="text-align:center;padding:28px 24px 20px;">
-      <div style="font-size:3.5rem;margin-bottom:12px;line-height:1;">⚠️</div>
-      <p style="font-weight:700;font-size:1rem;color:var(--text);margin-bottom:6px;">Are you sure you want to delete</p>
-      <p style="font-weight:900;font-size:1.125rem;color:var(--danger);margin-bottom:14px;" id="deleteUserName">this user</p>
-      <p style="color:var(--text-muted);font-size:0.8125rem;line-height:1.6;">
-        This action is <strong>permanent</strong> and cannot be undone.<br>
-        All posts, messages, and data will be removed.
-      </p>
-    </div>
-    <div class="modal__footer" style="justify-content:center;gap:12px;">
-      <button class="btn btn--secondary" onclick="closeModal('deleteConfirmModal')">Cancel</button>
-      <button class="btn btn--danger" id="deleteConfirmBtn">🗑️ Yes, Delete</button>
-    </div>
-  </div>
-</div>
-
-<!-- VIEW USER MODAL -->
-<div class="modal-overlay hidden" id="viewUserModal">
-  <div class="modal modal--lg">
-    <div class="modal__header">
-      <h2 class="modal__title">👤 User Profile</h2>
-      <button class="modal__close" onclick="closeModal('viewUserModal')" title="Close">✕</button>
-    </div>
-    <div class="modal__body" id="viewUserContent" style="padding:0;overflow-y:auto;max-height:72vh;">
-      <div style="text-align:center;padding:48px;color:var(--text-muted);">
-        <span class="loading-spinner"></span>Loading profile…
-      </div>
-    </div>
-    <div class="modal__footer">
-      <button class="btn btn--secondary" onclick="closeModal('viewUserModal')">Close</button>
-      <button class="btn btn--outline-primary" id="viewEditBtn">✏️ Edit User</button>
-    </div>
-  </div>
-</div>
-
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/admin.js"></script>
-</body>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/app.js"></script>
+        <script src="/js/responsive.js"></script>
+        <script src="/js/admin.js"></script>
+    </body>
 </html>

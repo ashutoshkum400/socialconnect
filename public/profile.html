@@ -1,497 +1,993 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SocialConnect - Profile</title>
-  <link rel="stylesheet" href="/css/style.css">
-</head>
-<body data-page="profile">
-
-  <!-- ═══════════════════════════════════════════════════════════
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SocialConnect - Profile</title>
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/responsive.css" />
+    </head>
+    <body data-page="profile">
+        <!-- ═══════════════════════════════════════════════════════════
        NAVIGATION BAR
   ═══════════════════════════════════════════════════════════ -->
-  <nav class="navbar" role="navigation" aria-label="Main navigation">
-    <div class="navbar__inner">
+        <nav class="navbar" role="navigation" aria-label="Main navigation">
+            <div class="navbar__inner">
+                <!-- Logo -->
+                <a
+                    href="/dashboard.html"
+                    class="navbar__logo"
+                    aria-label="SocialConnect home"
+                >
+                    <span class="navbar__logo-icon" aria-hidden="true">💜</span>
+                    <span class="navbar__logo-text">SocialConnect</span>
+                </a>
 
-      <!-- Logo -->
-      <a href="/dashboard.html" class="navbar__logo" aria-label="SocialConnect home">
-        <span class="navbar__logo-icon" aria-hidden="true">💜</span>
-        <span class="navbar__logo-text">SocialConnect</span>
-      </a>
+                <!-- Search -->
+                <div class="navbar__search" role="search">
+                    <span class="navbar__search-icon" aria-hidden="true">
+                        <svg
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                        >
+                            <circle cx="11" cy="11" r="8" />
+                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        </svg>
+                    </span>
+                    <input
+                        type="search"
+                        id="searchInput"
+                        class="navbar__search-input"
+                        placeholder="Search SocialConnect..."
+                        autocomplete="off"
+                        aria-label="Search users"
+                        aria-expanded="false"
+                        aria-controls="searchResults"
+                        aria-autocomplete="list"
+                    />
+                    <div
+                        id="searchResults"
+                        class="search-dropdown hidden"
+                        role="listbox"
+                        aria-label="Search results"
+                    ></div>
+                </div>
 
-      <!-- Search -->
-      <div class="navbar__search" role="search">
-        <span class="navbar__search-icon" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-        </span>
-        <input
-          type="search"
-          id="searchInput"
-          class="navbar__search-input"
-          placeholder="Search SocialConnect..."
-          autocomplete="off"
-          aria-label="Search users"
-          aria-expanded="false"
-          aria-controls="searchResults"
-          aria-autocomplete="list"
-        >
-        <div id="searchResults" class="search-dropdown hidden" role="listbox" aria-label="Search results"></div>
-      </div>
+                <!-- Right Actions -->
+                <div class="navbar__actions">
+                    <!-- Home -->
+                    <a
+                        href="/dashboard.html"
+                        class="navbar__action-btn"
+                        data-tooltip="Home"
+                        aria-label="Home"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                        </svg>
+                    </a>
 
-      <!-- Right Actions -->
-      <div class="navbar__actions">
+                    <!-- Notifications -->
+                    <button
+                        id="notifBell"
+                        class="navbar__action-btn"
+                        aria-label="Notifications"
+                        data-tooltip="Notifications"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+                            />
+                        </svg>
+                        <span
+                            id="notifBadge"
+                            class="navbar__badge hidden"
+                            aria-live="polite"
+                            >0</span
+                        >
+                    </button>
 
-        <!-- Home -->
-        <a href="/dashboard.html" class="navbar__action-btn" data-tooltip="Home" aria-label="Home">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-          </svg>
-        </a>
+                    <!-- Profile Avatar + Dropdown -->
+                    <div class="dropdown" id="profileDropdownWrap">
+                        <button
+                            class="navbar__action-btn"
+                            id="profileDropdownToggle"
+                            onclick="toggleProfileDropdown()"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-label="Your profile and settings"
+                            style="
+                                display: flex;
+                                align-items: center;
+                                gap: 6px;
+                                padding: 4px 8px;
+                                border-radius: var(--radius-full);
+                                height: auto;
+                            "
+                        >
+                            <img
+                                id="navAvatar"
+                                src="https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=36"
+                                alt="Profile"
+                                style="
+                                    width: 32px;
+                                    height: 32px;
+                                    border-radius: 50%;
+                                    object-fit: cover;
+                                    flex-shrink: 0;
+                                "
+                            />
+                            <span
+                                id="navName"
+                                style="
+                                    font-size: var(--font-size-sm);
+                                    font-weight: 600;
+                                    color: var(--text);
+                                    max-width: 100px;
+                                    overflow: hidden;
+                                    text-overflow: ellipsis;
+                                    white-space: nowrap;
+                                "
+                                class="hide-mobile"
+                                >User</span
+                            >
+                        </button>
 
-        <!-- Notifications -->
-        <button
-          id="notifBell"
-          class="navbar__action-btn"
-          aria-label="Notifications"
-          data-tooltip="Notifications"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
-          </svg>
-          <span id="notifBadge" class="navbar__badge hidden" aria-live="polite">0</span>
-        </button>
-
-        <!-- Profile Avatar + Dropdown -->
-        <div class="dropdown" id="profileDropdownWrap">
-          <button
-            class="navbar__action-btn"
-            id="profileDropdownToggle"
-            onclick="toggleProfileDropdown()"
-            aria-haspopup="true"
-            aria-expanded="false"
-            aria-label="Your profile and settings"
-            style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:var(--radius-full);height:auto;"
-          >
-            <img
-              id="navAvatar"
-              src="https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=36"
-              alt="Profile"
-              style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;"
-            >
-            <span id="navName" style="font-size:var(--font-size-sm);font-weight:600;color:var(--text);max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" class="hide-mobile">User</span>
-          </button>
-
-          <div class="dropdown__menu hidden" id="profileDropdown" role="menu" aria-label="Profile options">
-            <div class="dropdown__item" role="menuitem" onclick="goToProfile()">
-              <span class="dropdown__icon">👤</span> View Profile
+                        <div
+                            class="dropdown__menu hidden"
+                            id="profileDropdown"
+                            role="menu"
+                            aria-label="Profile options"
+                        >
+                            <div
+                                class="dropdown__item"
+                                role="menuitem"
+                                onclick="goToProfile()"
+                            >
+                                <span class="dropdown__icon">👤</span> View
+                                Profile
+                            </div>
+                            <div
+                                class="dropdown__item"
+                                role="menuitem"
+                                onclick="openEditModal()"
+                            >
+                                <span class="dropdown__icon">✏️</span> Edit
+                                Profile
+                            </div>
+                            <div class="dropdown__divider"></div>
+                            <div
+                                class="dropdown__item dropdown__item--danger"
+                                role="menuitem"
+                                onclick="logout()"
+                            >
+                                <span class="dropdown__icon">🚪</span> Logout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.navbar__actions -->
             </div>
-            <div class="dropdown__item" role="menuitem" onclick="openEditModal()">
-              <span class="dropdown__icon">✏️</span> Edit Profile
-            </div>
-            <div class="dropdown__divider"></div>
-            <div class="dropdown__item dropdown__item--danger" role="menuitem" onclick="logout()">
-              <span class="dropdown__icon">🚪</span> Logout
-            </div>
-          </div>
-        </div>
+            <!-- /.navbar__inner -->
+        </nav>
 
-      </div><!-- /.navbar__actions -->
-    </div><!-- /.navbar__inner -->
-  </nav>
-
-  <!-- ═══════════════════════════════════════════════════════════
+        <!-- ═══════════════════════════════════════════════════════════
        PROFILE PAGE
   ═══════════════════════════════════════════════════════════ -->
-  <div class="profile-page">
-
-    <!-- COVER PHOTO ─────────────────────────────────────────── -->
-    <div
-      id="coverPhotoArea"
-      class="profile-cover"
-      style="background: var(--gradient-primary); background-size: cover; background-position: center;"
-      aria-label="Cover photo"
-    >
-      <button
-        id="editCoverBtn"
-        class="profile-cover__edit own-only"
-        style="display:none;"
-        aria-label="Edit cover photo"
-      >
-        📷 Edit Cover
-      </button>
-      <input type="file" id="coverFileInput" accept="image/*" style="display:none;" aria-hidden="true">
-    </div>
-
-    <!-- PROFILE INFO SECTION ─────────────────────────────────── -->
-    <div class="profile-info-section">
-      <div class="profile-info-inner">
-
-        <!-- AVATAR ROW: avatar + details + action buttons -->
-        <div class="profile-avatar-row">
-
-          <!-- Avatar -->
-          <div class="profile-avatar-wrap">
-            <img
-              id="profileAvatar"
-              class="profile-avatar"
-              src="https://ui-avatars.com/api/?name=Loading&background=1877f2&color=fff&size=128"
-              alt="Profile avatar"
-            >
-            <button
-              id="editAvatarBtn"
-              class="profile-avatar__edit own-only"
-              style="display:none;"
-              title="Change profile photo"
-              aria-label="Change profile photo"
-            >📷</button>
-            <input type="file" id="avatarFileInput" accept="image/*" style="display:none;" aria-hidden="true">
-          </div>
-
-          <!-- Profile Details -->
-          <div class="profile-details">
-            <h1 id="profileName" class="profile-details__name">Loading…</h1>
+        <div class="profile-page">
+            <!-- COVER PHOTO ─────────────────────────────────────────── -->
             <div
-              id="profileUsername"
-              style="font-size:var(--font-size-sm);color:var(--text-muted);margin-top:2px;"
-            ></div>
-            <p id="profileBio" class="profile-details__bio" style="margin-top:var(--space-xs);"></p>
-            <div id="profileMeta" class="profile-details__meta" style="margin-top:var(--space-xs);"></div>
-            <div id="profileOnlineStatus" style="margin-top:var(--space-xs);display:flex;align-items:center;gap:6px;"></div>
-          </div>
+                id="coverPhotoArea"
+                class="profile-cover"
+                style="
+                    background: var(--gradient-primary);
+                    background-size: cover;
+                    background-position: center;
+                "
+                aria-label="Cover photo"
+            >
+                <button
+                    id="editCoverBtn"
+                    class="profile-cover__edit own-only"
+                    style="display: none"
+                    aria-label="Edit cover photo"
+                >
+                    📷 Edit Cover
+                </button>
+                <input
+                    type="file"
+                    id="coverFileInput"
+                    accept="image/*"
+                    style="display: none"
+                    aria-hidden="true"
+                />
+            </div>
 
-          <!-- Action Buttons -->
-          <div id="profileActions" class="profile-actions">
-            <!-- Own profile -->
-            <button
-              id="editProfileBtn"
-              class="btn btn--secondary own-only"
-              style="display:none;"
-              onclick="openEditModal()"
-            >✏️ Edit Profile</button>
+            <!-- PROFILE INFO SECTION ─────────────────────────────────── -->
+            <div class="profile-info-section">
+                <div class="profile-info-inner">
+                    <!-- AVATAR ROW: avatar + details + action buttons -->
+                    <div class="profile-avatar-row">
+                        <!-- Avatar -->
+                        <div class="profile-avatar-wrap">
+                            <img
+                                id="profileAvatar"
+                                class="profile-avatar"
+                                src="https://ui-avatars.com/api/?name=Loading&background=1877f2&color=fff&size=128"
+                                alt="Profile avatar"
+                            />
+                            <button
+                                id="editAvatarBtn"
+                                class="profile-avatar__edit own-only"
+                                style="display: none"
+                                title="Change profile photo"
+                                aria-label="Change profile photo"
+                            >
+                                📷
+                            </button>
+                            <input
+                                type="file"
+                                id="avatarFileInput"
+                                accept="image/*"
+                                style="display: none"
+                                aria-hidden="true"
+                            />
+                        </div>
 
-            <!-- Other's profile -->
-            <button
-              id="addFriendBtn"
-              class="btn btn--primary other-only"
-              style="display:none;"
-              onclick="sendFriendRequest(profileUserId)"
-            >👤 Add Friend</button>
+                        <!-- Profile Details -->
+                        <div class="profile-details">
+                            <h1 id="profileName" class="profile-details__name">
+                                Loading…
+                            </h1>
+                            <div
+                                id="profileUsername"
+                                style="
+                                    font-size: var(--font-size-sm);
+                                    color: var(--text-muted);
+                                    margin-top: 2px;
+                                "
+                            ></div>
+                            <p
+                                id="profileBio"
+                                class="profile-details__bio"
+                                style="margin-top: var(--space-xs)"
+                            ></p>
+                            <div
+                                id="profileMeta"
+                                class="profile-details__meta"
+                                style="margin-top: var(--space-xs)"
+                            ></div>
+                            <div
+                                id="profileOnlineStatus"
+                                style="
+                                    margin-top: var(--space-xs);
+                                    display: flex;
+                                    align-items: center;
+                                    gap: 6px;
+                                "
+                            ></div>
+                        </div>
 
-            <button
-              id="followBtn"
-              class="btn btn--outline-primary other-only"
-              style="display:none;"
-              onclick="toggleFollow(profileUserId)"
-            >+ Follow</button>
+                        <!-- Action Buttons -->
+                        <div id="profileActions" class="profile-actions">
+                            <!-- Own profile -->
+                            <button
+                                id="editProfileBtn"
+                                class="btn btn--secondary own-only"
+                                style="display: none"
+                                onclick="openEditModal()"
+                            >
+                                ✏️ Edit Profile
+                            </button>
 
-            <button
-              id="connectBtn"
-              class="btn btn--match other-only"
-              style="display:none;"
-              onclick="connectUser(profileUserId)"
-            ><span class="heart-icon">💜</span> Connect</button>
+                            <!-- Other's profile -->
+                            <button
+                                id="addFriendBtn"
+                                class="btn btn--primary other-only"
+                                style="display: none"
+                                onclick="sendFriendRequest(profileUserId)"
+                            >
+                                👤 Add Friend
+                            </button>
 
-            <button
-              id="messageBtn"
-              class="btn btn--secondary other-only"
-              style="display:none;"
-              onclick="messageUser(profileUserId)"
-            >💬 Message</button>
-          </div>
+                            <button
+                                id="followBtn"
+                                class="btn btn--outline-primary other-only"
+                                style="display: none"
+                                onclick="toggleFollow(profileUserId)"
+                            >
+                                + Follow
+                            </button>
 
-        </div><!-- /.profile-avatar-row -->
+                            <button
+                                id="connectBtn"
+                                class="btn btn--match other-only"
+                                style="display: none"
+                                onclick="connectUser(profileUserId)"
+                            >
+                                <span class="heart-icon">💜</span> Connect
+                            </button>
 
-        <!-- STATS ROW -->
-        <div id="profileStats" class="profile-stats">
-          <div class="profile-stats__item" onclick="switchTab('posts')" role="button" tabindex="0" aria-label="Posts count">
-            <span class="profile-stats__number" id="statPosts">–</span>
-            <span class="profile-stats__label">Posts</span>
-          </div>
-          <div class="profile-stats__item" onclick="switchTab('friends')" role="button" tabindex="0" aria-label="Friends count">
-            <span class="profile-stats__number" id="statFriends">–</span>
-            <span class="profile-stats__label">Friends</span>
-          </div>
-          <div class="profile-stats__item" aria-label="Followers count">
-            <span class="profile-stats__number" id="statFollowers">–</span>
-            <span class="profile-stats__label">Followers</span>
-          </div>
-          <div class="profile-stats__item" aria-label="Following count">
-            <span class="profile-stats__number" id="statFollowing">–</span>
-            <span class="profile-stats__label">Following</span>
-          </div>
-        </div>
+                            <button
+                                id="messageBtn"
+                                class="btn btn--secondary other-only"
+                                style="display: none"
+                                onclick="messageUser(profileUserId)"
+                            >
+                                💬 Message
+                            </button>
+                        </div>
+                    </div>
+                    <!-- /.profile-avatar-row -->
 
-      </div><!-- /.profile-info-inner -->
+                    <!-- STATS ROW -->
+                    <div id="profileStats" class="profile-stats">
+                        <div
+                            class="profile-stats__item"
+                            onclick="switchTab('posts')"
+                            role="button"
+                            tabindex="0"
+                            aria-label="Posts count"
+                        >
+                            <span class="profile-stats__number" id="statPosts"
+                                >–</span
+                            >
+                            <span class="profile-stats__label">Posts</span>
+                        </div>
+                        <div
+                            class="profile-stats__item"
+                            onclick="switchTab('friends')"
+                            role="button"
+                            tabindex="0"
+                            aria-label="Friends count"
+                        >
+                            <span class="profile-stats__number" id="statFriends"
+                                >–</span
+                            >
+                            <span class="profile-stats__label">Friends</span>
+                        </div>
+                        <div
+                            class="profile-stats__item"
+                            aria-label="Followers count"
+                        >
+                            <span
+                                class="profile-stats__number"
+                                id="statFollowers"
+                                >–</span
+                            >
+                            <span class="profile-stats__label">Followers</span>
+                        </div>
+                        <div
+                            class="profile-stats__item"
+                            aria-label="Following count"
+                        >
+                            <span
+                                class="profile-stats__number"
+                                id="statFollowing"
+                                >–</span
+                            >
+                            <span class="profile-stats__label">Following</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- /.profile-info-inner -->
 
-      <!-- PROFILE TABS (inside info section for visual continuity) -->
-      <nav id="profileTabs" class="profile-tabs" aria-label="Profile sections">
-        <button class="profile-tabs__tab active" data-tab="posts" aria-selected="true" role="tab">Posts</button>
-        <button class="profile-tabs__tab" data-tab="photos" aria-selected="false" role="tab">Photos</button>
-        <button class="profile-tabs__tab" data-tab="friends" aria-selected="false" role="tab">Friends</button>
-        <button class="profile-tabs__tab" data-tab="about" aria-selected="false" role="tab">About</button>
-      </nav>
+                <!-- PROFILE TABS (inside info section for visual continuity) -->
+                <nav
+                    id="profileTabs"
+                    class="profile-tabs"
+                    aria-label="Profile sections"
+                >
+                    <button
+                        class="profile-tabs__tab active"
+                        data-tab="posts"
+                        aria-selected="true"
+                        role="tab"
+                    >
+                        Posts
+                    </button>
+                    <button
+                        class="profile-tabs__tab"
+                        data-tab="photos"
+                        aria-selected="false"
+                        role="tab"
+                    >
+                        Photos
+                    </button>
+                    <button
+                        class="profile-tabs__tab"
+                        data-tab="friends"
+                        aria-selected="false"
+                        role="tab"
+                    >
+                        Friends
+                    </button>
+                    <button
+                        class="profile-tabs__tab"
+                        data-tab="about"
+                        aria-selected="false"
+                        role="tab"
+                    >
+                        About
+                    </button>
+                </nav>
+            </div>
+            <!-- /.profile-info-section -->
 
-    </div><!-- /.profile-info-section -->
-
-    <!-- ═══════════════════════════════════════════════════════
+            <!-- ═══════════════════════════════════════════════════════
          TAB CONTENT
     ═══════════════════════════════════════════════════════ -->
-    <div id="profileContent" class="profile-content" style="grid-template-columns:1fr;" role="tabpanel">
-
-      <!-- ── POSTS TAB ─────────────────────────────────────── -->
-      <div id="postsTab">
-
-        <!-- Create Post (own profile only) -->
-        <div id="createPostCard" class="create-post card own-only" style="display:none;" aria-label="Create a new post">
-          <div class="create-post__top">
-            <img
-              id="createPostAvatar"
-              class="create-post__avatar"
-              src="https://ui-avatars.com/api/?name=Me&background=1877f2&color=fff"
-              alt="Your avatar"
-              onerror="this.src='https://ui-avatars.com/api/?name=Me&background=1877f2&color=fff'"
+            <div
+                id="profileContent"
+                class="profile-content"
+                style="grid-template-columns: 1fr"
+                role="tabpanel"
             >
-            <textarea
-              id="postTextInput"
-              class="create-post__input"
-              placeholder="What's on your mind?"
-              rows="2"
-              aria-label="Write a post"
-            ></textarea>
-          </div>
-          <div class="create-post__divider"></div>
-          <div class="create-post__actions" style="justify-content:flex-end;padding:var(--space-sm) 0 0;">
-            <button
-              id="submitPost"
-              class="btn btn--primary btn--sm"
-              onclick="createPost(document.getElementById('postTextInput').value)"
-            >Post</button>
-          </div>
-        </div>
+                <!-- ── POSTS TAB ─────────────────────────────────────── -->
+                <div id="postsTab">
+                    <!-- Create Post (own profile only) -->
+                    <div
+                        id="createPostCard"
+                        class="create-post card own-only"
+                        style="display: none"
+                        aria-label="Create a new post"
+                    >
+                        <div class="create-post__top">
+                            <img
+                                id="createPostAvatar"
+                                class="create-post__avatar"
+                                src="https://ui-avatars.com/api/?name=Me&background=1877f2&color=fff"
+                                alt="Your avatar"
+                                onerror="
+                                    this.src =
+                                        'https://ui-avatars.com/api/?name=Me&background=1877f2&color=fff'
+                                "
+                            />
+                            <textarea
+                                id="postTextInput"
+                                class="create-post__input"
+                                placeholder="What's on your mind?"
+                                rows="2"
+                                aria-label="Write a post"
+                            ></textarea>
+                        </div>
+                        <div class="create-post__divider"></div>
+                        <div
+                            class="create-post__actions"
+                            style="
+                                justify-content: flex-end;
+                                padding: var(--space-sm) 0 0;
+                            "
+                        >
+                            <button
+                                id="submitPost"
+                                class="btn btn--primary btn--sm"
+                                onclick="
+                                    createPost(
+                                        document.getElementById('postTextInput')
+                                            .value,
+                                    )
+                                "
+                            >
+                                Post
+                            </button>
+                        </div>
+                    </div>
 
-        <!-- Posts List (initially shows loading skeleton) -->
-        <div id="userPostsList" aria-live="polite">
-          <div class="skeleton-card card">
-            <div class="skeleton-card__header">
-              <div class="skeleton skeleton--circle"></div>
-              <div class="skeleton-card__content">
-                <div class="skeleton skeleton--text"></div>
-                <div class="skeleton skeleton--text-sm"></div>
-              </div>
+                    <!-- Posts List (initially shows loading skeleton) -->
+                    <div id="userPostsList" aria-live="polite">
+                        <div class="skeleton-card card">
+                            <div class="skeleton-card__header">
+                                <div class="skeleton skeleton--circle"></div>
+                                <div class="skeleton-card__content">
+                                    <div class="skeleton skeleton--text"></div>
+                                    <div
+                                        class="skeleton skeleton--text-sm"
+                                    ></div>
+                                </div>
+                            </div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="margin: var(--space-sm) 0"
+                            ></div>
+                            <div
+                                class="skeleton skeleton--text-sm"
+                                style="width: 70%"
+                            ></div>
+                        </div>
+                        <div
+                            class="skeleton-card card"
+                            style="margin-top: var(--space-sm)"
+                        >
+                            <div class="skeleton-card__header">
+                                <div class="skeleton skeleton--circle"></div>
+                                <div class="skeleton-card__content">
+                                    <div class="skeleton skeleton--text"></div>
+                                    <div
+                                        class="skeleton skeleton--text-sm"
+                                    ></div>
+                                </div>
+                            </div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="margin: var(--space-sm) 0"
+                            ></div>
+                            <div
+                                class="skeleton skeleton--text-sm"
+                                style="width: 50%"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+                <!-- /#postsTab -->
+
+                <!-- ── PHOTOS TAB ─────────────────────────────────────── -->
+                <div
+                    id="photosTab"
+                    style="display: none"
+                    role="tabpanel"
+                    aria-label="Photos"
+                >
+                    <div class="card" style="padding: var(--space-md)">
+                        <div
+                            style="
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: center;
+                                margin-bottom: var(--space-md);
+                            "
+                        >
+                            <h2
+                                style="
+                                    font-size: var(--font-size-lg);
+                                    font-weight: 700;
+                                    color: var(--text);
+                                "
+                            >
+                                Photos
+                            </h2>
+                            <button
+                                id="uploadPhotoBtn"
+                                class="btn btn--primary btn--sm own-only"
+                                style="display: none"
+                                onclick="
+                                    document
+                                        .getElementById('photoFileInput')
+                                        .click()
+                                "
+                                aria-label="Upload a new photo"
+                            >
+                                + Upload Photo
+                            </button>
+                            <input
+                                type="file"
+                                id="photoFileInput"
+                                accept="image/*"
+                                style="display: none"
+                                aria-hidden="true"
+                            />
+                        </div>
+                        <div id="photosGrid" class="photo-grid"></div>
+                    </div>
+                </div>
+                <!-- /#photosTab -->
+
+                <!-- ── FRIENDS TAB ────────────────────────────────────── -->
+                <div
+                    id="friendsTab"
+                    style="display: none"
+                    role="tabpanel"
+                    aria-label="Friends"
+                >
+                    <div class="card" style="padding: var(--space-md)">
+                        <h2
+                            style="
+                                font-size: var(--font-size-lg);
+                                font-weight: 700;
+                                color: var(--text);
+                                margin-bottom: var(--space-md);
+                            "
+                        >
+                            Friends
+                        </h2>
+                        <div
+                            id="friendsGrid"
+                            style="
+                                display: grid;
+                                grid-template-columns: repeat(
+                                    auto-fill,
+                                    minmax(160px, 1fr)
+                                );
+                                gap: var(--space-sm);
+                            "
+                        ></div>
+                    </div>
+                </div>
+                <!-- /#friendsTab -->
+
+                <!-- ── ABOUT TAB ──────────────────────────────────────── -->
+                <div
+                    id="aboutTab"
+                    style="display: none"
+                    role="tabpanel"
+                    aria-label="About"
+                >
+                    <div class="card" style="padding: var(--space-lg)">
+                        <h2
+                            style="
+                                font-size: var(--font-size-lg);
+                                font-weight: 700;
+                                color: var(--text);
+                                margin-bottom: var(--space-md);
+                            "
+                        >
+                            About
+                        </h2>
+                        <div id="aboutContent"></div>
+                    </div>
+                </div>
+                <!-- /#aboutTab -->
             </div>
-            <div class="skeleton skeleton--text" style="margin:var(--space-sm) 0;"></div>
-            <div class="skeleton skeleton--text-sm" style="width:70%;"></div>
-          </div>
-          <div class="skeleton-card card" style="margin-top:var(--space-sm);">
-            <div class="skeleton-card__header">
-              <div class="skeleton skeleton--circle"></div>
-              <div class="skeleton-card__content">
-                <div class="skeleton skeleton--text"></div>
-                <div class="skeleton skeleton--text-sm"></div>
-              </div>
-            </div>
-            <div class="skeleton skeleton--text" style="margin:var(--space-sm) 0;"></div>
-            <div class="skeleton skeleton--text-sm" style="width:50%;"></div>
-          </div>
+            <!-- /#profileContent -->
         </div>
+        <!-- /.profile-page -->
 
-      </div><!-- /#postsTab -->
-
-      <!-- ── PHOTOS TAB ─────────────────────────────────────── -->
-      <div id="photosTab" style="display:none;" role="tabpanel" aria-label="Photos">
-        <div class="card" style="padding:var(--space-md);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-md);">
-            <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--text);">Photos</h2>
-            <button
-              id="uploadPhotoBtn"
-              class="btn btn--primary btn--sm own-only"
-              style="display:none;"
-              onclick="document.getElementById('photoFileInput').click()"
-              aria-label="Upload a new photo"
-            >+ Upload Photo</button>
-            <input type="file" id="photoFileInput" accept="image/*" style="display:none;" aria-hidden="true">
-          </div>
-          <div id="photosGrid" class="photo-grid"></div>
-        </div>
-      </div><!-- /#photosTab -->
-
-      <!-- ── FRIENDS TAB ────────────────────────────────────── -->
-      <div id="friendsTab" style="display:none;" role="tabpanel" aria-label="Friends">
-        <div class="card" style="padding:var(--space-md);">
-          <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--text);margin-bottom:var(--space-md);">Friends</h2>
-          <div
-            id="friendsGrid"
-            style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:var(--space-sm);"
-          ></div>
-        </div>
-      </div><!-- /#friendsTab -->
-
-      <!-- ── ABOUT TAB ──────────────────────────────────────── -->
-      <div id="aboutTab" style="display:none;" role="tabpanel" aria-label="About">
-        <div class="card" style="padding:var(--space-lg);">
-          <h2 style="font-size:var(--font-size-lg);font-weight:700;color:var(--text);margin-bottom:var(--space-md);">About</h2>
-          <div id="aboutContent"></div>
-        </div>
-      </div><!-- /#aboutTab -->
-
-    </div><!-- /#profileContent -->
-
-  </div><!-- /.profile-page -->
-
-  <!-- ═══════════════════════════════════════════════════════════
+        <!-- ═══════════════════════════════════════════════════════════
        EDIT PROFILE MODAL
   ═══════════════════════════════════════════════════════════ -->
-  <div
-    id="editProfileModal"
-    class="modal-overlay hidden"
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="editModalTitle"
-    onclick="handleModalOverlayClick(event)"
-  >
-    <div class="modal modal--lg">
-      <div class="modal__header">
-        <h2 class="modal__title" id="editModalTitle">Edit Profile</h2>
-        <button class="modal__close" onclick="closeEditModal()" aria-label="Close modal">&times;</button>
-      </div>
+        <div
+            id="editProfileModal"
+            class="modal-overlay hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="editModalTitle"
+            onclick="handleModalOverlayClick(event)"
+        >
+            <div class="modal modal--lg">
+                <div class="modal__header">
+                    <h2 class="modal__title" id="editModalTitle">
+                        Edit Profile
+                    </h2>
+                    <button
+                        class="modal__close"
+                        onclick="closeEditModal()"
+                        aria-label="Close modal"
+                    >
+                        &times;
+                    </button>
+                </div>
 
-      <div class="modal__body">
-        <form id="editProfileForm" onsubmit="event.preventDefault(); saveProfile();" novalidate>
+                <div class="modal__body">
+                    <form
+                        id="editProfileForm"
+                        onsubmit="
+                            event.preventDefault();
+                            saveProfile();
+                        "
+                        novalidate
+                    >
+                        <!-- Name -->
+                        <div class="form-group">
+                            <label
+                                for="editName"
+                                class="form-label form-label--required"
+                                >Name</label
+                            >
+                            <input
+                                type="text"
+                                id="editName"
+                                class="form-input"
+                                placeholder="Your full name"
+                                maxlength="80"
+                                autocomplete="name"
+                            />
+                        </div>
 
-          <!-- Name -->
-          <div class="form-group">
-            <label for="editName" class="form-label form-label--required">Name</label>
-            <input type="text" id="editName" class="form-input" placeholder="Your full name" maxlength="80" autocomplete="name">
-          </div>
+                        <!-- Bio -->
+                        <div class="form-group">
+                            <label for="editBio" class="form-label">Bio</label>
+                            <textarea
+                                id="editBio"
+                                class="form-textarea"
+                                rows="3"
+                                placeholder="Tell people about yourself…"
+                                maxlength="300"
+                            ></textarea>
+                        </div>
 
-          <!-- Bio -->
-          <div class="form-group">
-            <label for="editBio" class="form-label">Bio</label>
-            <textarea id="editBio" class="form-textarea" rows="3" placeholder="Tell people about yourself…" maxlength="300"></textarea>
-          </div>
+                        <!-- Location -->
+                        <div class="form-group">
+                            <label for="editLocation" class="form-label"
+                                >Location</label
+                            >
+                            <input
+                                type="text"
+                                id="editLocation"
+                                class="form-input"
+                                placeholder="City, Country"
+                                maxlength="100"
+                                autocomplete="address-level2"
+                            />
+                        </div>
 
-          <!-- Location -->
-          <div class="form-group">
-            <label for="editLocation" class="form-label">Location</label>
-            <input type="text" id="editLocation" class="form-input" placeholder="City, Country" maxlength="100" autocomplete="address-level2">
-          </div>
+                        <!-- Birth Date -->
+                        <div class="form-group">
+                            <label for="editBirthDate" class="form-label"
+                                >Birth Date</label
+                            >
+                            <input
+                                type="date"
+                                id="editBirthDate"
+                                class="form-input"
+                                autocomplete="bday"
+                            />
+                        </div>
 
-          <!-- Birth Date -->
-          <div class="form-group">
-            <label for="editBirthDate" class="form-label">Birth Date</label>
-            <input type="date" id="editBirthDate" class="form-input" autocomplete="bday">
-          </div>
+                        <!-- Gender + Relationship Status (side by side) -->
+                        <div
+                            style="
+                                display: grid;
+                                grid-template-columns: 1fr 1fr;
+                                gap: var(--space-md);
+                            "
+                        >
+                            <div class="form-group">
+                                <label for="editGender" class="form-label"
+                                    >Gender</label
+                                >
+                                <select id="editGender" class="form-select">
+                                    <option value="">Prefer not to say</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                    <option value="non-binary">
+                                        Non-binary
+                                    </option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label
+                                    for="editRelationshipStatus"
+                                    class="form-label"
+                                    >Relationship Status</label
+                                >
+                                <select
+                                    id="editRelationshipStatus"
+                                    class="form-select"
+                                >
+                                    <option value="">Not specified</option>
+                                    <option value="single">Single</option>
+                                    <option value="in a relationship">
+                                        In a Relationship
+                                    </option>
+                                    <option value="married">Married</option>
+                                    <option value="it's complicated">
+                                        It's Complicated
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
 
-          <!-- Gender + Relationship Status (side by side) -->
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);">
-            <div class="form-group">
-              <label for="editGender" class="form-label">Gender</label>
-              <select id="editGender" class="form-select">
-                <option value="">Prefer not to say</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="non-binary">Non-binary</option>
-                <option value="other">Other</option>
-              </select>
+                        <!-- Looking For -->
+                        <div class="form-group">
+                            <label for="editLookingFor" class="form-label"
+                                >Looking For</label
+                            >
+                            <select id="editLookingFor" class="form-select">
+                                <option value="">Not specified</option>
+                                <option value="friendship">Friendship</option>
+                                <option value="dating">Dating</option>
+                                <option value="relationship">
+                                    Relationship
+                                </option>
+                                <option value="networking">Networking</option>
+                            </select>
+                        </div>
+
+                        <!-- Interests -->
+                        <div class="form-group">
+                            <label class="form-label">Interests</label>
+                            <div
+                                id="editInterestTags"
+                                class="tags-list"
+                                style="
+                                    flex-wrap: wrap;
+                                    gap: var(--space-xs);
+                                    margin-top: var(--space-sm);
+                                "
+                                aria-label="Select your interests"
+                            ></div>
+                        </div>
+
+                        <!-- Profile Photo -->
+                        <div class="form-group">
+                            <label class="form-label">Profile Photo</label>
+                            <div
+                                style="
+                                    display: flex;
+                                    align-items: center;
+                                    gap: var(--space-md);
+                                    margin-bottom: var(--space-sm);
+                                "
+                            >
+                                <img
+                                    id="editAvatarPreview"
+                                    src="https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=72"
+                                    alt="Avatar preview"
+                                    style="
+                                        width: 72px;
+                                        height: 72px;
+                                        border-radius: 50%;
+                                        object-fit: cover;
+                                        border: 3px solid var(--border);
+                                        flex-shrink: 0;
+                                    "
+                                />
+                                <div style="flex: 1; min-width: 0">
+                                    <input
+                                        type="file"
+                                        id="editAvatarFile"
+                                        accept="image/*"
+                                        style="display: none"
+                                        aria-hidden="true"
+                                        onchange="uploadAvatar(this.files[0])"
+                                    />
+                                    <button
+                                        type="button"
+                                        class="btn btn--outline-secondary btn--sm"
+                                        onclick="
+                                            document
+                                                .getElementById(
+                                                    'editAvatarFile',
+                                                )
+                                                .click()
+                                        "
+                                    >
+                                        📷 Upload Photo
+                                    </button>
+                                    <p
+                                        class="form-hint"
+                                        style="margin-top: var(--space-xs)"
+                                    >
+                                        Or paste an image URL below
+                                    </p>
+                                </div>
+                            </div>
+                            <input
+                                type="url"
+                                id="editAvatarUrl"
+                                class="form-input"
+                                placeholder="https://example.com/your-photo.jpg"
+                            />
+                        </div>
+
+                        <!-- Cover Photo -->
+                        <div class="form-group">
+                            <label class="form-label">Cover Photo</label>
+                            <div style="margin-bottom: var(--space-sm)">
+                                <input
+                                    type="file"
+                                    id="editCoverFile"
+                                    accept="image/*"
+                                    style="display: none"
+                                    aria-hidden="true"
+                                    onchange="uploadCoverPhoto(this.files[0])"
+                                />
+                                <button
+                                    type="button"
+                                    class="btn btn--outline-secondary btn--sm"
+                                    onclick="
+                                        document
+                                            .getElementById('editCoverFile')
+                                            .click()
+                                    "
+                                >
+                                    🖼️ Upload Cover
+                                </button>
+                            </div>
+                            <input
+                                type="url"
+                                id="editCoverUrl"
+                                class="form-input"
+                                placeholder="https://example.com/your-cover.jpg"
+                            />
+                        </div>
+                    </form>
+                </div>
+                <!-- /.modal__body -->
+
+                <div class="modal__footer">
+                    <button
+                        type="button"
+                        class="btn btn--secondary"
+                        onclick="closeEditModal()"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        class="btn btn--primary"
+                        id="saveProfileBtn"
+                        onclick="saveProfile()"
+                    >
+                        Save Changes
+                    </button>
+                </div>
             </div>
-            <div class="form-group">
-              <label for="editRelationshipStatus" class="form-label">Relationship Status</label>
-              <select id="editRelationshipStatus" class="form-select">
-                <option value="">Not specified</option>
-                <option value="single">Single</option>
-                <option value="in a relationship">In a Relationship</option>
-                <option value="married">Married</option>
-                <option value="it's complicated">It's Complicated</option>
-              </select>
-            </div>
-          </div>
+            <!-- /.modal -->
+        </div>
+        <!-- /#editProfileModal -->
 
-          <!-- Looking For -->
-          <div class="form-group">
-            <label for="editLookingFor" class="form-label">Looking For</label>
-            <select id="editLookingFor" class="form-select">
-              <option value="">Not specified</option>
-              <option value="friendship">Friendship</option>
-              <option value="dating">Dating</option>
-              <option value="relationship">Relationship</option>
-              <option value="networking">Networking</option>
-            </select>
-          </div>
-
-          <!-- Interests -->
-          <div class="form-group">
-            <label class="form-label">Interests</label>
-            <div
-              id="editInterestTags"
-              class="tags-list"
-              style="flex-wrap:wrap;gap:var(--space-xs);margin-top:var(--space-sm);"
-              aria-label="Select your interests"
-            ></div>
-          </div>
-
-          <!-- Profile Photo -->
-          <div class="form-group">
-            <label class="form-label">Profile Photo</label>
-            <div style="display:flex;align-items:center;gap:var(--space-md);margin-bottom:var(--space-sm);">
-              <img
-                id="editAvatarPreview"
-                src="https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=72"
-                alt="Avatar preview"
-                style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid var(--border);flex-shrink:0;"
-              >
-              <div style="flex:1;min-width:0;">
-                <input type="file" id="editAvatarFile" accept="image/*" style="display:none;" aria-hidden="true" onchange="uploadAvatar(this.files[0])">
-                <button type="button" class="btn btn--outline-secondary btn--sm" onclick="document.getElementById('editAvatarFile').click()">📷 Upload Photo</button>
-                <p class="form-hint" style="margin-top:var(--space-xs);">Or paste an image URL below</p>
-              </div>
-            </div>
-            <input type="url" id="editAvatarUrl" class="form-input" placeholder="https://example.com/your-photo.jpg">
-          </div>
-
-          <!-- Cover Photo -->
-          <div class="form-group">
-            <label class="form-label">Cover Photo</label>
-            <div style="margin-bottom:var(--space-sm);">
-              <input type="file" id="editCoverFile" accept="image/*" style="display:none;" aria-hidden="true" onchange="uploadCoverPhoto(this.files[0])">
-              <button type="button" class="btn btn--outline-secondary btn--sm" onclick="document.getElementById('editCoverFile').click()">🖼️ Upload Cover</button>
-            </div>
-            <input type="url" id="editCoverUrl" class="form-input" placeholder="https://example.com/your-cover.jpg">
-          </div>
-
-        </form>
-      </div><!-- /.modal__body -->
-
-      <div class="modal__footer">
-        <button type="button" class="btn btn--secondary" onclick="closeEditModal()">Cancel</button>
-        <button type="button" class="btn btn--primary" id="saveProfileBtn" onclick="saveProfile()">Save Changes</button>
-      </div>
-    </div><!-- /.modal -->
-  </div><!-- /#editProfileModal -->
-
-  <!-- ═══════════════════════════════════════════════════════════
+        <!-- ═══════════════════════════════════════════════════════════
        MATCH BANNER
   ═══════════════════════════════════════════════════════════ -->
-  <div
-    id="matchBanner"
-    class="match-banner hidden"
-    role="alert"
-    aria-live="assertive"
-    style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);max-width:480px;width:calc(100% - var(--space-xl));z-index:var(--z-modal);"
-  >
-    <span class="match-banner__icon">🎉</span>
-    <h2 class="match-banner__title">It's a Match!</h2>
-    <p class="match-banner__sub" id="matchBannerText">You and someone are connected!</p>
-    <div style="display:flex;gap:var(--space-sm);justify-content:center;margin-top:var(--space-lg);">
-      <button class="btn btn--secondary btn--lg" onclick="closeMatchBanner()">💬 Send Message</button>
-      <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.5);" onclick="closeMatchBanner()">Close</button>
-    </div>
-  </div>
+        <div
+            id="matchBanner"
+            class="match-banner hidden"
+            role="alert"
+            aria-live="assertive"
+            style="
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                max-width: 480px;
+                width: calc(100% - var(--space-xl));
+                z-index: var(--z-modal);
+            "
+        >
+            <span class="match-banner__icon">🎉</span>
+            <h2 class="match-banner__title">It's a Match!</h2>
+            <p class="match-banner__sub" id="matchBannerText">
+                You and someone are connected!
+            </p>
+            <div
+                style="
+                    display: flex;
+                    gap: var(--space-sm);
+                    justify-content: center;
+                    margin-top: var(--space-lg);
+                "
+            >
+                <button
+                    class="btn btn--secondary btn--lg"
+                    onclick="closeMatchBanner()"
+                >
+                    💬 Send Message
+                </button>
+                <button
+                    class="btn"
+                    style="
+                        background: rgba(255, 255, 255, 0.2);
+                        color: white;
+                        border: 2px solid rgba(255, 255, 255, 0.5);
+                    "
+                    onclick="closeMatchBanner()"
+                >
+                    Close
+                </button>
+            </div>
+        </div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="/js/app.js"></script>
-  <script src="/js/profile.js"></script>
-</body>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/app.js"></script>
+        <script src="/js/responsive.js"></script>
+        <script src="/js/profile.js"></script>
+    </body>
 </html>
