@@ -1,0 +1,361 @@
+{
+  "users": {
+    "admin": {
+      "id": "admin",
+      "username": "admin",
+      "email": "admin@socialconnect.com",
+      "password": "$2a$10$cGNj5KJQml6yzVbOSmA6VOs56TcODlKxbwd6hW5APKqxRD.nYYVFO",
+      "role": "admin",
+      "name": "Admin User",
+      "bio": "Platform administrator",
+      "avatar": "https://ui-avatars.com/api/?name=Admin+User&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/admin/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:04.172Z",
+      "lastSeen": "2026-05-21T14:35:04.174Z",
+      "location": "HQ",
+      "birthDate": "1990-01-01",
+      "gender": "other",
+      "interests": [],
+      "lookingFor": null,
+      "relationshipStatus": null
+    },
+    "u1": {
+      "id": "u1",
+      "name": "Alice Johnson",
+      "username": "alice_j",
+      "email": "alice@example.com",
+      "gender": "female",
+      "location": "New York",
+      "password": "$2a$10$Wy/4mR0iWVIOzjQwAuKXE.dmoZWD14wqxMOdmdWwi/CYDu.CBhMrC",
+      "role": "user",
+      "bio": "Hi, I'm Alice! Nice to meet you.",
+      "avatar": "https://ui-avatars.com/api/?name=Alice%20Johnson&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/u1/800/300",
+      "photos": [],
+      "friends": [
+        "u2"
+      ],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:04.473Z",
+      "lastSeen": "2026-05-21T14:35:04.473Z",
+      "birthDate": "1995-06-15",
+      "interests": [
+        "music",
+        "travel",
+        "food"
+      ],
+      "lookingFor": "friends",
+      "relationshipStatus": "single"
+    },
+    "u2": {
+      "id": "u2",
+      "name": "Bob Smith",
+      "username": "bob_smith",
+      "email": "bob@example.com",
+      "gender": "male",
+      "location": "San Francisco",
+      "password": "$2a$10$zGxaXFNmmEWpYsr/t.u.yOV3wj8PwCajN1AS.w/nF2lFOmuBAQw36",
+      "role": "user",
+      "bio": "Hi, I'm Bob! Nice to meet you.",
+      "avatar": "https://ui-avatars.com/api/?name=Bob%20Smith&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/u2/800/300",
+      "photos": [],
+      "friends": [
+        "u1"
+      ],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:04.742Z",
+      "lastSeen": "2026-05-21T14:35:04.742Z",
+      "birthDate": "1995-06-15",
+      "interests": [
+        "music",
+        "travel",
+        "food"
+      ],
+      "lookingFor": "friends",
+      "relationshipStatus": "single"
+    },
+    "u3": {
+      "id": "u3",
+      "name": "Carol Williams",
+      "username": "carol_w",
+      "email": "carol@example.com",
+      "gender": "female",
+      "location": "Los Angeles",
+      "password": "$2a$10$CUTwCnEVE3QLZzmXhv.kL.YCLrpszIlr7ay1JydR4v2rVUa4MfaPu",
+      "role": "user",
+      "bio": "Hi, I'm Carol! Nice to meet you.",
+      "avatar": "https://ui-avatars.com/api/?name=Carol%20Williams&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/u3/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:05.074Z",
+      "lastSeen": "2026-05-21T14:35:05.074Z",
+      "birthDate": "1995-06-15",
+      "interests": [
+        "music",
+        "travel",
+        "food"
+      ],
+      "lookingFor": "friends",
+      "relationshipStatus": "single"
+    },
+    "u4": {
+      "id": "u4",
+      "name": "David Brown",
+      "username": "david_b",
+      "email": "david@example.com",
+      "gender": "male",
+      "location": "Chicago",
+      "password": "$2a$10$Vc1QO27MHYgxhj7gIqmEe.3j4eXnRZkolnaZhSQid42c8/fxCeK4W",
+      "role": "user",
+      "bio": "Hi, I'm David! Nice to meet you.",
+      "avatar": "https://ui-avatars.com/api/?name=David%20Brown&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/u4/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:05.345Z",
+      "lastSeen": "2026-05-21T14:35:05.345Z",
+      "birthDate": "1995-06-15",
+      "interests": [
+        "music",
+        "travel",
+        "food"
+      ],
+      "lookingFor": "friends",
+      "relationshipStatus": "single"
+    },
+    "u5": {
+      "id": "u5",
+      "name": "Emma Davis",
+      "username": "emma_d",
+      "email": "emma@example.com",
+      "gender": "female",
+      "location": "Austin",
+      "password": "$2a$10$BWHLPgk2CAJQbWP8AKEYLO0Ki.zyJY3PJ.XQjak4.QbsnIClK7LKe",
+      "role": "user",
+      "bio": "Hi, I'm Emma! Nice to meet you.",
+      "avatar": "https://ui-avatars.com/api/?name=Emma%20Davis&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/u5/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:05.611Z",
+      "lastSeen": "2026-05-21T14:35:05.611Z",
+      "birthDate": "1995-06-15",
+      "interests": [
+        "music",
+        "travel",
+        "food"
+      ],
+      "lookingFor": "friends",
+      "relationshipStatus": "single"
+    },
+    "u6": {
+      "id": "u6",
+      "name": "Frank Wilson",
+      "username": "frank_w",
+      "email": "frank@example.com",
+      "gender": "male",
+      "location": "Miami",
+      "password": "$2a$10$nqA84sYFNHJUCc2AmBNVhONhVdBXSMORwJqg8vhWFTBszC9QY6p2i",
+      "role": "user",
+      "bio": "Hi, I'm Frank! Nice to meet you.",
+      "avatar": "https://ui-avatars.com/api/?name=Frank%20Wilson&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/u6/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-21T14:35:05.910Z",
+      "lastSeen": "2026-05-21T14:35:05.910Z",
+      "birthDate": "1995-06-15",
+      "interests": [
+        "music",
+        "travel",
+        "food"
+      ],
+      "lookingFor": "friends",
+      "relationshipStatus": "single"
+    }
+  },
+  "posts": {
+    "p1": {
+      "id": "p1",
+      "authorId": "u1",
+      "text": "Just arrived in New York! The city that never sleeps ✨",
+      "image": "https://picsum.photos/seed/p1/600/400",
+      "likes": [
+        "u2",
+        "u3",
+        "u4"
+      ],
+      "comments": [
+        {
+          "id": "af781d0d-66be-40e9-8527-a36c995ddb95",
+          "userId": "u2",
+          "text": "Looks amazing! 😍",
+          "time": "2026-05-21T13:35:05.910Z"
+        }
+      ],
+      "time": "2026-05-21T12:35:05.910Z"
+    },
+    "p2": {
+      "id": "p2",
+      "authorId": "u2",
+      "text": "Golden Gate Bridge at sunset 🌉 San Francisco is magical.",
+      "image": "https://picsum.photos/seed/p2/600/400",
+      "likes": [
+        "u1",
+        "u5"
+      ],
+      "comments": [
+        {
+          "id": "da63a4ef-894e-422a-b018-ae5a577eb6a8",
+          "userId": "u3",
+          "text": "Looks amazing! 😍",
+          "time": "2026-05-21T13:35:05.910Z"
+        }
+      ],
+      "time": "2026-05-21T10:35:05.910Z"
+    },
+    "p3": {
+      "id": "p3",
+      "authorId": "u3",
+      "text": "Hollywood Hills hike done! Views were absolutely breathtaking 🏔️",
+      "image": "https://picsum.photos/seed/p3/600/400",
+      "likes": [
+        "u2",
+        "u6"
+      ],
+      "comments": [
+        {
+          "id": "6cdec12c-b67c-4979-a103-9bb19302da03",
+          "userId": "u4",
+          "text": "Looks amazing! 😍",
+          "time": "2026-05-21T13:35:05.910Z"
+        }
+      ],
+      "time": "2026-05-21T08:35:05.910Z"
+    },
+    "p4": {
+      "id": "p4",
+      "authorId": "u4",
+      "text": "Deep dish pizza in Chicago hits different every single time 🍕",
+      "image": "https://picsum.photos/seed/p4/600/400",
+      "likes": [],
+      "comments": [
+        {
+          "id": "92d84139-617c-48bd-b785-031d398e853c",
+          "userId": "u5",
+          "text": "Looks amazing! 😍",
+          "time": "2026-05-21T13:35:05.910Z"
+        }
+      ],
+      "time": "2026-05-21T06:35:05.910Z"
+    },
+    "p5": {
+      "id": "p5",
+      "authorId": "u5",
+      "text": "Austin live music scene is incredible! So many talented artists 🎸",
+      "image": "https://picsum.photos/seed/p5/600/400",
+      "likes": [],
+      "comments": [
+        {
+          "id": "330548f9-2cf7-4201-a654-9356c543f435",
+          "userId": "u6",
+          "text": "Looks amazing! 😍",
+          "time": "2026-05-21T13:35:05.910Z"
+        }
+      ],
+      "time": "2026-05-21T04:35:05.910Z"
+    },
+    "p6": {
+      "id": "p6",
+      "authorId": "u6",
+      "text": "Miami beach vibes on a Friday evening 🌊 Life is good.",
+      "image": "https://picsum.photos/seed/p6/600/400",
+      "likes": [],
+      "comments": [
+        {
+          "id": "e6d13565-e340-40f5-b748-4c0560db7ba2",
+          "userId": "u1",
+          "text": "Looks amazing! 😍",
+          "time": "2026-05-21T13:35:05.910Z"
+        }
+      ],
+      "time": "2026-05-21T02:35:05.910Z"
+    }
+  },
+  "chats": {
+    "u1_u2": [
+      {
+        "id": "7f60a247-df9b-490f-aebf-6f1ac09ab34f",
+        "senderId": "u1",
+        "receiverId": "u2",
+        "text": "Hey Bob! How are you doing?",
+        "time": "2026-05-21T12:35:05.910Z",
+        "read": true
+      },
+      {
+        "id": "43190596-d469-4d59-93f5-aedf4486891c",
+        "senderId": "u2",
+        "receiverId": "u1",
+        "text": "Alice! Great to hear from you. Doing well, thanks!",
+        "time": "2026-05-21T12:36:45.910Z",
+        "read": true
+      },
+      {
+        "id": "f92b03af-74f7-42a6-bfa5-53f13f0b7ede",
+        "senderId": "u1",
+        "receiverId": "u2",
+        "text": "We should catch up sometime soon 😊",
+        "time": "2026-05-21T12:38:25.910Z",
+        "read": false
+      }
+    ]
+  },
+  "notifications": {
+    "u1": [],
+    "u2": [],
+    "u3": [],
+    "u4": [],
+    "u5": [],
+    "u6": [],
+    "admin": []
+  },
+  "friendRequests": {
+    "u1": [],
+    "u2": [],
+    "u3": [],
+    "u4": [],
+    "u5": [],
+    "u6": [],
+    "admin": []
+  }
+}

@@ -222,6 +222,55 @@ const SC = {
     });
   },
 
+  /**
+   * Compress an image file (from <input type="file">) to a base64 data URL.
+   * Resizes to fit within maxW×maxH, then exports at the given JPEG quality.
+   * This is critical for mobile uploads where camera photos can be 5-20 MB.
+   *
+   * @param {File}   file    The raw image file
+   * @param {number} maxW    Max width  (default 1200)
+   * @param {number} maxH    Max height (default 1200)
+   * @param {number} quality JPEG quality 0-1 (default 0.85)
+   * @returns {Promise<string>} base64 data URL
+   */
+  compressImage(file, maxW = 1200, maxH = 1200, quality = 0.85) {
+    return new Promise((resolve, reject) => {
+      // Skip compression for non-image or small files (< 500 KB)
+      if (!file.type.startsWith('image/') || file.size < 500 * 1024) {
+        return this.fileToBase64(file).then(resolve).catch(reject);
+      }
+
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+
+        // Resize only if larger than max dimensions
+        if (width > maxW || height > maxH) {
+          const ratio = Math.min(maxW / width, maxH / height);
+          width  = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width  = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Export as JPEG (smaller than PNG)
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        // Fallback to raw base64 if image can't be loaded
+        this.fileToBase64(file).then(resolve).catch(reject);
+      };
+      img.src = url;
+    });
+  },
+
   getAvatar(user) {
     if (user && user.avatar) return user.avatar;
     const name = (user && user.name) ? user.name : 'User';

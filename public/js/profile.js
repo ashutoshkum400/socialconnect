@@ -840,7 +840,7 @@ async function uploadAvatar(file) {
   if (!file) return;
   try {
     SC.showInfo('Uploading profile photo…');
-    const base64 = await SC.fileToBase64(file);
+    const base64 = await SC.compressImage(file, 400, 400, 0.85);
 
     const updated = await apiFetch('/api/me', {
       method: 'PUT',
@@ -877,7 +877,7 @@ async function uploadCoverPhoto(file) {
   if (!file) return;
   try {
     SC.showInfo('Uploading cover photo…');
-    const base64 = await SC.fileToBase64(file);
+    const base64 = await SC.compressImage(file, 1200, 400, 0.85);
 
     const updated = await apiFetch('/api/me', {
       method: 'PUT',
@@ -911,7 +911,7 @@ async function uploadPhoto(file) {
   if (!file) return;
   try {
     SC.showInfo('Uploading photo…');
-    const base64 = await SC.fileToBase64(file);
+    const base64 = await SC.compressImage(file, 1200, 1200, 0.85);
 
     const photos  = [...(profileUser.photos || []), base64];
     const updated = await apiFetch('/api/me', {
