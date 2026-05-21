@@ -896,17 +896,28 @@ io.on("connection", (socket) => {
   });
 });
 
+// ─── Root route (explicit) ───────────────────────────────────────────────────
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 // ─── SPA Catch-all ────────────────────────────────────────────────────────────
-app.get("*", (req, res) => {
-  const index = path.join(__dirname, "public", "index.html");
-  res.sendFile(index, (err) => {
-    if (err) res.status(404).json({ error: "Not found" });
-  });
+app.use((req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-seedData().then(() => {
-  server.listen(PORT, "0.0.0.0", () => {
-    console.log(`🚀 SocialConnect running on port ${PORT}`);
+seedData()
+  .then(() => {
+    server.listen(PORT, "0.0.0.0", () => {
+      console.log(`✅ Server started`);
+      console.log(`🚀 SocialConnect running on port ${PORT}`);
+      console.log(
+        `📁 Serving static files from: ${path.join(__dirname, "public")}`,
+      );
+    });
+  })
+  .catch((err) => {
+    console.error("❌ Failed to seed data:", err);
+    process.exit(1);
   });
-});
