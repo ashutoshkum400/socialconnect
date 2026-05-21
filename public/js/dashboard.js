@@ -816,10 +816,18 @@ function renderOnlineFriends() {
   const container = document.getElementById('onlineFriends');
   if (!container) return;
 
+  const countBadge = document.getElementById('onlineFriendsCount');
+
   const myFriends = currentUser.friends || [];
   const onlineFriendsList = allUsers.filter(u =>
     onlineUserIds.has(u.id) && myFriends.includes(u.id)
   );
+
+  // Update the count badge in the widget title
+  if (countBadge) {
+    const total = onlineFriendsList.length;
+    countBadge.textContent = total > 0 ? `(${total})` : '';
+  }
 
   if (!onlineFriendsList.length) {
     container.innerHTML = `

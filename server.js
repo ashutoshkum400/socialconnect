@@ -7,12 +7,14 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { v4: uuidv4 } = require("uuid");
 const path = require("path");
+const fs = require("fs");
 const cors = require("cors");
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "socialconnect-secret-key-2024";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "Admin@2024";
+const DATA_FILE = path.join(__dirname, "data.json");
 
 // ─── App / Server ─────────────────────────────────────────────────────────────
 const app = express();
@@ -30,6 +32,60 @@ const db = {
   friendRequests: new Map(), // userId -> [{from, time}]
 };
 const onlineUsers = new Map(); // userId -> socketId
+
+// ─── Persistence ──────────────────────────────────────────────────────────────
+/**
+ * Convert all db Maps to plain objects for JSON serialisation.
+ */
+function dbToJSON() {
+  const obj = {};
+  for (const [key, map] of Object.entries(db)) {
+    obj[key] = Object.fromEntries(map);
+  }
+  return obj;
+}
+
+/**
+ * Reconstruct db Maps from a previously-serialised JSON object.
+ */
+function dbFromJSON(json) {
+  for (const [key, obj] of Object.entries(json)) {
+    if (db[key] instanceof Map) {
+      db[key] = new Map(Object.entries(obj));
+    }
+  }
+}
+
+/**
+ * Persist the entire db to disk (synchronous to avoid race conditions
+ * on server shutdown / restart).
+ */
+function saveDb() {
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(dbToJSON(), null, 2), "utf-8");
+  } catch (err) {
+    console.error("❌ Failed to persist data:", err.message);
+  }
+}
+
+/**
+ * Load db from disk. Returns true if data was loaded, false otherwise.
+ */
+function loadDb() {
+  try {
+    if (!fs.existsSync(DATA_FILE)) return false;
+    const raw = fs.readFileSync(DATA_FILE, "utf-8");
+    const json = JSON.parse(raw);
+    dbFromJSON(json);
+    console.log("✅ Data restored from disk");
+    return true;
+  } catch (err) {
+    console.error("❌ Failed to load data.json:", err.message);
+    return false;
+  }
+}
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
@@ -85,6 +141,12 @@ function adminOnly(req, res, next) {
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 async function seedData() {
+  // If data was restored from disk, do NOT re-seed
+  if (loadDb()) {
+    console.log("📂 Using persisted data from disk");
+    return;
+  }
+
   const hash = (pw) => bcrypt.hashSync(pw, 10);
 
   // Admin
@@ -289,7 +351,9 @@ async function seedData() {
     },
   ]);
 
-  console.log("✅ Seed data loaded");
+  // Persist the freshly-seeded data so future restarts find it
+  saveDb();
+  console.log("✅ Seed data loaded and persisted");
 }
 
 // ─── AUTH ROUTES ──────────────────────────────────────────────────────────────
@@ -348,6 +412,8 @@ app.post("/api/auth/register", async (req, res) => {
     db.notifications.set(id, []);
     db.friendRequests.set(id, []);
 
+    saveDb();
+
     const token = jwt.sign({ id, role: "user" }, JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -372,6 +438,7 @@ app.post("/api/auth/login", async (req, res) => {
     if (!valid) return res.status(401).json({ error: "Invalid credentials" });
 
     user.lastSeen = new Date().toISOString();
+    saveDb();
     const token = jwt.sign({ id: user.id, role: user.role }, JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -427,6 +494,8 @@ app.post("/api/auth/admin-register", async (req, res) => {
     db.notifications.set(id, []);
     db.friendRequests.set(id, []);
 
+    saveDb();
+
     const token = jwt.sign({ id, role: "admin" }, JWT_SECRET, {
       expiresIn: "7d",
     });
@@ -462,6 +531,7 @@ app.put("/api/me", authenticate, (req, res) => {
   for (const field of allowed) {
     if (req.body[field] !== undefined) user[field] = req.body[field];
   }
+  saveDb();
   res.json(sanitizeUser(user));
 });
 
@@ -498,6 +568,7 @@ app.put("/api/users/:id", authenticate, adminOnly, (req, res) => {
   for (const [k, v] of Object.entries(req.body)) {
     if (!forbidden.includes(k)) user[k] = v;
   }
+  saveDb();
   res.json(sanitizeUser(user));
 });
 
@@ -505,6 +576,7 @@ app.delete("/api/users/:id", authenticate, adminOnly, (req, res) => {
   if (!db.users.has(req.params.id))
     return res.status(404).json({ error: "User not found" });
   db.users.delete(req.params.id);
+  saveDb();
   res.json({ message: "User deleted" });
 });
 
@@ -512,6 +584,7 @@ app.post("/api/users/:id/block", authenticate, adminOnly, (req, res) => {
   const user = db.users.get(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
   user.blocked = true;
+  saveDb();
   res.json({ message: "User blocked", user: sanitizeUser(user) });
 });
 
@@ -519,6 +592,7 @@ app.post("/api/users/:id/unblock", authenticate, adminOnly, (req, res) => {
   const user = db.users.get(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
   user.blocked = false;
+  saveDb();
   res.json({ message: "User unblocked", user: sanitizeUser(user) });
 });
 
@@ -543,6 +617,8 @@ app.post("/api/friends/request/:id", authenticate, (req, res) => {
   db.friendRequests
     .get(toId)
     .push({ from: fromId, time: new Date().toISOString() });
+
+  saveDb();
 
   const fromUser = db.users.get(fromId);
   addNotification(
@@ -575,6 +651,8 @@ app.post("/api/friends/accept/:id", authenticate, (req, res) => {
   if (!acceptUser.friends.includes(fromId)) acceptUser.friends.push(fromId);
   if (!fromUser.friends.includes(acceptId)) fromUser.friends.push(acceptId);
 
+  saveDb();
+
   addNotification(
     fromId,
     "friend_accept",
@@ -596,6 +674,7 @@ app.post("/api/friends/reject/:id", authenticate, (req, res) => {
     return res.status(404).json({ error: "No pending request from that user" });
 
   requests.splice(idx, 1);
+  saveDb();
   res.json({ message: "Friend request rejected" });
 });
 
@@ -629,6 +708,7 @@ app.post("/api/follow/:id", authenticate, (req, res) => {
   }
   if (!follower.following.includes(targetId)) follower.following.push(targetId);
 
+  saveDb();
   res.json({ message: "Followed successfully" });
 });
 
@@ -642,6 +722,7 @@ app.post("/api/unfollow/:id", authenticate, (req, res) => {
 
   target.followers = target.followers.filter((id) => id !== followerId);
   follower.following = follower.following.filter((id) => id !== targetId);
+  saveDb();
   res.json({ message: "Unfollowed successfully" });
 });
 
@@ -657,6 +738,8 @@ app.post("/api/connect/:id", authenticate, (req, res) => {
 
   if (!requester.connections.includes(targetId))
     requester.connections.push(targetId);
+
+  saveDb();
 
   // Check for mutual connection (match)
   if (target.connections.includes(requesterId)) {
@@ -717,6 +800,7 @@ app.post("/api/posts", authenticate, (req, res) => {
     time: new Date().toISOString(),
   };
   db.posts.set(post.id, post);
+  saveDb();
 
   const populated = populatePost(post);
   io.emit("new_post", populated);
@@ -730,6 +814,7 @@ app.delete("/api/posts/:id", authenticate, (req, res) => {
     return res.status(403).json({ error: "Not authorized" });
 
   db.posts.delete(req.params.id);
+  saveDb();
   io.emit("delete_post", req.params.id);
   res.json({ message: "Post deleted" });
 });
@@ -755,6 +840,7 @@ app.post("/api/posts/:id/like", authenticate, (req, res) => {
     post.likes.splice(idx, 1);
   }
 
+  saveDb();
   io.emit("post_like", { postId: post.id, likes: post.likes });
   res.json({ likes: post.likes });
 });
@@ -774,6 +860,7 @@ app.post("/api/posts/:id/comment", authenticate, (req, res) => {
     time: new Date().toISOString(),
   };
   post.comments.push(comment);
+  saveDb();
 
   if (post.authorId !== req.user.id) {
     addNotification(
@@ -880,6 +967,7 @@ app.post("/api/admin/users", authenticate, adminOnly, async (req, res) => {
     db.users.set(id, user);
     db.notifications.set(id, []);
     db.friendRequests.set(id, []);
+    saveDb();
     res.status(201).json(sanitizeUser(user));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -922,6 +1010,7 @@ io.on("connection", (socket) => {
       read: false,
     };
     db.chats.get(key).push(message);
+    saveDb();
 
     io.to(key).emit("message", { chatKey: key, message });
 
@@ -946,7 +1035,10 @@ io.on("connection", (socket) => {
     if (socket.userId) {
       onlineUsers.delete(socket.userId);
       const user = db.users.get(socket.userId);
-      if (user) user.lastSeen = new Date().toISOString();
+      if (user) {
+        user.lastSeen = new Date().toISOString();
+        saveDb();
+      }
       io.emit("user_online", { userId: socket.userId, online: false });
     }
   });

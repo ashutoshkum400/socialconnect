@@ -109,19 +109,35 @@ async function apiFetch(url, options = {}) {
 // ═══════════════════════════════════════════════════════════════
 
 async function init() {
+  // ── Refresh currentUser from server to avoid stale localStorage data ──
+  try {
+    const fresh = await apiFetch('/api/me');
+    if (fresh) {
+      // Update the module-level currentUser with server-fresh data
+      Object.assign(currentUser, fresh);
+      localStorage.setItem('sc_user', JSON.stringify(fresh));
+    }
+  } catch {
+    // If /api/me fails (e.g. network glitch), fall back to localStorage
+  }
+
+  // Re-resolve profileUserId and isOwnProfile with fresh data
+  const resolvedProfileUserId = urlParams.get('id') || currentUser._id || currentUser.id || '';
+  const resolvedIsOwnProfile = String(resolvedProfileUserId) === String(currentUser._id || currentUser.id || '');
+
   // Populate navbar avatar / name via shared helper
   SC.initNavbar();
 
   // Show own-only OR other-only elements based on whose profile this is
   document.querySelectorAll('.own-only').forEach(el => {
-    el.style.display = isOwnProfile ? '' : 'none';
+    el.style.display = resolvedIsOwnProfile ? '' : 'none';
   });
   document.querySelectorAll('.other-only').forEach(el => {
-    el.style.display = isOwnProfile ? 'none' : '';
+    el.style.display = resolvedIsOwnProfile ? 'none' : '';
   });
 
   // Load the profile data (also loads posts)
-  await loadProfile(profileUserId);
+  await loadProfile(resolvedProfileUserId);
 
   // Tab click handlers (delegated via data-tab attribute)
   document.querySelectorAll('[data-tab]').forEach(btn => {
@@ -720,7 +736,7 @@ function openEditModal() {
   setVal('editLookingFor',         u.lookingFor);
   setVal('editRelationshipStatus', u.relationshipStatus);
   setVal('editAvatarUrl',          '');       // clear URL field; use file upload instead
-  setVal('editCoverUrl',           u.coverPhoto || '');
+  setVal('editCoverUrl',           '');       // clear URL field; use file upload instead
 
   // Avatar preview
   const preview = document.getElementById('editAvatarPreview');
@@ -843,6 +859,9 @@ async function uploadAvatar(file) {
     const editPreview = document.getElementById('editAvatarPreview');
     if (editPreview) editPreview.src = base64;
 
+    // Keep profileUser in sync so saveProfile() doesn't overwrite with stale data
+    if (profileUser) profileUser.avatar = base64;
+
     // Also sync nav avatar if user is on their own profile
     SC.initNavbar();
 
@@ -873,6 +892,9 @@ async function uploadCoverPhoto(file) {
       coverArea.style.backgroundSize     = 'cover';
       coverArea.style.backgroundPosition = 'center';
     }
+    // Keep profileUser in sync so saveProfile() doesn't overwrite with stale data
+    if (profileUser) profileUser.coverPhoto = base64;
+
     // Sync the cover URL field in the edit modal if it is open
     const coverUrlInput = document.getElementById('editCoverUrl');
     if (coverUrlInput) coverUrlInput.value = '';
