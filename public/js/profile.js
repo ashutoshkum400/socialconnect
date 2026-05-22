@@ -180,16 +180,7 @@ async function init() {
 
   // Own-profile extras
   if (isOwnProfile) {
-    // Ctrl+Enter to post
-    const postInput = document.getElementById('postTextInput');
-    if (postInput) {
-      postInput.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-          e.preventDefault();
-          createPost(postInput.value);
-        }
-      });
-    }
+    // Post via advanced post modal (Ctrl+Enter when focused on modal textarea)
 
     // Edit avatar via overlay button
     const editAvatarBtn  = document.getElementById('editAvatarBtn');
@@ -1012,45 +1003,6 @@ function messageUser(userId) {
 // ═══════════════════════════════════════════════════════════════
 // POSTS — CREATE, LIKE, COMMENT, DELETE
 // ═══════════════════════════════════════════════════════════════
-
-async function createPost(text) {
-  if (!text || !text.trim()) {
-    SC.showWarning('Please write something first!');
-    return;
-  }
-
-  const submitBtn = document.getElementById('submitPost');
-  const textInput = document.getElementById('postTextInput');
-
-  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Posting…'; }
-
-  try {
-    const post = await apiFetch('/api/posts', {
-      method: 'POST',
-      body: JSON.stringify({ text: text.trim() })
-    });
-
-    if (textInput) textInput.value = '';
-
-    const container = document.getElementById('userPostsList');
-    if (container) {
-      // Remove "no posts" empty state if present
-      const empty = container.querySelector('.empty-state');
-      if (empty) container.innerHTML = '';
-      container.insertAdjacentHTML('afterbegin', renderPost(post));
-    }
-
-    // Bump posts stat counter
-    const statPosts = document.getElementById('statPosts');
-    if (statPosts) statPosts.textContent = String((parseInt(statPosts.textContent) || 0) + 1);
-
-    SC.showSuccess('Post published!');
-  } catch (err) {
-    SC.showError(`Could not create post: ${err.message}`);
-  } finally {
-    if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Post'; }
-  }
-}
 
 async function likePost(postId) {
   const btn   = document.getElementById(`likeBtn_${postId}`);

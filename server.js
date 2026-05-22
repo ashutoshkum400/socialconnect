@@ -139,6 +139,11 @@ function adminOnly(req, res, next) {
   next();
 }
 
+// ─── Load Advanced Post API ────────────────────────────────────────────────
+const advancedPostAPI = require('./advanced-post-api');
+advancedPostAPI(app, io, db, authenticate);
+global.saveDb = saveDb;
+
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 async function seedData() {
   // If data was restored from disk, do NOT re-seed

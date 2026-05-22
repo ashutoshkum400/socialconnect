@@ -6,6 +6,7 @@
         <title>SocialConnect - Home</title>
         <link rel="stylesheet" href="/css/style.css" />
         <link rel="stylesheet" href="/css/responsive.css" />
+        <link rel="stylesheet" href="/css/advanced-post.css" />
     </head>
     <body data-page="dashboard">
         <!-- ═══════════════════════════════════════════════════════════
@@ -472,7 +473,7 @@
                             <button
                                 class="create-post__input"
                                 id="createPostTrigger"
-                                onclick="expandCreatePost()"
+                                onclick="openAdvancedPostModal()"
                                 aria-label="What's on your mind?"
                                 aria-expanded="false"
                                 aria-controls="createPostExpanded"
@@ -482,86 +483,12 @@
                                 >
                             </button>
                         </div>
-                        <!-- Expanded post creation area -->
-                        <div
-                            class="create-post__expanded hidden"
-                            id="createPostExpanded"
-                        >
-                            <textarea
-                                id="postTextarea"
-                                class="create-post__textarea"
-                                placeholder="What's on your mind?"
-                                rows="3"
-                                aria-label="Post text"
-                            ></textarea>
-                            <!-- Image URL input (hidden by default) -->
-                            <div
-                                id="postImageUrlWrap"
-                                class="hidden"
-                                style="
-                                    padding: 0 var(--space-md) var(--space-sm);
-                                "
-                            >
-                                <input
-                                    type="url"
-                                    id="postImageUrl"
-                                    class="form-input"
-                                    placeholder="Paste image URL (optional)..."
-                                    aria-label="Image URL"
-                                />
-                            </div>
-                            <div
-                                style="
-                                    padding: 0 var(--space-md) var(--space-sm);
-                                "
-                            >
-                                <button
-                                    id="submitPost"
-                                    class="btn btn--primary btn--full"
-                                    onclick="createPost()"
-                                    aria-label="Publish post"
-                                >
-                                    Post
-                                </button>
-                            </div>
-                        </div>
-                        <div class="create-post__divider"></div>
-                        <div class="create-post__actions">
-                            <button
-                                class="create-post__action"
-                                onclick="togglePostImageInput()"
-                                aria-label="Add photo"
-                            >
-                                <span
-                                    class="create-post__action-icon photo"
-                                    aria-hidden="true"
-                                    >📷</span
-                                >
-                                Photo/Video
-                            </button>
-                            <button
-                                class="create-post__action"
-                                onclick="expandCreatePost()"
-                                aria-label="Tag friends"
-                            >
-                                <span
-                                    class="create-post__action-icon"
-                                    aria-hidden="true"
-                                    >👥</span
-                                >
-                                Tag Friends
-                            </button>
-                            <button
-                                class="create-post__action"
-                                onclick="expandCreatePost()"
-                                aria-label="Add feeling"
-                            >
-                                <span
-                                    class="create-post__action-icon feeling"
-                                    aria-hidden="true"
-                                    >😊</span
-                                >
-                                Feeling/Activity
+
+
+                        <!-- Advanced Post Button -->
+                        <div style="padding: var(--space-sm) var(--space-md) var(--space-md);">
+                            <button id="advancedPostBtn" type="button" style="width:100%;padding:12px;background:linear-gradient(135deg,#5856d6,#7c6fcf);color:white;border:none;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(88,86,214,0.3);">
+                                Share ! It
                             </button>
                         </div>
                     </div>
@@ -1152,5 +1079,32 @@
         <script src="/js/dashboard.js"></script>
         <script src="/js/scroll-nav.js"></script>
         <script src="/js/call.js"></script>
+
+        <!-- Advanced Post System -->
+        <script src="/js/advanced-post.js"></script>
+
+        <!-- Advanced Post Modal HTML -->
+        <div id="advancedPostContainer"></div>
+        <script>
+          document.addEventListener('DOMContentLoaded', async () => {
+            try {
+              const response = await fetch('/html/advanced-post-modal.html');
+              const html = await response.text();
+              let container = document.getElementById('advancedPostContainer');
+              if (!container) {
+                container = document.createElement('div');
+                container.id = 'advancedPostContainer';
+                document.body.appendChild(container);
+              }
+              container.innerHTML = html;
+              // Initialize AdvancedPost after modal HTML is in the DOM
+              if (window.AdvancedPost) {
+                setTimeout(() => AdvancedPost.init(), 50);
+              }
+            } catch (error) {
+              console.error('Failed to load advanced post modal:', error);
+            }
+          });
+        </script>
     </body>
 </html>

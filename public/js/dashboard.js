@@ -235,9 +235,14 @@ function createPostElement(post) {
           </div>
         </div>
       `}
-    </div>
+    </div>                <!-- Feeling / Activity badges -->
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
+                  ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
+                  ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
+                  ${post.location ? `<span class="tag" style="font-size:12px;padding:3px 10px;">📍 ${post.location.name}</span>` : ''}
+                </div>
 
-    <div class="post-card__content${!post.image && post.text && post.text.length < 120 ? ' large-text' : ''}">
+                <div class="post-card__content${!post.image && (!post.media || !post.media.photos || !post.media.photos.length) && post.text && post.text.length < 120 ? ' large-text' : ''}">
       ${highlightHashtags(escapeHtml(post.text || ''))}
     </div>
 
@@ -252,6 +257,26 @@ function createPostElement(post) {
           onclick="openPostModal('${post.id}')"
           style="cursor:pointer;"
         >
+      </div>
+    ` : ''}
+
+    ${post.media && post.media.photos && post.media.photos.length > 0 ? `
+      <div style="margin-top:var(--space-sm);display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">
+        ${post.media.photos.map((photo, idx) => `
+          <img
+            src="${photo.data || photo.thumbnail || ''}"
+            alt="Photo ${idx + 1}"
+            style="width:100%;height:150px;object-fit:cover;border-radius:8px;"
+            loading="lazy"
+            onerror="this.parentElement.style.display='none'"
+          >
+        `).join('')}
+      </div>
+    ` : ''}
+
+    ${post.tags && post.tags.length > 0 ? `
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--space-sm);">
+        ${post.tags.map(tag => `<span class="tag tag--pink" style="font-size:12px;padding:2px 8px;">#${tag}</span>`).join('')}
       </div>
     ` : ''}
 
@@ -341,68 +366,6 @@ function renderComment(comment) {
       </div>
     </div>
   `;
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// 4. CREATE POST
-// ═══════════════════════════════════════════════════════════════════
-async function createPost() {
-  const textarea = document.getElementById('postTextarea');
-  const imageInput = document.getElementById('postImageUrl');
-  const submitBtn = document.getElementById('submitPost');
-
-  const text = (textarea ? textarea.value : '').trim();
-  const image = (imageInput ? imageInput.value : '').trim();
-
-  if (!text) {
-    showToast("Please write something before posting!", 'warning');
-    textarea && textarea.focus();
-    return;
-  }
-
-  submitBtn && (submitBtn.disabled = true);
-  submitBtn && (submitBtn.textContent = 'Posting...');
-
-  const result = await apiFetch('/posts', {
-    method: 'POST',
-    body: JSON.stringify({ text, image })
-  });
-
-  submitBtn && (submitBtn.disabled = false);
-  submitBtn && (submitBtn.textContent = 'Post');
-
-  if (!result || !result.ok) {
-    showToast('Failed to create post', 'error');
-    return;
-  }
-
-  const post = result.data;
-
-  // Prepend to feed
-  const container = document.getElementById('feedContainer');
-  if (container) {
-    const el = createPostElement(post);
-    el.style.animation = 'none';
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(-10px)';
-    container.prepend(el);
-    requestAnimationFrame(() => {
-      el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-      el.style.opacity = '1';
-      el.style.transform = 'translateY(0)';
-    });
-  }
-
-  // Hide empty state
-  const emptyState = document.getElementById('feedEmpty');
-  if (emptyState) emptyState.classList.add('hidden');
-
-  // Reset form
-  if (textarea) textarea.value = '';
-  if (imageInput) imageInput.value = '';
-  collapseCreatePost();
-
-  showToast('Post published! 🎉', 'success');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1112,7 +1075,7 @@ socket.on('user_online', ({ userId, online }) => {
 });
 
 socket.on('new_post', (post) => {
-  // Don't add own posts (already added optimistically via createPost)
+  // Don't add own posts (already added via advanced post)
   if (post.authorId === currentUser.id) return;
 
   const container = document.getElementById('feedContainer');
@@ -1727,47 +1690,41 @@ function closeMatchBanner() {
 // ═══════════════════════════════════════════════════════════════════
 
 function expandCreatePost() {
-  const expanded = document.getElementById('createPostExpanded');
-  const trigger = document.getElementById('createPostTrigger');
-  if (!expanded) return;
-  expanded.classList.remove('hidden');
-  trigger && trigger.setAttribute('aria-expanded', 'true');
-  setTimeout(() => {
-    const textarea = document.getElementById('postTextarea');
-    if (textarea) textarea.focus();
-  }, 50);
+  // Open the advanced post modal instead
+  openAdvancedPostModal();
 }
 
 function collapseCreatePost() {
-  const expanded = document.getElementById('createPostExpanded');
-  const trigger = document.getElementById('createPostTrigger');
-  const imgWrap = document.getElementById('postImageUrlWrap');
-  if (expanded) expanded.classList.add('hidden');
-  if (imgWrap) imgWrap.classList.add('hidden');
-  trigger && trigger.setAttribute('aria-expanded', 'false');
+  // No longer needed - old create post UI removed
 }
+
+// ─── OPEN ADVANCED POST MODAL ────────────────────────────────────────────────
+function openAdvancedPostModal() {
+  if (window.AdvancedPost) {
+    AdvancedPost.openPostModal();
+  } else {
+    showToast('Advanced post system is loading...', 'info');
+  }
+}
+
+// Wire up the advanced post button after DOM is ready
+function setupAdvancedPostButton() {
+  const btn = document.getElementById('advancedPostBtn');
+  if (btn) {
+    btn.addEventListener('click', openAdvancedPostModal);
+  }
+}
+
+// Call setup from init
+const origOnReady = window.onload || null;
+// No need to override, we'll add it to the init function
 
 function togglePostImageInput() {
-  expandCreatePost();
-  const wrap = document.getElementById('postImageUrlWrap');
-  if (wrap) {
-    wrap.classList.toggle('hidden');
-    if (!wrap.classList.contains('hidden')) {
-      document.getElementById('postImageUrl')?.focus();
-    }
-  }
+  // Open the advanced post modal instead
+  openAdvancedPostModal();
 }
 
-// Collapse create post when clicking outside
-document.addEventListener('click', (e) => {
-  const card = document.getElementById('createPostCard');
-  if (card && !card.contains(e.target)) {
-    const textarea = document.getElementById('postTextarea');
-    if (textarea && !textarea.value.trim()) {
-      collapseCreatePost();
-    }
-  }
-});
+
 
 // ═══════════════════════════════════════════════════════════════════
 // POST COMMENTS TOGGLE
@@ -1967,6 +1924,9 @@ async function init() {
 
     // Load online friends after we have users
     renderOnlineFriends();
+
+    // Setup advanced post button after DOM
+    setupAdvancedPostButton();
   } catch (err) {
     console.error('Dashboard init error:', err);
     showToast('Something went wrong loading the dashboard', 'error');

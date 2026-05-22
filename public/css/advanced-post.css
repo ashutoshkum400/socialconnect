@@ -1,0 +1,415 @@
+/* ═════════════════════════════════════════════════════════════════════════════
+   ADVANCED POST SYSTEM - STYLING
+   ═════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --modal-slide-duration: 0.3s;
+  --modal-fade-duration: 0.2s;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ADVANCED POST BUTTON (in Feed)
+   ───────────────────────────────────────────────────────────────────────────── */
+#advancedPostBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, var(--primary) 0%, #7c6fcf 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(88, 86, 214, 0.3);
+}
+
+#advancedPostBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(88, 86, 214, 0.4);
+}
+
+#advancedPostBtn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(88, 86, 214, 0.3);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MODAL ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes modalSlideIn {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideOut {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   POST MODAL CONTENT
+   ───────────────────────────────────────────────────────────────────────────── */
+.post-modal-content {
+  animation: modalSlideIn 0.3s ease both;
+}
+
+.post-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.post-modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.post-modal-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+.post-modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TEXT AREA STYLING
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostText {
+  transition: all 0.2s ease;
+}
+
+#advPostText:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(88, 86, 214, 0.1);
+}
+
+#advPostText::placeholder {
+  color: var(--text-muted);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MEDIA GRID
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostMediaContainer {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+  gap: 10px;
+}
+
+.media-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.media-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.media-item.video-item,
+.media-item.audio-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DROP ZONE
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostDropZone {
+  transition: all 0.2s ease;
+}
+
+#advPostDropZone:hover {
+  border-color: var(--primary);
+  background: rgba(88, 86, 214, 0.05);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   CONTROL BUTTONS
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostModal button[data-media-type],
+#advPostLocationBtn,
+#advPostFeelingBtn,
+#advPostActivityBtn,
+#advPostTagsBtn,
+#advPostMentionsBtn,
+#advPostHighlightsBtn,
+#advPostPrivacyBtn {
+  transition: all 0.2s ease;
+}
+
+#advPostModal button[data-media-type]:hover,
+#advPostLocationBtn:hover,
+#advPostFeelingBtn:hover,
+#advPostActivityBtn:hover,
+#advPostTagsBtn:hover,
+#advPostMentionsBtn:hover,
+#advPostHighlightsBtn:hover,
+#advPostPrivacyBtn:hover {
+  background: rgba(88, 86, 214, 0.1);
+  transform: scale(1.1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ACTION BUTTONS
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostSubmit {
+  background: linear-gradient(135deg, var(--primary) 0%, #7c6fcf 100%);
+  transition: all 0.2s ease;
+}
+
+#advPostSubmit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(88, 86, 214, 0.4);
+}
+
+#advPostSubmit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   TAGS AND LABELS
+   ───────────────────────────────────────────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.tag:hover {
+  background: var(--primary);
+  color: white;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   MODAL OVERLAY
+   ───────────────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  animation: fadeIn 0.2s ease both;
+}
+
+.modal-overlay-content {
+  animation: modalSlideIn 0.3s ease both;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-overlay-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-overlay-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-overlay-content::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOCATION PICKER
+   ───────────────────────────────────────────────────────────────────────────── */
+#locationList > div {
+  transition: all 0.2s ease;
+}
+
+#locationList > div:hover {
+  background: var(--input-bg);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   PICKER BUTTONS (Feelings, Activities)
+   ───────────────────────────────────────────────────────────────────────────── */
+.modal-overlay-content button[type="button"] {
+  transition: all 0.2s ease;
+}
+
+.modal-overlay-content button[type="button"]:hover {
+  background: var(--primary-light) !important;
+  border-color: var(--primary) !important;
+  transform: translateY(-2px);
+}
+
+.modal-overlay-content button[type="button"]:active {
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   NOTIFICATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   RESPONSIVE DESIGN
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .post-modal-content {
+    width: 95% !important;
+    max-height: 95vh;
+    border-radius: 12px 12px 0 0;
+    max-width: none;
+  }
+
+  #advPostMediaContainer {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)) !important;
+  }
+
+  .modal-overlay-content {
+    width: 90% !important;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  #advPostModal {
+    align-items: flex-end !important;
+  }
+
+  .post-modal-content {
+    border-radius: 12px 12px 0 0;
+    width: 100% !important;
+  }
+
+  #advPostMediaContainer {
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)) !important;
+    gap: 6px;
+  }
+
+  .modal-overlay-content {
+    width: 100% !important;
+    border-radius: 12px 12px 0 0;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   DARK MODE (if applicable)
+   ───────────────────────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .post-modal-content {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  }
+
+  .modal-overlay-content {
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ACCESSIBILITY
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostModal button:focus-visible,
+#advPostText:focus-visible,
+.modal-overlay-content button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   HOVER STATES FOR MEDIA REMOVE BUTTON
+   ───────────────────────────────────────────────────────────────────────────── */
+.media-remove {
+  transition: all 0.2s ease;
+}
+
+.media-remove:hover {
+  background: rgba(255, 0, 0, 0.8) !important;
+  transform: scale(1.1);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   INPUT FOCUS STATES
+   ───────────────────────────────────────────────────────────────────────────── */
+.modal-overlay-content input[type="text"],
+.modal-overlay-content input[type="radio"],
+.modal-overlay-content input[type="checkbox"] {
+  transition: all 0.2s ease;
+}
+
+.modal-overlay-content input[type="text"]:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px rgba(88, 86, 214, 0.1);
+}
+
+.modal-overlay-content input[type="radio"]:focus,
+.modal-overlay-content input[type="checkbox"]:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOADING STATE
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  animation: spin 1s linear infinite;
+}
