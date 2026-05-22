@@ -13,7 +13,7 @@
   ═══════════════════════════════════════════════════════════ -->
         <nav class="navbar" role="navigation" aria-label="Main navigation">
             <div class="navbar__inner">
-                <!-- Logo -->
+                <!-- Logo (visible on all sizes) -->
                 <a
                     href="/dashboard.html"
                     class="navbar__logo"
@@ -23,35 +23,37 @@
                     <span class="navbar__logo-text">SocialConnect</span>
                 </a>
 
-                <!-- Search -->
-                <div class="navbar__search" role="search">
-                    <span class="navbar__search-icon" aria-hidden="true">
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <circle cx="11" cy="11" r="8" />
-                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                        </svg>
-                    </span>
-                    <input
-                        type="search"
-                        id="searchInput"
-                        class="navbar__search-input"
-                        placeholder="Search SocialConnect..."
-                        autocomplete="off"
-                        aria-label="Search users"
-                        aria-expanded="false"
-                        aria-controls="searchResults"
-                        aria-autocomplete="list"
-                    />
-                    <!-- Search dropdown -->
+                <!-- Search (visible on all sizes) -->
+                <div class="search-section">
+                    <div class="navbar__search" role="search">
+                        <span class="navbar__search-icon" aria-hidden="true">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </span>
+                        <input
+                            type="search"
+                            id="searchInput"
+                            class="navbar__search-input"
+                            placeholder="Search SocialConnect..."
+                            autocomplete="off"
+                            aria-label="Search users"
+                            aria-expanded="false"
+                            aria-controls="searchResults"
+                            aria-autocomplete="list"
+                        />
+                    </div>
+                    <!-- Search dropdown (outside .navbar__search so not hidden on mobile) -->
                     <div
                         id="searchResults"
                         class="search-dropdown hidden"
@@ -60,8 +62,12 @@
                     ></div>
                 </div>
 
-                <!-- Center Nav links (desktop) -->
+                <!-- Center Nav — desktop: all items in one line with equal gaps -->
                 <nav class="navbar__nav" aria-label="Site sections">
+
+
+
+
                     <a
                         href="/dashboard.html"
                         class="navbar__nav-link active"
@@ -78,24 +84,7 @@
                             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                         </svg>
                     </a>
-                    <a
-                        href="#"
-                        id="navFriendsBtn"
-                        class="navbar__nav-link"
-                        data-tooltip="Friends"
-                        aria-label="Friends"
-                    >
-                        <svg
-                            width="22"
-                            height="22"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <path
-                                d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"
-                            />
-                        </svg>
-                    </a>
+
                     <a
                         href="#"
                         class="navbar__nav-link"
@@ -130,135 +119,143 @@
                             />
                         </svg>
                     </a>
-                </nav>
 
-                <!-- Right Actions -->
-                <div class="navbar__actions">
-                    <!-- Friend Requests -->
-                    <button
-                        id="navFriendsBtn"
-                        class="navbar__action-btn"
-                        aria-label="Friend requests"
-                        data-tooltip="Friend Requests"
-                        onclick="toggleFriendReqModal()"
-                    >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <path
-                                d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-                            />
-                        </svg>
-                        <span
-                            id="friendReqBadge"
-                            class="navbar__badge hidden"
-                            aria-live="polite"
-                            >0</span
-                        >
-                    </button>
+                    <!-- Desktop: Notifications + Profile Avatar -->
+                    <div class="navbar__nav-actions">
+                        <!-- Notifications -->
+                        <div class="dropdown" id="notifDropdownWrap">
+                            <button
+                                class="navbar__action-btn"
+                                aria-label="Notifications"
+                                data-tooltip="Notifications"
+                                onclick="toggleNotifDropdown()"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                id="notifBtn"
+                            >
+                                <svg
+                                    width="20"
+                                    height="20"
+                                    viewBox="0 0 24 24"
+                                    fill="currentColor"
+                                >
+                                    <path
+                                        d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+                                    />
+                                </svg>
+                                <span
+                                    id="notifBadge"
+                                    class="navbar__badge navbar__badge--pulse hidden"
+                                    aria-live="polite"
+                                    >0</span
+                                >
+                            </button>
+                            <!-- Notifications Dropdown -->
+                            <div
+                                id="notifDropdown"
+                                class="notifications-dropdown hidden"
+                                role="dialog"
+                                aria-label="Notifications"
+                            >
+                                <div class="notifications-dropdown__header">
+                                    <h3>Notifications</h3>
+                                    <button
+                                        class="notifications-dropdown__header-action"
+                                        onclick="markAllNotifsRead()"
+                                    >
+                                        Mark all as read
+                                    </button>
+                                </div>
+                                <div
+                                    class="notifications-dropdown__tabs"
+                                    role="tablist"
+                                >
+                                    <button
+                                        class="notifications-dropdown__tab active"
+                                        role="tab"
+                                        aria-selected="true"
+                                        onclick="switchNotifTab(this, 'all')"
+                                    >
+                                        All
+                                    </button>
+                                    <button
+                                        class="notifications-dropdown__tab"
+                                        role="tab"
+                                        aria-selected="false"
+                                        onclick="switchNotifTab(this, 'unread')"
+                                    >
+                                        Unread
+                                    </button>
+                                </div>
+                                <div
+                                    class="notifications-dropdown__list"
+                                    id="notifList"
+                                    role="tabpanel"
+                                ></div>
+                            </div>
+                        </div>
 
-                    <!-- Notifications -->
-                    <div class="dropdown" id="notifDropdownWrap">
-                        <button
-                            class="navbar__action-btn"
-                            aria-label="Notifications"
-                            data-tooltip="Notifications"
-                            onclick="toggleNotifDropdown()"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            id="notifBtn"
-                        >
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                            >
-                                <path
-                                    d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
-                                />
-                            </svg>
-                            <span
-                                id="notifBadge"
-                                class="navbar__badge navbar__badge--pulse hidden"
-                                aria-live="polite"
-                                >0</span
-                            >
-                        </button>
-                        <!-- Notifications Dropdown -->
-                        <div
-                            id="notifDropdown"
-                            class="notifications-dropdown hidden"
-                            role="dialog"
-                            aria-label="Notifications"
-                        >
-                            <div class="notifications-dropdown__header">
-                                <h3>Notifications</h3>
-                                <button
-                                    class="notifications-dropdown__header-action"
-                                    onclick="markAllNotifsRead()"
-                                >
-                                    Mark all as read
-                                </button>
-                            </div>
+                        <!-- Profile Avatar Dropdown -->
+                        <div class="dropdown" id="profileDropdownWrap">
+                            <button
+                                class="navbar__avatar"
+                                id="navAvatar"
+                                onclick="toggleProfileDropdown()"
+                                aria-haspopup="true"
+                                aria-expanded="false"
+                                aria-label="Your profile and settings"
+                                style="
+                                    background-image: url(&quot;https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=36&quot;);
+                                "
+                            ></button>
                             <div
-                                class="notifications-dropdown__tabs"
-                                role="tablist"
+                                class="dropdown__menu hidden"
+                                id="profileDropdown"
+                                role="menu"
+                                aria-label="Profile options"
                             >
-                                <button
-                                    class="notifications-dropdown__tab active"
-                                    role="tab"
-                                    aria-selected="true"
-                                    onclick="switchNotifTab(this, 'all')"
+                                <div
+                                    class="dropdown__item"
+                                    role="menuitem"
+                                    onclick="goToProfile()"
                                 >
-                                    All
-                                </button>
-                                <button
-                                    class="notifications-dropdown__tab"
-                                    role="tab"
-                                    aria-selected="false"
-                                    onclick="switchNotifTab(this, 'unread')"
+                                    <span class="dropdown__icon">👤</span> Your
+                                    Profile
+                                </div>
+                                <div
+                                    class="dropdown__item"
+                                    role="menuitem"
+                                    onclick="
+                                        window.location.href = '/settings.html'
+                                    "
                                 >
-                                    Unread
-                                </button>
+                                    <span class="dropdown__icon">⚙️</span> Settings
+                                    &amp; Privacy
+                                </div>
+                                <div
+                                    class="dropdown__item"
+                                    role="menuitem"
+                                    onclick="window.location.href = '/help.html'"
+                                >
+                                    <span class="dropdown__icon">❓</span> Help
+                                    &amp; Support
+                                </div>
+                                <div class="dropdown__divider"></div>
+                                <div
+                                    class="dropdown__item dropdown__item--danger"
+                                    role="menuitem"
+                                    onclick="logout()"
+                                >
+                                    <span class="dropdown__icon">🚪</span> Log Out
+                                </div>
                             </div>
-                            <div
-                                class="notifications-dropdown__list"
-                                id="notifList"
-                                role="tabpanel"
-                            ></div>
                         </div>
                     </div>
+                </nav>
 
-                    <!-- Messages -->
-                    <button
-                        class="navbar__action-btn"
-                        aria-label="Messages"
-                        data-tooltip="Messages"
-                        onclick="toggleChatListPanel()"
-                    >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <path
-                                d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"
-                            />
-                        </svg>
-                        <span
-                            id="msgBadge"
-                            class="navbar__badge hidden"
-                            aria-live="polite"
-                            >0</span
-                        >
-                    </button>
-
-                    <!-- Logout -->
+                <!-- Right Actions (visible on tablet, hidden on desktop) -->
+                <div class="navbar__actions hide-desktop-lg">
+                    <!-- Single Logout Button -->
                     <button
                         class="navbar__action-btn"
                         aria-label="Logout"
@@ -269,62 +266,6 @@
                             <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                         </svg>
                     </button>
-
-                    <!-- Profile Avatar Dropdown -->
-                    <div class="dropdown" id="profileDropdownWrap">
-                        <button
-                            class="navbar__avatar"
-                            id="navAvatar"
-                            onclick="toggleProfileDropdown()"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            aria-label="Your profile and settings"
-                            style="
-                                background-image: url(&quot;https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=36&quot;);
-                            "
-                        ></button>
-                        <div
-                            class="dropdown__menu hidden"
-                            id="profileDropdown"
-                            role="menu"
-                            aria-label="Profile options"
-                        >
-                            <div
-                                class="dropdown__item"
-                                role="menuitem"
-                                onclick="goToProfile()"
-                            >
-                                <span class="dropdown__icon">👤</span> Your
-                                Profile
-                            </div>
-                            <div
-                                class="dropdown__item"
-                                role="menuitem"
-                                onclick="
-                                    window.location.href = '/settings.html'
-                                "
-                            >
-                                <span class="dropdown__icon">⚙️</span> Settings
-                                &amp; Privacy
-                            </div>
-                            <div
-                                class="dropdown__item"
-                                role="menuitem"
-                                onclick="window.location.href = '/help.html'"
-                            >
-                                <span class="dropdown__icon">❓</span> Help
-                                &amp; Support
-                            </div>
-                            <div class="dropdown__divider"></div>
-                            <div
-                                class="dropdown__item dropdown__item--danger"
-                                role="menuitem"
-                                onclick="logout()"
-                            >
-                                <span class="dropdown__icon">🚪</span> Log Out
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <!-- /.navbar__actions -->
             </div>

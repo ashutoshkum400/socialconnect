@@ -46,12 +46,14 @@ async function loadCurrentUser() {
   // Persist freshest user data
   localStorage.setItem('sc_user', JSON.stringify(user));
 
-  // Nav avatar
-  const navAvatar = document.getElementById('navAvatar');
-  if (navAvatar) {
-    navAvatar.style.backgroundImage = `url('${user.avatar || avatarUrl(user.name)}')`;
-    navAvatar.setAttribute('aria-label', `${user.name}'s profile`);
-  }
+  // Nav avatars
+  ['navAvatar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.backgroundImage = `url('${user.avatar || avatarUrl(user.name)}')`;
+      el.setAttribute('aria-label', `${user.name}'s profile`);
+    }
+  });
 
   // Create-post avatar
   const cpAvatar = document.getElementById('createPostAvatar');
@@ -582,10 +584,9 @@ function renderFriendRequests() {
 
 function updateFriendReqBadge() {
   const count = pendingRequests.length;
-  const badge = document.getElementById('friendReqBadge');
   const mobileBadge = document.getElementById('mobileFriendBadge');
 
-  [badge, mobileBadge].forEach(el => {
+  [mobileBadge].forEach(el => {
     if (!el) return;
     if (count > 0) {
       el.textContent = count > 99 ? '99+' : count;
@@ -860,8 +861,8 @@ function renderOnlineFriends() {
 // ═══════════════════════════════════════════════════════════════════
 // 14. SEARCH USERS
 // ═══════════════════════════════════════════════════════════════════
-async function searchUsers(query) {
-  const dropdown = document.getElementById('searchResults');
+async function searchUsers(query, dropdownId = 'searchResults') {
+  const dropdown = document.getElementById(dropdownId);
   if (!dropdown) return;
 
   if (!query.trim()) {
@@ -1180,14 +1181,6 @@ socket.on('notification', (notif) => {
 });
 
 socket.on('new_message_notif', ({ from, text, time }) => {
-  // Increment message badge
-  const msgBadge = document.getElementById('msgBadge');
-  if (msgBadge) {
-    const current = parseInt(msgBadge.textContent) || 0;
-    msgBadge.textContent = current + 1;
-    msgBadge.classList.remove('hidden');
-  }
-
   const chatBadge = document.getElementById('chatLauncherBadge');
   if (chatBadge) {
     const current = parseInt(chatBadge.textContent) || 0;
@@ -1563,7 +1556,7 @@ const searchInput = document.getElementById('searchInput');
 if (searchInput) {
   searchInput.addEventListener('input', (e) => {
     clearTimeout(searchDebounce);
-    searchDebounce = setTimeout(() => searchUsers(e.target.value), 300);
+    searchDebounce = setTimeout(() => searchUsers(e.target.value, 'searchResults'), 300);
   });
 
   searchInput.addEventListener('focus', () => {
@@ -1582,9 +1575,9 @@ if (searchInput) {
 
 // Close search dropdown on outside click
 document.addEventListener('click', (e) => {
-  const searchEl = document.getElementById('searchResults');
-  if (searchEl && !e.target.closest('.navbar__search')) {
-    searchEl.classList.add('hidden');
+  const el = document.getElementById('searchResults');
+  if (el && !e.target.closest('.navbar__search')) {
+    el.classList.add('hidden');
   }
 });
 

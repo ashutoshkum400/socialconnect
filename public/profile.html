@@ -24,33 +24,36 @@
                 </a>
 
                 <!-- Search -->
-                <div class="navbar__search" role="search">
-                    <span class="navbar__search-icon" aria-hidden="true">
-                        <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <circle cx="11" cy="11" r="8" />
-                            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                        </svg>
-                    </span>
-                    <input
-                        type="search"
-                        id="searchInput"
-                        class="navbar__search-input"
-                        placeholder="Search SocialConnect..."
-                        autocomplete="off"
-                        aria-label="Search users"
-                        aria-expanded="false"
-                        aria-controls="searchResults"
-                        aria-autocomplete="list"
-                    />
+                <div class="search-section">
+                    <div class="navbar__search" role="search">
+                        <span class="navbar__search-icon" aria-hidden="true">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </span>
+                        <input
+                            type="search"
+                            id="searchInput"
+                            class="navbar__search-input"
+                            placeholder="Search SocialConnect..."
+                            autocomplete="off"
+                            aria-label="Search users"
+                            aria-expanded="false"
+                            aria-controls="searchResults"
+                            aria-autocomplete="list"
+                        />
+                    </div>
+                    <!-- Search dropdown (outside .navbar__search so not hidden on mobile) -->
                     <div
                         id="searchResults"
                         class="search-dropdown hidden"
@@ -78,31 +81,6 @@
                         </svg>
                     </a>
 
-                    <!-- Notifications -->
-                    <button
-                        id="notifBell"
-                        class="navbar__action-btn"
-                        aria-label="Notifications"
-                        data-tooltip="Notifications"
-                    >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                        >
-                            <path
-                                d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
-                            />
-                        </svg>
-                        <span
-                            id="notifBadge"
-                            class="navbar__badge hidden"
-                            aria-live="polite"
-                            >0</span
-                        >
-                    </button>
-
                     <!-- Logout -->
                     <button
                         class="navbar__action-btn"
@@ -114,85 +92,6 @@
                             <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
                         </svg>
                     </button>
-
-                    <!-- Profile Avatar + Dropdown -->
-                    <div class="dropdown" id="profileDropdownWrap">
-                        <button
-                            class="navbar__action-btn"
-                            id="profileDropdownToggle"
-                            onclick="toggleProfileDropdown()"
-                            aria-haspopup="true"
-                            aria-expanded="false"
-                            aria-label="Your profile and settings"
-                            style="
-                                display: flex;
-                                align-items: center;
-                                gap: 6px;
-                                padding: 4px 8px;
-                                border-radius: var(--radius-full);
-                                height: auto;
-                            "
-                        >
-                            <img
-                                id="navAvatar"
-                                src="https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=36"
-                                alt="Profile"
-                                style="
-                                    width: 32px;
-                                    height: 32px;
-                                    border-radius: 50%;
-                                    object-fit: cover;
-                                    flex-shrink: 0;
-                                "
-                            />
-                            <span
-                                id="navName"
-                                style="
-                                    font-size: var(--font-size-sm);
-                                    font-weight: 600;
-                                    color: var(--text);
-                                    max-width: 100px;
-                                    overflow: hidden;
-                                    text-overflow: ellipsis;
-                                    white-space: nowrap;
-                                "
-                                class="hide-mobile"
-                                >User</span
-                            >
-                        </button>
-
-                        <div
-                            class="dropdown__menu hidden"
-                            id="profileDropdown"
-                            role="menu"
-                            aria-label="Profile options"
-                        >
-                            <div
-                                class="dropdown__item"
-                                role="menuitem"
-                                onclick="goToProfile()"
-                            >
-                                <span class="dropdown__icon">👤</span> View
-                                Profile
-                            </div>
-                            <div
-                                class="dropdown__item"
-                                role="menuitem"
-                                onclick="openEditModal()"
-                            >
-                                <span class="dropdown__icon">✏️</span> Edit
-                                Profile
-                            </div>
-                            <div class="dropdown__divider"></div>
-                            <div
-                                class="dropdown__item dropdown__item--danger"
-                                role="menuitem"
-                                onclick="logout()"
-                            >
-                                <span class="dropdown__icon">🚪</span> Logout
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <!-- /.navbar__actions -->
             </div>

@@ -220,10 +220,35 @@
       "connections": [],
       "blocked": false,
       "joinedAt": "2026-05-22T07:45:48.594Z",
-      "lastSeen": "2026-05-22T07:56:11.326Z",
+      "lastSeen": "2026-05-22T10:40:08.551Z",
       "location": "tyujgyfj",
       "birthDate": "2008-02-21",
       "gender": "male",
+      "interests": [],
+      "lookingFor": null,
+      "relationshipStatus": null
+    },
+    "6145086b-9183-4014-87af-6c7994ddec16": {
+      "id": "6145086b-9183-4014-87af-6c7994ddec16",
+      "username": "admin_614508",
+      "email": "admin@gmail.com",
+      "password": "$2a$10$Cc/hibgVpZjEWBenSoZKhOqyAZa/5LWrZsrSOL5YI.UgtP/3n.eJ6",
+      "role": "admin",
+      "name": "admin",
+      "bio": "Administrator",
+      "avatar": "https://ui-avatars.com/api/?name=admin&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/6145086b-9183-4014-87af-6c7994ddec16/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-22T10:08:48.812Z",
+      "lastSeen": "2026-05-22T10:10:07.918Z",
+      "location": "",
+      "birthDate": "",
+      "gender": "",
       "interests": [],
       "lookingFor": null,
       "relationshipStatus": null
@@ -373,7 +398,8 @@
     "u5": [],
     "u6": [],
     "admin": [],
-    "6cf88d77-b4c9-4937-9517-de49594d99be": []
+    "6cf88d77-b4c9-4937-9517-de49594d99be": [],
+    "6145086b-9183-4014-87af-6c7994ddec16": []
   },
   "friendRequests": {
     "u1": [],
@@ -383,6 +409,7 @@
     "u5": [],
     "u6": [],
     "admin": [],
-    "6cf88d77-b4c9-4937-9517-de49594d99be": []
+    "6cf88d77-b4c9-4937-9517-de49594d99be": [],
+    "6145086b-9183-4014-87af-6c7994ddec16": []
   }
 }

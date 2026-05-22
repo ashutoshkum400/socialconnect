@@ -1,7 +1,6 @@
 // =============================================================================
 //  SocialConnect — responsive.js
 //  Handles all responsive / adaptive UI behaviour:
-//    • Hamburger button injection + sidebar drawer toggle
 //    • Sidebar overlay backdrop
 //    • Mobile search overlay
 //    • Admin sidebar hamburger
@@ -29,7 +28,6 @@ const Responsive = {
 
   // ── Entry point ─────────────────────────────────────────────────────────────
   init() {
-    this.injectHamburger();
     this.injectSidebarOverlay();
     this.injectMobileSearch();
     this.injectAdminHamburger();
@@ -38,32 +36,6 @@ const Responsive = {
     this.fixAdminTableScroll();
     this.initScrollShadows();
     this.updateMobileNavActive();
-  },
-
-
-  // ============================================================================
-  //  HAMBURGER BUTTON — injected into .navbar__inner
-  // ============================================================================
-
-  injectHamburger() {
-    const navbar = document.querySelector('.navbar__inner');
-    if (!navbar || document.getElementById('hamburgerBtn')) return;
-
-    const btn = document.createElement('button');
-    btn.id        = 'hamburgerBtn';
-    btn.className = 'hamburger-btn';
-    btn.setAttribute('aria-label', 'Toggle navigation menu');
-    btn.setAttribute('aria-expanded', 'false');
-    btn.setAttribute('aria-controls', 'layoutSidebarLeft');
-    btn.innerHTML = '<span></span><span></span><span></span>';
-
-    // Insert immediately before .navbar__actions; fall back to append
-    const actions = navbar.querySelector('.navbar__actions');
-    if (actions) {
-      navbar.insertBefore(btn, actions);
-    } else {
-      navbar.appendChild(btn);
-    }
   },
 
 
@@ -137,15 +109,10 @@ const Responsive = {
       `;
       btn.addEventListener('click', () => this.openMobileSearch());
 
-      // Place it just before the hamburger (or at the end)
-      const hamburger = document.getElementById('hamburgerBtn');
-      if (hamburger) {
-        navbarInner.insertBefore(btn, hamburger);
-      } else {
-        const actions = navbarInner.querySelector('.navbar__actions');
-        if (actions) navbarInner.insertBefore(btn, actions);
-        else navbarInner.appendChild(btn);
-      }
+      // Place it just before .navbar__actions (or at the end)
+      const actions = navbarInner.querySelector('.navbar__actions');
+      if (actions) navbarInner.insertBefore(btn, actions);
+      else navbarInner.appendChild(btn);
     }
 
     // ── Sync mobile input → main search input ────────────────────────────────
@@ -280,12 +247,9 @@ const Responsive = {
   /** @private Opens the left sidebar drawer. */
   _openSidebarDOM(sidebar) {
     const overlay = document.getElementById('sidebarOverlay');
-    const btn     = document.getElementById('hamburgerBtn');
 
     sidebar.classList.add('drawer-open');
     overlay?.classList.add('active');
-    btn?.classList.add('open');
-    btn?.setAttribute('aria-expanded', 'true');
     document.body.style.overflow = 'hidden';
   },
 
@@ -293,12 +257,9 @@ const Responsive = {
   closeSidebar() {
     const sidebar = document.querySelector('.layout__sidebar-left');
     const overlay = document.getElementById('sidebarOverlay');
-    const btn     = document.getElementById('hamburgerBtn');
 
     sidebar?.classList.remove('drawer-open');
     overlay?.classList.remove('active');
-    btn?.classList.remove('open');
-    btn?.setAttribute('aria-expanded', 'false');
     document.body.style.overflow = '';
   },
 
@@ -335,13 +296,6 @@ const Responsive = {
   // ============================================================================
 
   bindEvents() {
-    // ── Hamburger delegated click ────────────────────────────────────────────
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('#hamburgerBtn')) {
-        this.toggleSidebar();
-      }
-    });
-
     // ── Close sidebar when a sidebar nav link is clicked (mobile / tablet) ───
     document.querySelectorAll('.sidebar-nav__item, .sidebar-nav a').forEach(item => {
       item.addEventListener('click', () => {

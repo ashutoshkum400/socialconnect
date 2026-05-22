@@ -88,58 +88,8 @@ table {
    3. NAVBAR — Responsive
    ========================================================================== */
 
-/* ── Hamburger button (hidden on desktop, shown on tablet/mobile) ─────────── */
-.hamburger-btn {
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 8px;
-  transition: background 0.2s ease;
-  flex-shrink: 0;
-}
-
-.hamburger-btn:hover {
-  background: var(--bg, #f0f2f5);
-}
-
-.hamburger-btn span {
-  display: block;
-  width: 20px;
-  height: 2px;
-  background: var(--text, #1c1e21);
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  transform-origin: center;
-}
-
-/* Animated X state */
-.hamburger-btn.open span:nth-child(1) {
-  transform: translateY(7px) rotate(45deg);
-}
-
-.hamburger-btn.open span:nth-child(2) {
-  opacity: 0;
-  transform: scaleX(0);
-}
-
-.hamburger-btn.open span:nth-child(3) {
-  transform: translateY(-7px) rotate(-45deg);
-}
-
-/* ── Tablet (768 – 1099 px): hamburger visible, center-nav hidden ─────────── */
+/* ── Tablet (768 – 1099 px): center-nav hidden ──────────────────────────────── */
 @media (max-width: 1099px) {
-  .hamburger-btn {
-    display: flex;
-  }
-
   .navbar__nav {
     display: none !important;
   }
@@ -175,7 +125,7 @@ table {
     display: none !important;
   }
 
-  /* Keep only notifications + messages in action bar */
+  /* Keep only essential action buttons on mobile (notifications, logout, profile) */
   .navbar__action-btn:not([data-keep]) {
     /* individual buttons that should stay are marked data-keep in HTML;
        we handle visibility via JS for generated buttons */
