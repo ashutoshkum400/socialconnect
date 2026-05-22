@@ -3,11 +3,15 @@ services:
     name: socialconnect
     env: node
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: npm start
     envVars:
+      - key: MONGODB_URI
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_SECRET
         value: Admin@2024
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 3000

@@ -202,6 +202,31 @@
       ],
       "lookingFor": "friends",
       "relationshipStatus": "single"
+    },
+    "6cf88d77-b4c9-4937-9517-de49594d99be": {
+      "id": "6cf88d77-b4c9-4937-9517-de49594d99be",
+      "username": "alpha",
+      "email": "alpha1234@gmail.com",
+      "password": "$2a$10$a6MfxWseT1kc3fgHJttlFeX8dJhiSm./CpmpivVtv/flBh2B1KB7m",
+      "role": "user",
+      "name": "alpha",
+      "bio": "fjyfj",
+      "avatar": "https://ui-avatars.com/api/?name=alpha&background=random&size=128",
+      "coverPhoto": "https://picsum.photos/seed/6cf88d77-b4c9-4937-9517-de49594d99be/800/300",
+      "photos": [],
+      "friends": [],
+      "followers": [],
+      "following": [],
+      "connections": [],
+      "blocked": false,
+      "joinedAt": "2026-05-22T07:45:48.594Z",
+      "lastSeen": "2026-05-22T07:56:11.326Z",
+      "location": "tyujgyfj",
+      "birthDate": "2008-02-21",
+      "gender": "male",
+      "interests": [],
+      "lookingFor": null,
+      "relationshipStatus": null
     }
   },
   "posts": {
@@ -347,7 +372,8 @@
     "u4": [],
     "u5": [],
     "u6": [],
-    "admin": []
+    "admin": [],
+    "6cf88d77-b4c9-4937-9517-de49594d99be": []
   },
   "friendRequests": {
     "u1": [],
@@ -356,6 +382,7 @@
     "u4": [],
     "u5": [],
     "u6": [],
-    "admin": []
+    "admin": [],
+    "6cf88d77-b4c9-4937-9517-de49594d99be": []
   }
 }

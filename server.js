@@ -974,6 +974,37 @@ app.post("/api/admin/users", authenticate, adminOnly, async (req, res) => {
   }
 });
 
+// ─── KEEP-ALIVE / PHONE CONTROL ROUTES ───────────────────────────────────────
+app.get("/api/control/status", (req, res) => {
+  res.json({
+    status: "ok",
+    serverTime: new Date().toISOString(),
+    totalUsers: db.users.size,
+    activeUsers: onlineUsers.size,
+    totalPosts: db.posts.size,
+    totalChats: db.chats.size,
+    message: "Control endpoint is active",
+  });
+});
+
+app.get("/api/control/ping", (req, res) => {
+  console.log("📡 Keep-alive ping received from", req.ip);
+  res.json({
+    status: "pong",
+    serverTime: new Date().toISOString(),
+    message: "Server is awake",
+  });
+});
+
+app.post("/api/control/wake", (req, res) => {
+  console.log("🚀 Wake request received from", req.ip);
+  res.json({
+    status: "woken",
+    serverTime: new Date().toISOString(),
+    message: "Server wake signal received",
+  });
+});
+
 // ─── SOCKET.IO ────────────────────────────────────────────────────────────────
 io.on("connection", (socket) => {
   socket.on("authenticate", (token) => {
