@@ -223,11 +223,27 @@ openPostModal() {
         userHandleEl.textContent = `@${this.currentUser.username || 'user'}`;
       }
       
+      // Update privacy badge
+      this.updatePrivacyBadge();
+      
       modal.style.display = 'flex';
       modal.style.opacity = '0';
       setTimeout(() => modal.style.opacity = '1', 10);
       this.loadDraft();
     }
+  },
+
+  updatePrivacyBadge() {
+    const badge = document.getElementById('advPostPrivacyBadge');
+    if (!badge) return;
+    const settings = {
+      'public': { icon: '🌍', label: 'Public' },
+      'followers': { icon: '⭐', label: 'Followers' },
+      'friends': { icon: '👥', label: 'Friends' },
+      'specific': { icon: '🎯', label: 'Specific' },
+    };
+    const s = settings[this.state.privacySettings.sharedWith] || settings['public'];
+    badge.textContent = `${s.icon} ${s.label}`;
   },
 
   closePostModal() {
@@ -273,71 +289,184 @@ openPostModal() {
   // ─────────────────────────────────────────────────────────────────────────
   // MEDIA HANDLING
   // ─────────────────────────────────────────────────────────────────────────
-  handlePhotoUpload(event) {
+  async handlePhotoUpload(event) {
     const files = Array.from(event.target.files || []);
-    files.forEach(file => {
+    const photoFiles = files.filter(f => f.type.startsWith('image/'));
+    for (const file of photoFiles) {
+      await this.addMediaFile(file, 'photo');
+    }
+    this.updateMediaUI();
+    event.target.value = '';
+  },
+
+  async handleVideoUpload(event) {
+    const files = Array.from(event.target.files || []);
+    const videoFiles = files.filter(f => f.type.startsWith('video/'));
+    for (const file of videoFiles) {
+      await this.addMediaFile(file, 'video');
+    }
+    this.updateMediaUI();
+    event.target.value = '';
+  },
+
+  async handleAudioUpload(event) {
+    const files = Array.from(event.target.files || []);
+    const audioFiles = files.filter(f => f.type.startsWith('audio/'));
+    for (const file of audioFiles) {
+      await this.addMediaFile(file, 'audio');
+    }
+    this.updateMediaUI();
+    event.target.value = '';
+  },
+
+  async handleDroppedFiles(files) {
+    const fileArray = Array.from(files);
+    for (const file of fileArray) {
       if (file.type.startsWith('image/')) {
-        this.addMediaFile(file, 'photo');
-      }
-    });
-    this.updateMediaUI();
-  },
-
-  handleVideoUpload(event) {
-    const files = Array.from(event.target.files || []);
-    files.forEach(file => {
-      if (file.type.startsWith('video/')) {
-        this.addMediaFile(file, 'video');
-      }
-    });
-    this.updateMediaUI();
-  },
-
-  handleAudioUpload(event) {
-    const files = Array.from(event.target.files || []);
-    files.forEach(file => {
-      if (file.type.startsWith('audio/')) {
-        this.addMediaFile(file, 'audio');
-      }
-    });
-    this.updateMediaUI();
-  },
-
-  handleDroppedFiles(files) {
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        this.addMediaFile(file, 'photo');
+        await this.addMediaFile(file, 'photo');
       } else if (file.type.startsWith('video/')) {
-        this.addMediaFile(file, 'video');
+        await this.addMediaFile(file, 'video');
       } else if (file.type.startsWith('audio/')) {
-        this.addMediaFile(file, 'audio');
+        await this.addMediaFile(file, 'audio');
       }
-    });
+    }
     this.updateMediaUI();
+  },
+
+  showUploadProgress(fileName, fileType) {
+    const container = document.getElementById('advPostUploadItems');
+    const progressId = `upload_${this.generateId()}`;
+    
+    const progressHTML = `
+      <div id="${progressId}" style="padding: 10px; background: var(--input-bg); border-radius: 6px; border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+          <span style="font-size: 16px;">${fileType === 'photo' ? '📷' : fileType === 'video' ? '🎬' : '🎵'}</span>
+          <span style="font-size: 13px; flex: 1; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${fileName}</span>
+          <span id="${progressId}_percent" style="font-size: 12px; color: var(--text-muted); min-width: 40px; text-align: right;">0%</span>
+        </div>
+        <div style="width: 100%; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;">
+          <div id="${progressId}_bar" style="height: 100%; background: var(--primary); width: 0%; transition: width 0.2s ease; border-radius: 2px;"></div>
+        </div>
+      </div>
+    `;
+    
+    container.innerHTML += progressHTML;
+    document.getElementById('advPostUploadProgress').style.display = 'flex';
+    
+    return progressId;
+  },
+
+  updateUploadProgress(progressId, percentage) {
+    const bar = document.getElementById(`${progressId}_bar`);
+    const percentEl = document.getElementById(`${progressId}_percent`);
+    if (bar) {
+      bar.style.width = percentage + '%';
+      percentEl.textContent = Math.round(percentage) + '%';
+    }
+  },
+
+  completeUpload(progressId) {
+    const progressItem = document.getElementById(progressId);
+    if (progressItem) {
+      setTimeout(() => {
+        progressItem.style.opacity = '0';
+        progressItem.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => progressItem.remove(), 300);
+        
+        // Hide container if no more uploads
+        const container = document.getElementById('advPostUploadItems');
+        if (!container.children.length) {
+          document.getElementById('advPostUploadProgress').style.display = 'none';
+        }
+      }, 500);
+    }
   },
 
   addMediaFile(file, type) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const mediaItem = {
-        id: this.generateId(),
-        type: type,
-        name: file.name,
-        size: file.size,
-        data: e.target.result,
-        thumbnail: type === 'photo' ? e.target.result : null,
-        duration: null,
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      const progressId = this.showUploadProgress(file.name, type);
+      
+      reader.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const percentComplete = (event.loaded / event.total) * 100;
+          this.updateUploadProgress(progressId, percentComplete);
+        }
       };
 
-      if (type === 'photo') {
-        this.state.media.photos.push(mediaItem);
-      } else if (type === 'video') {
-        this.state.media.videos.push(mediaItem);
-      } else if (type === 'audio') {
-        this.state.media.audio.push(mediaItem);
-      }
-    };
-    reader.readAsDataURL(file);
+      reader.onload = async (e) => {
+        let data = e.target.result;
+        let thumbnail = null;
+
+        // Compress images to reduce payload size
+        if (type === 'photo' && data.length > 500 * 1024) {
+          try {
+            this.updateUploadProgress(progressId, 95);
+            data = await this.compressImage(data, 0.7);
+          } catch (err) {
+            console.warn('Image compression failed, using original:', err);
+          }
+        } else if (type === 'photo') {
+          this.updateUploadProgress(progressId, 90);
+          thumbnail = data;
+        }
+
+        const mediaItem = {
+          id: this.generateId(),
+          type: type,
+          name: file.name,
+          size: data.length,
+          data: data,
+          thumbnail: thumbnail,
+          duration: null,
+        };
+
+        if (type === 'photo') {
+          this.state.media.photos.push(mediaItem);
+        } else if (type === 'video') {
+          this.state.media.videos.push(mediaItem);
+        } else if (type === 'audio') {
+          this.state.media.audio.push(mediaItem);
+        }
+
+        this.updateUploadProgress(progressId, 100);
+        this.completeUpload(progressId);
+        resolve();
+      };
+      reader.onerror = () => {
+        this.completeUpload(progressId);
+        resolve();
+      };
+      reader.readAsDataURL(file);
+    });
+  },
+
+  compressImage(dataUrl, quality) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let { width, height } = img;
+        // Max dimension 1920px
+        const MAX_DIM = 1920;
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round(height * MAX_DIM / width);
+            width = MAX_DIM;
+          } else {
+            width = Math.round(width * MAX_DIM / height);
+            height = MAX_DIM;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('Image load failed'));
+      img.src = dataUrl;
+    });
   },
 
   updateMediaUI() {
@@ -349,9 +478,12 @@ openPostModal() {
     // Photos
     this.state.media.photos.forEach((photo, idx) => {
       html += `
-        <div class="media-item" data-id="${photo.id}">
-          <img src="${photo.data}" alt="Photo ${idx + 1}" class="media-thumbnail">
-          <button type="button" class="media-remove" onclick="AdvancedPost.removeMedia('${photo.id}', 'photo')">
+        <div class="media-item" data-id="${photo.id}" title="${photo.name}">
+          <img src="${photo.thumbnail || photo.data}" alt="Photo ${idx + 1}" class="media-thumbnail" loading="lazy">
+          <div class="media-overlay">
+            <span class="media-badge">📷</span>
+          </div>
+          <button type="button" class="media-remove" onclick="AdvancedPost.removeMedia('${photo.id}', 'photo');event.stopPropagation();">
             <span>✕</span>
           </button>
         </div>
@@ -361,14 +493,13 @@ openPostModal() {
     // Videos
     this.state.media.videos.forEach((video, idx) => {
       html += `
-        <div class="media-item video-item">
-          <div class="media-placeholder">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-            </svg>
-            <div class="media-label">${video.name}</div>
+        <div class="media-item video-item" data-id="${video.id}" title="${video.name}">
+          <video src="${video.data}" class="media-thumbnail" muted preload="metadata"></video>
+          <div class="media-overlay">
+            <span class="media-play-icon">▶</span>
+            <span class="media-badge">🎬</span>
           </div>
-          <button type="button" class="media-remove" onclick="AdvancedPost.removeMedia('${video.id}', 'video')">
+          <button type="button" class="media-remove" onclick="AdvancedPost.removeMedia('${video.id}', 'video');event.stopPropagation();">
             <span>✕</span>
           </button>
         </div>
@@ -378,14 +509,14 @@ openPostModal() {
     // Audio
     this.state.media.audio.forEach((audio, idx) => {
       html += `
-        <div class="media-item audio-item">
+        <div class="media-item audio-item" data-id="${audio.id}" title="${audio.name}">
           <div class="media-placeholder">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 3v9.28c-.47-.46-1.12-.75-1.84-.75-1.66 0-3 1.34-3 3s1.34 3 3 3c1.66 0 3-1.34 3-3V7h4V3h-4z"/>
-            </svg>
+            <div class="audio-wave">
+              <span></span><span></span><span></span><span></span><span></span>
+            </div>
             <div class="media-label">${audio.name}</div>
           </div>
-          <button type="button" class="media-remove" onclick="AdvancedPost.removeMedia('${audio.id}', 'audio')">
+          <button type="button" class="media-remove" onclick="AdvancedPost.removeMedia('${audio.id}', 'audio');event.stopPropagation();">
             <span>✕</span>
           </button>
         </div>
@@ -393,6 +524,7 @@ openPostModal() {
     });
 
     container.innerHTML = html;
+    container.style.display = html ? 'grid' : 'none';
     if (html) container.style.display = 'grid';
     else container.style.display = 'none';
   },
@@ -455,30 +587,60 @@ openPostModal() {
 
   populateLocationList() {
     const list = document.getElementById('locationList');
-    const recentLocations = [
+    this.allLocations = [
       { name: 'New York, USA', lat: 40.7128, lng: -74.0060 },
       { name: 'Los Angeles, USA', lat: 34.0522, lng: -118.2437 },
+      { name: 'Chicago, USA', lat: 41.8781, lng: -87.6298 },
+      { name: 'San Francisco, USA', lat: 37.7749, lng: -122.4194 },
+      { name: 'Miami, USA', lat: 25.7617, lng: -80.1918 },
+      { name: 'Seattle, USA', lat: 47.6062, lng: -122.3321 },
+      { name: 'Boston, USA', lat: 42.3601, lng: -71.0589 },
+      { name: 'Austin, USA', lat: 30.2672, lng: -97.7431 },
+      { name: 'Denver, USA', lat: 39.7392, lng: -104.9903 },
       { name: 'London, UK', lat: 51.5074, lng: -0.1278 },
       { name: 'Paris, France', lat: 48.8566, lng: 2.3522 },
       { name: 'Tokyo, Japan', lat: 35.6762, lng: 139.6503 },
+      { name: 'Sydney, Australia', lat: -33.8688, lng: 151.2093 },
+      { name: 'Dubai, UAE', lat: 25.2048, lng: 55.2708 },
+      { name: 'Mumbai, India', lat: 19.0760, lng: 72.8777 },
+      { name: 'Barcelona, Spain', lat: 41.3874, lng: 2.1686 },
+      { name: 'Berlin, Germany', lat: 52.5200, lng: 13.4050 },
+      { name: 'Toronto, Canada', lat: 43.6532, lng: -79.3832 },
+      { name: 'São Paulo, Brazil', lat: -23.5505, lng: -46.6333 },
+      { name: 'Cape Town, South Africa', lat: -33.9249, lng: 18.4241 },
     ];
 
-    list.innerHTML = recentLocations.map(loc => `
-      <div onclick="AdvancedPost.setLocation('${loc.name}', ${loc.lat}, ${loc.lng})" 
+    list.innerHTML = this.allLocations.map(loc => `
+      <div onclick="AdvancedPost.setLocation('${loc.name.replace(/'/g, "\\'")}', ${loc.lat}, ${loc.lng})" 
+           class="location-item"
            style="padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s;">
-        <div style="font-weight: 500;">${loc.name}</div>
-        <div style="font-size: 12px; color: var(--text-muted);">📍 ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
+        <div style="font-weight: 500;">📍 ${loc.name}</div>
+        <div style="font-size: 12px; color: var(--text-muted);">${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
       </div>
     `).join('');
   },
 
   filterLocations(query) {
-    // Simplified filtering
     const list = document.getElementById('locationList');
-    const items = list.querySelectorAll('div[onclick]');
-    items.forEach(item => {
-      item.style.display = item.textContent.toLowerCase().includes(query.toLowerCase()) ? 'block' : 'none';
-    });
+    const q = query.toLowerCase().trim();
+    if (!q) {
+      // Reset to show all
+      this.populateLocationList();
+      return;
+    }
+    const filtered = this.allLocations.filter(loc =>
+      loc.name.toLowerCase().includes(q)
+    );
+    list.innerHTML = filtered.length > 0
+      ? filtered.map(loc => `
+          <div onclick="AdvancedPost.setLocation('${loc.name.replace(/'/g, "\\'")}', ${loc.lat}, ${loc.lng})" 
+               class="location-item"
+               style="padding: 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: 0.2s;">
+            <div style="font-weight: 500;">📍 ${loc.name}</div>
+            <div style="font-size: 12px; color: var(--text-muted);">${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
+          </div>
+        `).join('')
+      : `<div style="padding: 20px; text-align: center; color: var(--text-muted);">No locations found for "${q}"</div>`;
   },
 
   useCurrentLocation() {
@@ -488,13 +650,47 @@ openPostModal() {
     }
 
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
         const { latitude, longitude } = position.coords;
-        this.setLocation(`Current Location`, latitude, longitude);
+        // Get location name from coordinates using reverse geocoding
+        const locationName = await this.reverseGeocode(latitude, longitude);
+        this.setLocation(locationName || `Current Location (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`, latitude, longitude);
         document.getElementById('advPostLocationModal').style.display = 'none';
       },
       (error) => alert('Could not get your location: ' + error.message)
     );
+  },
+
+  async reverseGeocode(latitude, longitude) {
+    try {
+      // Use Nominatim API (OpenStreetMap) for reverse geocoding - free and no API key needed
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=10&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'SocialConnect-App'
+          }
+        }
+      );
+      
+      if (!response.ok) throw new Error('Reverse geocoding failed');
+      
+      const data = await response.json();
+      
+      if (data.address) {
+        // Try to construct a human-readable location name
+        const address = data.address;
+        const locationName = address.city || address.town || address.village || address.suburb || 
+                            address.county || address.state || address.country || 
+                            `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+        return locationName;
+      }
+      
+      return null;
+    } catch (err) {
+      console.warn('Reverse geocoding error:', err);
+      return null; // Return null to fall back to coordinate display
+    }
   },
 
   setLocation(name, lat, lng) {
@@ -572,25 +768,46 @@ openPostModal() {
   // MENTIONS
   // ─────────────────────────────────────────────────────────────────────────
   showMentionSuggestions(query) {
-    // This would be populated from users database
-    const suggestions = [
-      { id: '1', name: 'John Doe', avatar: '👤' },
-      { id: '2', name: 'Jane Smith', avatar: '👩' },
-      { id: '3', name: 'Mike Johnson', avatar: '👨' },
-    ].filter(u => u.name.toLowerCase().includes(query.toLowerCase()));
-
+    // Fetch real users from the API
     const suggestionBox = document.getElementById('advPostMentionSuggestions');
-    if (suggestionBox && suggestions.length > 0) {
-      suggestionBox.innerHTML = suggestions.map(user => `
-        <div onclick="AdvancedPost.addMention('${user.id}', '${user.name}')" 
-             style="padding: 8px; cursor: pointer; border-bottom: 1px solid var(--border);">
-          ${user.avatar} ${user.name}
-        </div>
-      `).join('');
-      suggestionBox.style.display = 'block';
-    } else {
+    if (!suggestionBox) return;
+
+    if (!query || query.length < 1) {
       suggestionBox.style.display = 'none';
+      return;
     }
+
+    fetch(`/api/users?q=${encodeURIComponent(query)}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('sc_token')}` }
+    })
+      .then(r => r.json())
+      .then(users => {
+        const userList = Array.isArray(users) ? users : (users.data || []);
+        const filtered = userList
+          .filter(u => u.id !== (this.currentUser?.id))
+          .slice(0, 10);
+
+        if (filtered.length > 0) {
+          suggestionBox.innerHTML = filtered.map(user => `
+            <div onclick="AdvancedPost.addMention('${user.id}', '${user.name.replace(/'/g, "\\'")}')" 
+                 style="display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:0.2s;">
+              <img src="${user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=random&color=fff&size=32`}" 
+                   style="width:32px;height:32px;border-radius:50%;object-fit:cover;" 
+                   onerror="this.style.display='none'">
+              <div>
+                <div style="font-weight:500;">${user.name}</div>
+                <div style="font-size:12px;color:var(--text-muted);">@${user.username || ''}</div>
+              </div>
+            </div>
+          `).join('');
+          suggestionBox.style.display = 'block';
+        } else {
+          suggestionBox.style.display = 'none';
+        }
+      })
+      .catch(() => {
+        suggestionBox.style.display = 'none';
+      });
   },
 
   addMention(userId, userName) {
@@ -836,6 +1053,7 @@ openPostModal() {
 
   setPrivacy(setting) {
     this.state.privacySettings.sharedWith = setting;
+    this.updatePrivacyBadge();
   },
 
   removeHideFrom(person) {
@@ -941,6 +1159,7 @@ openPostModal() {
       if (textArea) textArea.value = this.state.text;
       this.updateCharCount();
       this.updateMediaUI();
+      this.updatePrivacyBadge();
       
       // Restore feeling button state
       if (this.state.feeling) {

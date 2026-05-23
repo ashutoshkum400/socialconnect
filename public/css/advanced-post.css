@@ -302,6 +302,48 @@
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   UPLOAD PROGRESS
+   ───────────────────────────────────────────────────────────────────────────── */
+#advPostUploadProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--input-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+
+#advPostUploadItems > div {
+  animation: slideUpFade 0.3s ease both;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LOCATION TAG STYLING
+   ───────────────────────────────────────────────────────────────────────────── */
+.tag[title] {
+  cursor: help;
+  position: relative;
+}
+
+.tag[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  background: var(--text);
+  color: var(--card-bg);
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  margin-bottom: 4px;
+  z-index: 1000;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    RESPONSIVE DESIGN
    ───────────────────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {

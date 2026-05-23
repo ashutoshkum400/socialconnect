@@ -133,7 +133,7 @@ function renderSidebarProfile(user) {
 // 2. LOAD FEED
 // ═══════════════════════════════════════════════════════════════════
 async function loadFeed() {
-  const result = await apiFetch('/posts');
+  const result = await apiFetch('/posts/feed/advanced');
   const skeleton = document.getElementById('feedSkeleton');
   const container = document.getElementById('feedContainer');
   const emptyState = document.getElementById('feedEmpty');
@@ -145,7 +145,7 @@ async function loadFeed() {
     return;
   }
 
-  const posts = result.data;
+  const posts = result.data.posts || result.data;
 
   if (!posts.length) {
     if (emptyState) emptyState.classList.remove('hidden');
@@ -198,7 +198,7 @@ function createPostElement(post) {
       <div class="post-card__meta">
         <a href="/profile.html?id=${authorId}" class="post-card__name">${authorName}</a>
         ${authorUsername ? `<span style="font-size:var(--font-size-xs);color:var(--text-secondary);">@${authorUsername}</span>` : ''}
-        <span class="post-card__time" title="${post.time || ''}">${timeAgo(post.time)}</span>
+        <span class="post-card__time" title="${post.time || post.timestamp || ''}">${timeAgo(post.time || post.timestamp)}</span>
       </div>
       ${isOwn ? `
         <div class="dropdown" style="margin-left:auto;">
@@ -266,10 +266,39 @@ function createPostElement(post) {
           <img
             src="${photo.data || photo.thumbnail || ''}"
             alt="Photo ${idx + 1}"
-            style="width:100%;height:150px;object-fit:cover;border-radius:8px;"
+            style="width:100%;height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"
             loading="lazy"
+            onclick="window.open('${photo.data || photo.thumbnail || ''}', '_blank')"
             onerror="this.parentElement.style.display='none'"
           >
+        `).join('')}
+      </div>
+    ` : ''}
+
+    ${post.media && post.media.videos && post.media.videos.length > 0 ? `
+      <div style="margin-top:var(--space-sm);display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+        ${post.media.videos.map((video, idx) => `
+          <video
+            src="${video.data || ''}"
+            style="width:100%;max-height:300px;border-radius:8px;background:#000;"
+            controls
+            preload="metadata"
+            ${idx > 0 ? '' : 'autoplay muted'}
+          ></video>
+        `).join('')}
+      </div>
+    ` : ''}
+
+    ${post.media && post.media.audio && post.media.audio.length > 0 ? `
+      <div style="margin-top:var(--space-sm);display:flex;flex-wrap:wrap;gap:10px;">
+        ${post.media.audio.map(audio => `
+          <div style="flex:1;min-width:200px;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+              <span style="font-size:20px;">🎵</span>
+              <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${audio.name || 'Audio file'}</span>
+            </div>
+            <audio src="${audio.data || ''}" controls style="width:100%;height:36px;" preload="none"></audio>
+          </div>
         `).join('')}
       </div>
     ` : ''}
@@ -1074,9 +1103,15 @@ socket.on('user_online', ({ userId, online }) => {
   renderOnlineFriends();
 });
 
-socket.on('new_post', (post) => {
+socket.on('newPost', (data) => {
+  const post = data.post || data;
   // Don't add own posts (already added via advanced post)
   if (post.authorId === currentUser.id) return;
+
+  // Enrich with author info if available
+  if (data.fromUser && !post.author) {
+    post.author = data.fromUser;
+  }
 
   const container = document.getElementById('feedContainer');
   if (!container) return;
@@ -1782,7 +1817,18 @@ function renderStories(users) {
 // SHARE POST
 // ═══════════════════════════════════════════════════════════════════
 
-function sharePost(postId) {
+async function sharePost(postId) {
+  // Try the advanced share API first
+  try {
+    const result = await apiFetch(`/posts/advanced/${postId}/share`, { method: 'POST' });
+    if (result && result.ok) {
+      const shares = result.data?.shares || 0;
+      showToast(`Post shared! 📤 (${shares} total shares)`, 'success');
+      return;
+    }
+  } catch (e) { /* fall through to clipboard fallback */ }
+
+  // Fallback: copy link to clipboard
   const url = `${window.location.origin}/post.html?id=${postId}`;
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url).then(() => {

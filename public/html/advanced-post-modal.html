@@ -9,7 +9,10 @@
     <!-- Header -->
     <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;">
       <h2 style="margin: 0; font-size: 20px; font-weight: 600;">Share ! It</h2>
-      <button id="advPostClose" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">✕</button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="advPostPrivacyBadge" style="font-size:12px;padding:4px 10px;background:var(--primary-light);border-radius:20px;color:var(--primary);font-weight:500;">🌍 Public</span>
+        <button id="advPostClose" style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--text-muted); padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">✕</button>
+      </div>
     </div>
 
     <!-- Body (scrollable) -->
@@ -35,6 +38,13 @@
             Tip: Use #hashtags and @mentions for better reach!
           </div>
           <div id="advPostCharCount" style="font-size: 12px; color: var(--text-muted);">0/10000</div>
+        </div>
+      </div>
+
+      <!-- Upload Progress Container -->
+      <div id="advPostUploadProgress" style="display: none; gap: 12px; flex-direction: column;">
+        <div id="advPostUploadItems" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Upload progress items will be added here -->
         </div>
       </div>
 

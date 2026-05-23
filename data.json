@@ -220,13 +220,18 @@
       "connections": [],
       "blocked": false,
       "joinedAt": "2026-05-22T07:45:48.594Z",
-      "lastSeen": "2026-05-22T12:45:18.178Z",
+      "lastSeen": "2026-05-22T13:45:52.850Z",
       "location": "tyujgyfj",
       "birthDate": "2008-02-21",
       "gender": "male",
       "interests": [],
       "lookingFor": null,
-      "relationshipStatus": null
+      "relationshipStatus": null,
+      "posts": [
+        "307d35bc-0692-449d-8a3c-7c0662a8f435",
+        "a95d87aa-5207-483a-b615-40b0037cdf0a",
+        "de12137f-5268-4dd9-aeb9-be5ee09f5811"
+      ]
     },
     "6145086b-9183-4014-87af-6c7994ddec16": {
       "id": "6145086b-9183-4014-87af-6c7994ddec16",

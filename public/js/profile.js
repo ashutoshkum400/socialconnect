@@ -435,6 +435,14 @@ function renderPost(post) {
         ` : ''}
       </div>
 
+      ${(post.feeling || post.activity || post.location) ? `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--space-md) var(--space-xs);font-size:13px;">
+          ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
+          ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
+          ${post.location ? `<span class="tag" style="font-size:12px;padding:3px 10px;">📍 ${post.location.name}</span>` : ''}
+        </div>
+      ` : ''}
+
       <div class="post-card__content${!post.image && post.text && post.text.length < 120 ? ' large-text' : ''}">
         ${highlightHashtags(escapeHtml(post.text || ''))}
       </div>
@@ -448,6 +456,55 @@ function renderPost(post) {
             loading="lazy"
             onerror="this.parentElement.style.display='none'"
           >
+        </div>
+      ` : ''}
+
+      ${post.media && post.media.photos && post.media.photos.length > 0 ? `
+        <div style="margin-top:var(--space-sm);display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">
+          ${post.media.photos.map((photo, idx) => `
+            <img
+              src="${photo.data || photo.thumbnail || ''}"
+              alt="Photo ${idx + 1}"
+              style="width:100%;height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"
+              loading="lazy"
+              onclick="window.open('${photo.data || photo.thumbnail || ''}', '_blank')"
+              onerror="this.parentElement.style.display='none'"
+            >
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${post.media && post.media.videos && post.media.videos.length > 0 ? `
+        <div style="margin-top:var(--space-sm);display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+          ${post.media.videos.map((video, idx) => `
+            <video
+              src="${video.data || ''}"
+              style="width:100%;max-height:300px;border-radius:8px;background:#000;"
+              controls
+              preload="metadata"
+              ${idx > 0 ? '' : 'autoplay muted'}
+            ></video>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${post.media && post.media.audio && post.media.audio.length > 0 ? `
+        <div style="margin-top:var(--space-sm);display:flex;flex-wrap:wrap;gap:10px;">
+          ${post.media.audio.map(audio => `
+            <div style="flex:1;min-width:200px;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <span style="font-size:20px;">🎵</span>
+                <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${audio.name || 'Audio file'}</span>
+              </div>
+              <audio src="${audio.data || ''}" controls style="width:100%;height:36px;" preload="none"></audio>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${post.tags && post.tags.length > 0 ? `
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--space-sm);">
+          ${post.tags.map(tag => `<span class="tag tag--pink" style="font-size:12px;padding:2px 8px;">#${tag}</span>`).join('')}
         </div>
       ` : ''}
 

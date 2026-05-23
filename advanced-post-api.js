@@ -225,13 +225,17 @@ module.exports = function(app, io, db, authenticateToken) {
       // Paginate
       const paginatedFeed = feed.slice(offset, offset + limit);
 
-      // Enrich with author info
-      const enrichedFeed = paginatedFeed.map(post => ({
-        ...post,
-        author: db.users.get(post.authorId),
-        liked: post.likes?.includes(userId) || false,
-        saved: post.saves?.includes(userId) || false,
-      }));
+      // Enrich with author info (sanitized)
+      const enrichedFeed = paginatedFeed.map(post => {
+        const rawAuthor = db.users.get(post.authorId);
+        const author = rawAuthor ? (({ password, ...safe }) => safe)(rawAuthor) : null;
+        return {
+          ...post,
+          author,
+          liked: post.likes?.includes(userId) || false,
+          saved: post.saves?.includes(userId) || false,
+        };
+      });
 
       res.json({
         success: true,

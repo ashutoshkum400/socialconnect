@@ -1019,6 +1019,8 @@ io.on("connection", (socket) => {
       onlineUsers.set(userId, socket.id);
       socket.userId = userId;
 
+      socket.join(`user_${userId}`);
+
       socket.emit("authenticated", { userId });
       io.emit("user_online", { userId, online: true });
     } catch {
