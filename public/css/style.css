@@ -2137,6 +2137,17 @@ p {
    flex-shrink: 0;
 }
 
+/* Unread dot indicator */
+.notification-item__unread-dot {
+   position: absolute;
+   top: 12px;
+   right: 12px;
+   width: 8px;
+   height: 8px;
+   background: var(--primary);
+   border-radius: 50%;
+}
+
 /* Ensure action buttons are small */
 .notification-item__actions .btn--xs {
    padding: 2px 6px;

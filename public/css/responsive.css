@@ -1173,8 +1173,8 @@ table {
 
 
 /* ============================================================================
-   17. NOTIFICATION DROPDOWN — Mobile Full-Width
-   ========================================================================== */
+    17. NOTIFICATION DROPDOWN — Mobile Full-Width
+    ========================================================================== */
 
 @media (max-width: 767px) {
   .notifications-dropdown {
@@ -1198,9 +1198,44 @@ table {
     border-bottom: 1px solid var(--border, #e4e6ea);
   }
 
+  .notifications-dropdown__header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+
+  /* Mobile close button for notifications */
+  .notifications-dropdown__close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .notifications-dropdown__close:hover {
+    background: var(--bg);
+    color: var(--text);
+  }
+
   .notification-item {
     padding: 12px 16px;
     min-height: 64px;
+  }
+
+  .notification-item__actions {
+    position: absolute;
+    right: 16px;
+    bottom: 12px;
   }
 }
 

@@ -432,52 +432,43 @@ function renderNotifications(notifs) {
        follow: `<span class="notification-item__icon notification-item__icon--friend">➕</span>`,
        connect: `<span class="notification-item__icon notification-item__icon--match">💜</span>`,
        match: `<span class="notification-item__icon notification-item__icon--match">💕</span>`,
+       share: `<span class="notification-item__icon notification-item__icon--like">↗️</span>`,
        message: `<span class="notification-item__icon">💬</span>`,
      };
      const icon = iconMap[n.type] || `<span class="notification-item__icon">🔔</span>`;
 
-     let actionButtons = '';
-     
-     // Add action buttons based on notification type
-     if (n.type === 'friend_request' && n.fromId) {
-       actionButtons = `
-         <div class="notification-item__actions">
-           <button class="btn btn--primary btn--xs" onclick="acceptFriendRequest('${n.fromId}')">Accept</button>
-         </div>
-       `;
-     } else if (n.type === 'follow' && n.fromId) {
-       actionButtons = `
-         <div class="notification-item__actions">
-           <button class="btn btn--outline-primary btn--xs" onclick="followUser('${n.fromId}')">Follow Back</button>
-         </div>
-       `;
-     } else if (n.type === 'connect' && n.fromId) {
-       actionButtons = `
-         <div class="notification-item__actions">
-           <button class="btn btn--match btn--xs" onclick="acceptConnection('${n.fromId}')">Accept Connection</button>
-         </div>
-       `;
-     } else if (n.type === 'like' || n.type === 'comment') {
-       // Make notification clickable to go to the post
-       const postId = n.postId || n.relatedId;
-       if (postId) {
-         return `
-           <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}" onclick="window.location.href='/post.html?id=${postId}'" style="cursor:pointer;">
-             <div class="notification-item__avatar-wrap">
-               ${icon}
-             </div>
-             <div class="notification-item__content">
-               <p class="notification-item__text">${n.text || ''}</p>
-               <span class="notification-item__time">${timeAgo(n.time)}</span>
-             </div>
-             ${!n.read ? `<span class="notification-item__unread-dot" aria-label="Unread"></span>` : ''}
-           </div>
-         `;
-       }
-     }
+let actionButtons = '';
+      let clickHandler = '';
+
+      // Add action buttons based on notification type
+      if (n.type === 'friend_request' && n.fromId) {
+        actionButtons = `
+          <div class="notification-item__actions">
+            <button class="btn btn--primary btn--xs" onclick="event.stopPropagation(); acceptFriendRequest('${n.fromId}')">Accept</button>
+          </div>
+        `;
+      } else if (n.type === 'follow' && n.fromId) {
+        actionButtons = `
+          <div class="notification-item__actions">
+            <button class="btn btn--outline-primary btn--xs" onclick="event.stopPropagation(); followUser('${n.fromId}')">Follow Back</button>
+          </div>
+        `;
+      } else if (n.type === 'connect' && n.fromId) {
+        actionButtons = `
+          <div class="notification-item__actions">
+            <button class="btn btn--match btn--xs" onclick="event.stopPropagation(); acceptConnection('${n.fromId}')">Accept Connection</button>
+          </div>
+        `;
+      } else if (n.type === 'like' || n.type === 'comment' || n.type === 'share') {
+        // Make notification clickable to go to the post
+        const postId = n.postId || n.relatedId;
+        if (postId) {
+          clickHandler = `onclick="window.location.href='/post.html?id=${postId}'"`;
+        }
+      }
 
      return `
-       <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}">
+       <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}" ${clickHandler}>
          <div class="notification-item__avatar-wrap">
            ${icon}
          </div>
@@ -1639,7 +1630,6 @@ document.addEventListener('click', (e) => {
 // Notifications dropdown
 function toggleNotifDropdown() {
   const dropdown = document.getElementById('notifDropdown');
-  const btn = document.getElementById('notifBtn');
   if (!dropdown) return;
 
   const isHidden = dropdown.classList.contains('hidden');
@@ -1647,11 +1637,20 @@ function toggleNotifDropdown() {
 
   if (isHidden) {
     dropdown.classList.remove('hidden');
-    btn && btn.setAttribute('aria-expanded', 'true');
+    document.getElementById('notifBtn')?.setAttribute('aria-expanded', 'true');
     // Mark as read when opened
     if (allNotifications.some(n => !n.read)) {
       setTimeout(markAllNotifsRead, 2000);
     }
+  }
+}
+
+// Close notification dropdown (for mobile)
+function closeNotifDropdown() {
+  const dropdown = document.getElementById('notifDropdown');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+    document.getElementById('notifBtn')?.setAttribute('aria-expanded', 'false');
   }
 }
 
@@ -1693,6 +1692,15 @@ function togglePostOptionsMenu(event, postId) {
 
 // Close dropdowns on outside click
 document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('notifDropdown');
+  const notifBtn = e.target.closest('[onclick*="toggleNotifDropdown"]');
+
+  // If notification dropdown is open and we clicked outside it
+  if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.notifications-dropdown')) {
+    closeNotifDropdown();
+  }
+
+  // Close other dropdowns
   if (!e.target.closest('.dropdown') && !e.target.closest('.notifications-dropdown')) {
     closeAllDropdowns();
     closeAllMenus();
