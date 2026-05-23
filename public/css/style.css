@@ -2130,13 +2130,17 @@ p {
   display: block;
 }
 
-.notification-item__unread-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  flex-shrink: 0;
-  margin-top: 6px;
+.notification-item__actions {
+   display: flex;
+   gap: var(--space-xs);
+   margin-top: var(--space-xs);
+   flex-shrink: 0;
+}
+
+/* Ensure action buttons are small */
+.notification-item__actions .btn--xs {
+   padding: 2px 6px;
+   font-size: var(--font-size-xs);
 }
 
 /* ==========================================================================

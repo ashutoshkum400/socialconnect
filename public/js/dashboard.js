@@ -410,45 +410,87 @@ async function loadNotifications() {
 }
 
 function renderNotifications(notifs) {
-  const list = document.getElementById('notifList');
-  if (!list) return;
+   const list = document.getElementById('notifList');
+   if (!list) return;
 
-  if (!notifs.length) {
-    list.innerHTML = `
-      <div class="empty-state" style="padding:var(--space-lg) 0;">
-        <div class="empty-state__icon">🔔</div>
-        <p class="empty-state__text">No notifications yet</p>
-      </div>
-    `;
-    return;
-  }
+   if (!notifs.length) {
+     list.innerHTML = `
+       <div class="empty-state" style="padding:var(--space-lg) 0;">
+         <div class="empty-state__icon">🔔</div>
+         <p class="empty-state__text">No notifications yet</p>
+       </div>
+     `;
+     return;
+   }
 
-  list.innerHTML = notifs.map(n => {
-    const iconMap = {
-      like: `<span class="notification-item__icon notification-item__icon--like">👍</span>`,
-      comment: `<span class="notification-item__icon notification-item__icon--comment">💬</span>`,
-      friend_request: `<span class="notification-item__icon notification-item__icon--friend">👥</span>`,
-      friend_accept: `<span class="notification-item__icon notification-item__icon--friend">✅</span>`,
-      follow: `<span class="notification-item__icon notification-item__icon--friend">➕</span>`,
-      match: `<span class="notification-item__icon notification-item__icon--match">💜</span>`,
-      message: `<span class="notification-item__icon">💬</span>`,
-    };
-    const icon = iconMap[n.type] || `<span class="notification-item__icon">🔔</span>`;
+   list.innerHTML = notifs.map(n => {
+     const iconMap = {
+       like: `<span class="notification-item__icon notification-item__icon--like">👍</span>`,
+       comment: `<span class="notification-item__icon notification-item__icon--comment">💬</span>`,
+       friend_request: `<span class="notification-item__icon notification-item__icon--friend">👥</span>`,
+       friend_accept: `<span class="notification-item__icon notification-item__icon--friend">✅</span>`,
+       follow: `<span class="notification-item__icon notification-item__icon--friend">➕</span>`,
+       connect: `<span class="notification-item__icon notification-item__icon--match">💜</span>`,
+       match: `<span class="notification-item__icon notification-item__icon--match">💕</span>`,
+       message: `<span class="notification-item__icon">💬</span>`,
+     };
+     const icon = iconMap[n.type] || `<span class="notification-item__icon">🔔</span>`;
 
-    return `
-      <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}">
-        <div class="notification-item__avatar-wrap">
-          ${icon}
-        </div>
-        <div class="notification-item__content">
-          <p class="notification-item__text">${n.text || ''}</p>
-          <span class="notification-item__time">${timeAgo(n.time)}</span>
-        </div>
-        ${!n.read ? `<span class="notification-item__unread-dot" aria-label="Unread"></span>` : ''}
-      </div>
-    `;
-  }).join('');
-}
+     let actionButtons = '';
+     
+     // Add action buttons based on notification type
+     if (n.type === 'friend_request' && n.fromId) {
+       actionButtons = `
+         <div class="notification-item__actions">
+           <button class="btn btn--primary btn--xs" onclick="acceptFriendRequest('${n.fromId}')">Accept</button>
+         </div>
+       `;
+     } else if (n.type === 'follow' && n.fromId) {
+       actionButtons = `
+         <div class="notification-item__actions">
+           <button class="btn btn--outline-primary btn--xs" onclick="followUser('${n.fromId}')">Follow Back</button>
+         </div>
+       `;
+     } else if (n.type === 'connect' && n.fromId) {
+       actionButtons = `
+         <div class="notification-item__actions">
+           <button class="btn btn--match btn--xs" onclick="acceptConnection('${n.fromId}')">Accept Connection</button>
+         </div>
+       `;
+     } else if (n.type === 'like' || n.type === 'comment') {
+       // Make notification clickable to go to the post
+       const postId = n.postId || n.relatedId;
+       if (postId) {
+         return `
+           <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}" onclick="window.location.href='/post.html?id=${postId}'" style="cursor:pointer;">
+             <div class="notification-item__avatar-wrap">
+               ${icon}
+             </div>
+             <div class="notification-item__content">
+               <p class="notification-item__text">${n.text || ''}</p>
+               <span class="notification-item__time">${timeAgo(n.time)}</span>
+             </div>
+             ${!n.read ? `<span class="notification-item__unread-dot" aria-label="Unread"></span>` : ''}
+           </div>
+         `;
+       }
+     }
+
+     return `
+       <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}">
+         <div class="notification-item__avatar-wrap">
+           ${icon}
+         </div>
+         <div class="notification-item__content">
+           <p class="notification-item__text">${n.text || ''}</p>
+           <span class="notification-item__time">${timeAgo(n.time)}</span>
+         </div>
+         ${actionButtons}
+         ${!n.read ? `<span class="notification-item__unread-dot" aria-label="Unread"></span>` : ''}
+       </div>
+     `;
+   }).join('');
+ }
 
 function updateNotifBadge() {
   const unread = allNotifications.filter(n => !n.read).length;
@@ -682,31 +724,46 @@ async function followUser(userId) {
 // 11. CONNECT USER (dating)
 // ═══════════════════════════════════════════════════════════════════
 async function connectUser(userId) {
-  const result = await apiFetch(`/connect/${userId}`, { method: 'POST' });
-  if (!result || !result.ok) {
-    showToast('Could not connect', 'error');
-    return;
-  }
+   const result = await apiFetch(`/connect/${userId}`, { method: 'POST' });
+   if (!result || !result.ok) {
+     showToast('Could not connect', 'error');
+     return;
+   }
 
-  const data = result.data;
+   const data = result.data;
 
-  // Update connect buttons for this user
-  document.querySelectorAll(`[data-connect-btn="${userId}"]`).forEach(btn => {
-    btn.textContent = data.match ? '💜 Matched!' : '💜 Interested';
-    btn.disabled = data.match;
-    btn.classList.add('btn--match', 'matched');
-  });
+   // Update connect buttons for this user
+   document.querySelectorAll(`[data-connect-btn="${userId}"]`).forEach(btn => {
+     btn.textContent = data.match ? '💜 Matched!' : '💜 Interested';
+     btn.disabled = data.match;
+     btn.classList.add('btn--match', 'matched');
+   });
 
-  if (data.match) {
-    lastMatchedUserId = userId;
-    const matchedUser = allUsers.find(u => u.id === userId);
-    const sub = document.getElementById('matchBannerSub');
-    if (sub && matchedUser) sub.textContent = `You and ${matchedUser.name} connected!`;
-    showMatchBanner();
-  } else {
-    showToast('Connection request sent 💜', 'success');
-  }
-}
+   if (data.match) {
+     lastMatchedUserId = userId;
+     const matchedUser = allUsers.find(u => u.id === userId);
+     const sub = document.getElementById('matchBannerSub');
+     if (sub && matchedUser) sub.textContent = `You and ${matchedUser.name} connected!`;
+     showMatchBanner();
+   } else {
+     showToast('Connection request sent 💜', 'success');
+   }
+ }
+
+ async function acceptConnection(userId) {
+   const result = await apiFetch(`/connect/accept/${userId}`, { method: 'POST' });
+   if (!result || !result.ok) {
+     showToast('Could not accept connection', 'error');
+     return;
+   }
+
+   showToast('Connection accepted! 💜', 'success');
+   
+   // Update notifications
+   allNotifications = allNotifications.filter(n => !(n.type === 'connect' && n.fromId === userId));
+   renderNotifications(allNotifications);
+   updateNotifBadge();
+ }
 
 // ═══════════════════════════════════════════════════════════════════
 // 12. LOAD SUGGESTIONS
