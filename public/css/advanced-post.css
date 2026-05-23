@@ -455,3 +455,106 @@
 .loading {
   animation: spin 1s linear infinite;
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   SUCCESS NOTIFICATION ANIMATIONS
+   ───────────────────────────────────────────────────────────────────────────── */
+@keyframes popIn {
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Overall Post Submission Progress Bar */
+#advPostSubmitProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+  animation: slideUpFade 0.3s ease both;
+}
+
+#advPostSubmitBar {
+  transition: width 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  background: linear-gradient(90deg, var(--primary), #7c6fcf);
+  box-shadow: 0 0 10px rgba(88, 86, 214, 0.5);
+}
+
+#advPostSubmitPercent {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+/* Success Notification Overlay */
+#successNotificationOverlay {
+  backdrop-filter: blur(4px);
+}
+
+#successNotificationOverlay > div {
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 30px rgba(88, 86, 214, 0.2);
+  border: 1px solid rgba(88, 86, 214, 0.2);
+}
+
+/* Responsive Success Notification */
+@media (max-width: 640px) {
+  #successNotificationOverlay > div {
+    width: 95% !important;
+    margin: 0 auto;
+    padding: 30px 20px !important;
+  }
+
+  #successNotificationOverlay > div h2 {
+    font-size: 20px !important;
+  }
+
+  #successNotificationOverlay > div > div:first-child {
+    font-size: 56px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #successNotificationOverlay > div {
+    width: 90% !important;
+    padding: 25px 15px !important;
+    border-radius: 12px !important;
+  }
+
+  #successNotificationOverlay > div h2 {
+    font-size: 18px !important;
+  }
+
+  #successNotificationOverlay > div p {
+    font-size: 13px !important;
+  }
+
+  #successNotificationOverlay > div > div:first-child {
+    font-size: 48px !important;
+    margin-bottom: 15px !important;
+  }
+
+  #successNotificationOverlay > div > div:last-child {
+    flex-direction: column;
+  }
+
+  #successNotificationOverlay > div button {
+    width: 100%;
+  }
+}

@@ -1071,10 +1071,18 @@ openPostModal() {
     }
 
     const submitBtn = document.getElementById('advPostSubmit');
+    const progressContainer = document.getElementById('advPostSubmitProgress');
+    const progressBar = document.getElementById('advPostSubmitBar');
+    const progressPercent = document.getElementById('advPostSubmitPercent');
+    
     submitBtn.disabled = true;
     submitBtn.textContent = '📤 Posting...';
+    progressContainer.style.display = 'flex';
 
     try {
+      // Update progress: 10% - validation complete
+      this.updateProgressBar(10);
+
       const postData = {
         text: this.state.text,
         media: this.state.media,
@@ -1088,6 +1096,17 @@ openPostModal() {
         timestamp: new Date().toISOString(),
       };
 
+      // Update progress: 30% - data prepared
+      this.updateProgressBar(30);
+
+      // Simulate upload progress
+      const uploadInterval = setInterval(() => {
+        const currentWidth = parseFloat(progressBar.style.width);
+        if (currentWidth < 90) {
+          this.updateProgressBar(currentWidth + Math.random() * 20);
+        }
+      }, 300);
+
       const response = await fetch('/api/posts/advanced', {
         method: 'POST',
         headers: {
@@ -1097,49 +1116,124 @@ openPostModal() {
         body: JSON.stringify(postData)
       });
 
+      clearInterval(uploadInterval);
+      this.updateProgressBar(95);
+
       if (!response.ok) throw new Error('Failed to post');
 
       const result = await response.json();
       console.log('✅ Post created:', result);
 
-      // Show success message
-      this.showNotification('✅ Post published successfully!', 'success');
+      // Update progress: 100% - complete
+      this.updateProgressBar(100);
 
-      // Close modal and reset
+      // Show comprehensive success notification
+      this.showSuccessNotification(result.postId || result.post?.id);
+
+      // Close modal and reset after delay
       setTimeout(() => {
         this.closePostModal();
         this.resetState();
+        progressContainer.style.display = 'none';
+        progressBar.style.width = '0%';
+        progressPercent.textContent = '0%';
         // Reload feed
         if (window.loadFeed) window.loadFeed();
-      }, 1000);
+      }, 2000);
     } catch (err) {
       console.error('❌ Post error:', err);
-      this.showNotification('❌ Failed to post: ' + err.message, 'error');
+      clearInterval(uploadInterval);
+      progressContainer.style.display = 'none';
+      this.showErrorNotification('❌ Failed to post: ' + err.message);
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Share ! It';
     }
   },
 
-  showNotification(message, type = 'info') {
+  updateProgressBar(percentage) {
+    const bar = document.getElementById('advPostSubmitBar');
+    const percentEl = document.getElementById('advPostSubmitPercent');
+    if (bar) {
+      percentage = Math.min(percentage, 100);
+      bar.style.width = percentage + '%';
+      percentEl.textContent = Math.round(percentage) + '%';
+    }
+  },
+
+  showSuccessNotification(postId) {
+    // Create full-screen success overlay
+    const overlay = document.createElement('div');
+    overlay.id = 'successNotificationOverlay';
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10001;
+      animation: fadeIn 0.3s ease both;
+    `;
+
+    const notificationBox = document.createElement('div');
+    notificationBox.style.cssText = `
+      background: white;
+      border-radius: 16px;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 90%;
+      animation: slideUpFade 0.4s ease both;
+    `;
+
+    notificationBox.innerHTML = `
+      <div style="font-size: 64px; margin-bottom: 20px; animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">✅</div>
+      <h2 style="margin: 0 0 10px; font-size: 24px; color: var(--text); font-weight: 700;">Post Published!</h2>
+      <p style="margin: 0 0 20px; color: var(--text-muted); font-size: 14px;">Your post has been successfully shared with the community.</p>
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button onclick="document.getElementById('successNotificationOverlay').remove()" style="padding: 10px 20px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.2s;">View Feed</button>
+      </div>
+    `;
+
+    overlay.appendChild(notificationBox);
+    document.body.appendChild(overlay);
+
+    // Auto-close after 3 seconds
+    setTimeout(() => {
+      overlay.style.animation = 'fadeOut 0.3s ease both';
+      setTimeout(() => {
+        if (overlay.parentElement) overlay.remove();
+      }, 300);
+    }, 3000);
+  },
+
+  showErrorNotification(message) {
     const notification = document.createElement('div');
-    notification.textContent = message;
     notification.style.cssText = `
       position: fixed;
       top: 20px;
       right: 20px;
-      padding: 12px 20px;
-      background: ${type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--primary)'};
+      padding: 16px 20px;
+      background: #ff4757;
       color: white;
-      border-radius: 6px;
+      border-radius: 8px;
       z-index: 10000;
       animation: slideInRight 0.3s ease both;
+      box-shadow: 0 8px 16px rgba(255, 71, 87, 0.3);
+      max-width: 300px;
+      font-weight: 500;
     `;
+    notification.textContent = message;
     document.body.appendChild(notification);
     setTimeout(() => {
       notification.style.animation = 'slideOutRight 0.3s ease both';
       setTimeout(() => notification.remove(), 300);
-    }, 3000);
+    }, 4000);
   },
 
   // ─────────────────────────────────────────────────────────────────────────
