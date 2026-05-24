@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require("uuid");
 const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
+const { seedBots, startBotActivity } = require('./seed-bots');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -1317,7 +1318,9 @@ app.use((req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 seedData()
-  .then(() => {
+  .then(() => seedBots(db, io))
+  .then((activeBots) => {
+    saveDb();
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`✅ Server started`);
       console.log(`🚀 SocialConnect running on port ${PORT}`);
@@ -1325,6 +1328,7 @@ seedData()
         `📁 Serving static files from: ${path.join(__dirname, "public")}`,
       );
     });
+    startBotActivity(db, io, activeBots);
   })
   .catch((err) => {
     console.error("❌ Failed to seed data:", err);
