@@ -423,7 +423,22 @@ function renderNotifications(notifs) {
     return;
   }
 
-  list.innerHTML = notifs.map(n => {
+  // Enrich notifications with user data from allUsers
+  const enrichedNotifs = notifs.map(n => {
+    if (n.fromId) {
+      const fromUser = allUsers.find(u => u.id === n.fromId);
+      if (fromUser) {
+        return {
+          ...n,
+          fromName: fromUser.name,
+          fromAvatar: fromUser.avatar
+        };
+      }
+    }
+    return n;
+  });
+
+  list.innerHTML = enrichedNotifs.map(n => {
     const iconMap = {
       like: `<span class="notification-item__icon notification-item__icon--like">👍</span>`,
       comment: `<span class="notification-item__icon notification-item__icon--comment">💬</span>`,
@@ -442,8 +457,8 @@ function renderNotifications(notifs) {
     // Check if notification should be clickable (like, comment, share)
     const isPostRelated = ['like', 'comment', 'share'].includes(n.type);
     const clickHandler = isPostRelated && n.postId 
-      ? `onclick="navigateToPost('${n.postId}'); event.stopPropagation();"`
-      : '';
+      ? `onclick="navigateToPost('${n.postId}'); markNotifAsRead('${n.id}'); event.stopPropagation();"`
+      : `onclick="markNotifAsRead('${n.id}'); event.stopPropagation();"`;
 
     // Generate action buttons based on notification type
     let actionButtons = '';
@@ -463,7 +478,32 @@ function renderNotifications(notifs) {
     } else if (n.type === 'connect_request') {
       actionButtons = `
         <div class="notification-item__actions">
-          <button class="btn btn--match btn--xs" onclick="openRelationshipModal('${n.fromId}', '${escapeHtml(n.text)}'); event.stopPropagation();">Add Relationship</button>
+          <button class="btn btn--match btn--xs" onclick="openRelationshipModal('${n.fromId}', '${escapeHtml(n.text)}', '${n.id}'); event.stopPropagation();">Connect</button>
+        </div>
+      `;
+    } else if (n.type === 'friend_accept') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--outline-primary btn--xs" onclick="openChat('${n.fromId}', '${escapeHtml(n.fromName || '')}', '${escapeHtml(n.fromAvatar || '')}'); event.stopPropagation();">Message</button>
+        </div>
+      `;
+    } else if (n.type === 'follow_back') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--outline-primary btn--xs" onclick="openChat('${n.fromId}', '${escapeHtml(n.fromName || '')}', '${escapeHtml(n.fromAvatar || '')}'); event.stopPropagation();">Message</button>
+        </div>
+      `;
+    } else if (n.type === 'match' || n.type === 'connect_accept') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--match btn--xs" onclick="openChat('${n.fromId}', '${escapeHtml(n.fromName || '')}', '${escapeHtml(n.fromAvatar || '')}'); event.stopPropagation();">Message</button>
+          <button class="btn btn--outline-secondary btn--xs" onclick="window.location.href='/profile.html?id=${n.fromId}'; event.stopPropagation();">View Profile</button>
+        </div>
+      `;
+    } else if (n.type === 'message') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--outline-primary btn--xs" onclick="openChat('${n.fromId}', '${escapeHtml(n.fromName || '')}', '${escapeHtml(n.fromAvatar || '')}'); event.stopPropagation();">Reply</button>
         </div>
       `;
     }
@@ -472,7 +512,7 @@ function renderNotifications(notifs) {
       <div class="notification-item${n.read ? '' : ' unread'}${isPostRelated ? ' notification-item--clickable' : ''}" 
            data-notif-id="${n.id}" 
            ${clickHandler}
-           style="${isPostRelated ? 'cursor: pointer;' : ''}">
+           style="cursor: pointer;">
         <div class="notification-item__avatar-wrap">
           ${icon}
         </div>
@@ -501,6 +541,20 @@ function updateNotifBadge() {
       el.classList.add('hidden');
     }
   });
+}
+
+function markNotifAsRead(notifId) {
+  const notif = allNotifications.find(n => n.id === notifId);
+  if (notif) {
+    notif.read = true;
+    // Update the badge since unread count might have changed
+    updateNotifBadge();
+    // Re-render if dropdown is open
+    const dropdown = document.getElementById('notifDropdown');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+      renderNotifications(allNotifications);
+    }
+  }
 }
 
 // Navigate to a specific post when clicking on like/comment/share notifications
@@ -1628,7 +1682,7 @@ function openChatFromMatch() {
 // RELATIONSHIP MODAL
 // ═══════════════════════════════════════════════════════════════════
 
-function openRelationshipModal(userId, message) {
+function openRelationshipModal(userId, message, notifId) {
   const modal = document.getElementById('relationshipModal');
   if (!modal) return;
 
@@ -1638,8 +1692,9 @@ function openRelationshipModal(userId, message) {
     userNameEl.textContent = nameMatch ? nameMatch[1] : 'User';
   }
 
-  // Store userId for later
+  // Store userId and optional notifId for later
   modal.dataset.userId = userId;
+  if (notifId) modal.dataset.notifId = notifId;
   modal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -1650,12 +1705,14 @@ function closeRelationshipModal() {
     modal.classList.add('hidden');
     document.body.style.overflow = '';
     delete modal.dataset.userId;
+    delete modal.dataset.notifId;
   }
 }
 
 async function addRelationship() {
   const modal = document.getElementById('relationshipModal');
   const userId = modal?.dataset.userId;
+  const notifId = modal?.dataset.notifId; // Get notification ID if available
   if (!userId) return;
 
   const selectedType = document.querySelector('input[name="relType"]:checked');
@@ -1670,6 +1727,8 @@ async function addRelationship() {
     showToast(`Relationship added: ${relType}!`, 'success');
     closeRelationshipModal();
     loadCurrentUser();
+    // Mark connect_request notification as read
+    if (notifId) markNotifAsRead(notifId);
   } else {
     showToast(result?.data?.error || 'Could not add relationship', 'error');
   }
@@ -1994,6 +2053,10 @@ async function sharePost(postId) {
 function goToProfile() {
   const id = currentUser.id || '';
   window.location.href = id ? `/profile.html?id=${id}` : '/profile.html';
+}
+
+function openProfile(userId) {
+  window.location.href = `/profile.html?id=${userId}`;
 }
 
 function scrollToSuggestions() {
