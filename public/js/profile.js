@@ -290,23 +290,8 @@ async function loadProfile(userId) {
       }
     }
 
-    // ── Meta pills: location · gender · age · lookingFor · relationship · joined
-    const metaEl = document.getElementById('profileMeta');
-    if (metaEl) {
-      const pills = [];
-      if (user.location)         pills.push(`<span class="profile-details__meta-item">📍 ${escapeHtml(user.location)}</span>`);
-      if (user.gender)           pills.push(`<span class="profile-details__meta-item">⚧ ${escapeHtml(capitalize(user.gender))}</span>`);
-      const age = getAge(user.birthDate);
-      if (age)                   pills.push(`<span class="profile-details__meta-item">🎂 ${age} yrs</span>`);
-      if (user.lookingFor)       pills.push(`<span class="profile-details__meta-item">💜 ${escapeHtml(capitalize(user.lookingFor))}</span>`);
-      if (user.relationshipStatus) pills.push(`<span class="profile-details__meta-item">💑 ${escapeHtml(capitalize(user.relationshipStatus))}</span>`);
-      if (user.joinedAt) {
-        const d = new Date(user.joinedAt);
-        const joinedStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-        pills.push(`<span class="profile-details__meta-item">📅 Joined ${joinedStr}</span>`);
-      }
-      metaEl.innerHTML = pills.join('');
-    }
+    // ── Meta pills
+    loadProfileMeta(user);
 
     // ── Stats: posts count fetched separately in loadUserPosts
     const statFriends   = document.getElementById('statFriends');
@@ -349,6 +334,42 @@ async function loadProfile(userId) {
     SC.showError('Could not load profile.');
     console.error('[loadProfile]', err);
   }
+}
+
+// ── Render meta pills (extracted so it can be re-called after async name lookup)
+function loadProfileMeta(user) {
+  const metaEl = document.getElementById('profileMeta');
+  if (!metaEl) return;
+  const pills = [];
+  if (user.location)         pills.push(`<span class="profile-details__meta-item">📍 ${escapeHtml(user.location)}</span>`);
+  if (user.gender)           pills.push(`<span class="profile-details__meta-item">⚧ ${escapeHtml(capitalize(user.gender))}</span>`);
+  const age = getAge(user.birthDate);
+  if (age)                   pills.push(`<span class="profile-details__meta-item">🎂 ${age} yrs</span>`);
+  if (user.lookingFor)       pills.push(`<span class="profile-details__meta-item">💜 ${escapeHtml(capitalize(user.lookingFor))}</span>`);
+  // Relationship status with "with" link
+  if (user.relationshipStatus) {
+    let relText = `💑 ${escapeHtml(capitalize(user.relationshipStatus))}`;
+    const isNonSingle = !['Single', 'single', '', undefined, null].includes(user.relationshipStatus);
+    if (user.relationshipWith && user.relationshipWithName) {
+      relText += ` with <a href="/profile.html?id=${encodeURIComponent(user.relationshipWith)}" style="color:var(--primary);text-decoration:underline;">${escapeHtml(user.relationshipWithName)}</a>`;
+    } else if (user.relationshipWith && isNonSingle && !user.relationshipWithName) {
+      relText += ' with <em>loading…</em>';
+      // Fetch the name asynchronously
+      apiFetch(`/api/users/${user.relationshipWith}`).then(p => {
+        if (p && p.name) {
+          user.relationshipWithName = p.name;
+          loadProfileMeta(user);
+        }
+      }).catch(() => {});
+    }
+    pills.push(`<span class="profile-details__meta-item">${relText}</span>`);
+  }
+  if (user.joinedAt) {
+    const d = new Date(user.joinedAt);
+    const joinedStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    pills.push(`<span class="profile-details__meta-item">📅 Joined ${joinedStr}</span>`);
+  }
+  metaEl.innerHTML = pills.join('');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -451,11 +472,16 @@ function renderPost(post) {
         ` : ''}
       </div>
 
-      ${(post.feeling || post.activity || post.location) ? `
+      ${(post.feeling || post.activity || post.location || (author.relationshipStatus && author.relationshipVisibility !== 'hide' && !['Single','single',''].includes(author.relationshipStatus))) ? `
         <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--space-md) var(--space-xs);font-size:13px;">
           ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
           ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
           ${post.location ? `<span class="tag" style="font-size:12px;padding:3px 10px;">📍 ${post.location.name}</span>` : ''}
+          ${author.relationshipStatus && author.relationshipVisibility !== 'hide' && !['Single','single',''].includes(author.relationshipStatus) ? `
+            <span class="tag tag--rel" title="${escapeHtml(capitalize(author.relationshipStatus))}${author.relationshipWithName ? ' with ' + escapeHtml(author.relationshipWithName) : ''}">
+              💑 ${escapeHtml(capitalize(author.relationshipStatus))}${author.relationshipWith && author.relationshipWithName ? ` with <a href="/profile.html?id=${encodeURIComponent(author.relationshipWith)}" style="color:inherit;text-decoration:underline;">${escapeHtml(author.relationshipWithName)}</a>` : ''}
+            </span>
+          ` : ''}
         </div>
       ` : ''}
 
@@ -755,7 +781,13 @@ function loadAbout(user) {
       ? { icon: '💜', label: 'Looking For',        value: capitalize(user.lookingFor) }
       : null,
     user.relationshipStatus
-      ? { icon: '💑', label: 'Relationship',       value: capitalize(user.relationshipStatus) }
+      ? {
+          icon: '💑',
+          label: 'Relationship',
+          value: user.relationshipWith && user.relationshipWithName
+            ? `${capitalize(user.relationshipStatus)} with ${user.relationshipWithName}`
+            : capitalize(user.relationshipStatus)
+        }
       : null,
     { icon: '📅', label: 'Joined',
       value: user.createdAt ? formatDate(user.createdAt) : 'Unknown' },
@@ -799,6 +831,24 @@ function openEditModal() {
   setVal('editGender',             u.gender);
   setVal('editLookingFor',         u.lookingFor);
   setVal('editRelationshipStatus', u.relationshipStatus);
+  // Set relationship "with" field
+  const withHidden = document.getElementById('editRelationshipWith');
+  const withSearch = document.getElementById('editRelationshipWithSearch');
+  if (withHidden && withSearch && u.relationshipWith) {
+    withHidden.value = u.relationshipWith;
+    // Try to look up the name
+    const withUserName = u.relationshipWithName || '';
+    withSearch.value = withUserName;
+  } else if (withHidden && withSearch) {
+    withHidden.value = '';
+    withSearch.value = '';
+  }
+  // Set relationship visibility
+  const visRadios = document.querySelectorAll('input[name="editRelVis"]');
+  const curVis = u.relationshipVisibility || 'show';
+  visRadios.forEach(r => { r.checked = r.value === curVis; });
+  toggleRelationshipWithField();
+
   setVal('editAvatarUrl',          '');       // clear URL field; use file upload instead
   setVal('editCoverUrl',           '');       // clear URL field; use file upload instead
 
@@ -831,6 +881,72 @@ function closeEditModal() {
   }
   document.body.style.overflow = '';
   pendingAvatarBase64 = null;
+  // Hide with-user search results
+  const results = document.getElementById('editWithSearchResults');
+  if (results) results.style.display = 'none';
+}
+
+// Toggle the "with whom" field based on relationship status
+function toggleRelationshipWithField() {
+  const sel = document.getElementById('editRelationshipStatus');
+  const group = document.getElementById('editRelationshipWithGroup');
+  if (!sel || !group) return;
+  const val = sel.value.toLowerCase();
+  // Show "with whom" only for non-single, non-empty values
+  const show = val && val !== '' && val !== 'single' && val !== 'not specified';
+  group.style.display = show ? 'block' : 'none';
+  if (!show) {
+    document.getElementById('editRelationshipWith').value = '';
+    document.getElementById('editRelationshipWithSearch').value = '';
+    const results = document.getElementById('editWithSearchResults');
+    if (results) results.style.display = 'none';
+  }
+}
+
+// Relationship user search with debounce
+let relSearchTimer;
+function initRelUserSearch() {
+  const input = document.getElementById('editRelationshipWithSearch');
+  const hidden = document.getElementById('editRelationshipWith');
+  const results = document.getElementById('editWithSearchResults');
+  if (!input || !hidden || !results) return;
+
+  input.addEventListener('input', function () {
+    clearTimeout(relSearchTimer);
+    const q = this.value.trim();
+    if (q.length < 2) {
+      results.style.display = 'none';
+      return;
+    }
+    relSearchTimer = setTimeout(async () => {
+      try {
+        const data = await apiFetch(`/api/users?q=${encodeURIComponent(q)}`);
+        const users = Array.isArray(data) ? data : (data.data || []);
+        if (users.length === 0) {
+          results.innerHTML = '<div class="search-dropdown__item" style="padding:8px;color:var(--text-muted);">No users found</div>';
+        } else {
+          results.innerHTML = users.slice(0, 10).map(u => `
+            <div class="search-dropdown__item" data-userid="${u._id || u.id}" data-username="${escapeHtml(u.name)}" style="display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;">
+              <img src="${u.avatar || avatarFallback(u.name)}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">
+              <span>${escapeHtml(u.name)}</span>
+            </div>
+          `).join('');
+          results.querySelectorAll('.search-dropdown__item').forEach(el => {
+            el.addEventListener('click', function () {
+              hidden.value = this.dataset.userid;
+              input.value = this.dataset.username;
+              results.style.display = 'none';
+            });
+          });
+        }
+        results.style.display = 'block';
+      } catch (e) { /* ignore */ }
+    }, 300);
+  });
+
+  // Hide results on blur (with delay to allow click)
+  input.addEventListener('blur', () => setTimeout(() => { results.style.display = 'none'; }, 200));
+  input.addEventListener('focus', () => { if (results.children.length > 0) results.style.display = 'block'; });
 }
 
 /** Close the edit modal when the user clicks the dark overlay. */
@@ -850,6 +966,10 @@ async function saveProfile() {
     const gender             = document.getElementById('editGender')?.value;
     const lookingFor         = document.getElementById('editLookingFor')?.value;
     const relationshipStatus = document.getElementById('editRelationshipStatus')?.value;
+    const relationshipWith   = document.getElementById('editRelationshipWith')?.value || '';
+    const relVisRadios       = document.querySelectorAll('input[name="editRelVis"]');
+    let relationshipVisibility = 'show';
+    relVisRadios.forEach(r => { if (r.checked) relationshipVisibility = r.value; });
     const interests          = SC.getSelectedInterests('editInterestTags');
 
     // Avatar: URL field → existing avatar (immediate upload handles file selection)
@@ -862,7 +982,7 @@ async function saveProfile() {
 
     const body = {
       name, bio, location, birthDate, gender,
-      lookingFor, relationshipStatus, interests,
+      lookingFor, relationshipStatus, relationshipWith, relationshipVisibility, interests,
       avatar, coverPhoto
     };
 

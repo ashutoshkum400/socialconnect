@@ -665,6 +665,7 @@
                                 <select
                                     id="editRelationshipStatus"
                                     class="form-select"
+                                    onchange="toggleRelationshipWithField()"
                                 >
                                     <option value="">Not specified</option>
                                     <option value="single">Single</option>
@@ -680,6 +681,39 @@
                                         It's Complicated
                                     </option>
                                 </select>
+                            </div>
+
+                            <!-- Relationship "with whom" (shown when not single) -->
+                            <div id="editRelationshipWithGroup" class="form-group" style="display:none;margin-top:var(--space-sm);">
+                                <label for="editRelationshipWith" class="form-label">With Whom</label>
+                                <div style="position:relative;">
+                                    <input
+                                        type="text"
+                                        id="editRelationshipWithSearch"
+                                        class="form-input"
+                                        placeholder="Type to search users…"
+                                        autocomplete="off"
+                                        style="width:100%;"
+                                    />
+                                    <input type="hidden" id="editRelationshipWith" value="" />
+                                    <div id="editWithSearchResults" class="search-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:var(--z-dropdown);"></div>
+                                </div>
+                            </div>
+
+                            <!-- Relationship visibility on posts -->
+                            <div id="editRelationshipVisGroup" class="form-group" style="margin-top:var(--space-sm);">
+                                <label class="form-label">Show on Posts</label>
+                                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                                        <input type="radio" name="editRelVis" value="show" checked /> Show
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                                        <input type="radio" name="editRelVis" value="tag" /> Tag Only
+                                    </label>
+                                    <label style="display:flex;align-items:center;gap:4px;cursor:pointer;">
+                                        <input type="radio" name="editRelVis" value="hide" /> Hide
+                                    </label>
+                                </div>
                             </div>
                         </div>
 

@@ -3996,6 +3996,25 @@ p {
   50%      { transform: translateY(-20px) scale(1.1); }
 }
 
+.tag--rel {
+  background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+  color: #7a2e3a;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 105, 135, 0.2);
+  animation: relPulse 2s ease-in-out infinite;
+}
+
+@keyframes relPulse {
+  0%, 100% { box-shadow: 0 2px 8px rgba(255, 105, 135, 0.2); }
+  50%      { box-shadow: 0 2px 16px rgba(255, 105, 135, 0.4); }
+}
+
+.tag--rel a:hover {
+  text-decoration: underline !important;
+  opacity: 0.85;
+}
+
 /* ==========================================================================
    24. INTEREST TAGS
    ========================================================================== */

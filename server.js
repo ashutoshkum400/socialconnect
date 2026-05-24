@@ -581,6 +581,8 @@ app.put("/api/me", authenticate, (req, res) => {
     "interests",
     "lookingFor",
     "relationshipStatus",
+    "relationshipWith",
+    "relationshipVisibility",
     "avatar",
     "coverPhoto",
     "photos",
@@ -923,6 +925,13 @@ app.post("/api/connect/accept/:id", authenticate, (req, res) => {
   };
   acceptor.relationshipStatus = relStatusMap[relType];
   requester.relationshipStatus = relStatusMap[relType];
+  // Set relationshipWith (who they are in a relationship with)
+  if (relType !== 'single' && relType !== '') {
+    acceptor.relationshipWith = fromId;
+    requester.relationshipWith = acceptId;
+    acceptor.relationshipVisibility = acceptor.relationshipVisibility || 'show';
+    requester.relationshipVisibility = requester.relationshipVisibility || 'show';
+  }
 
   saveDb();
 

@@ -234,11 +234,16 @@ function createPostElement(post) {
     </div>
 
     <div class="post-card__body" id="postBody_${post.id}">
-      ${post.feeling || post.activity || post.location ? `
+      ${post.feeling || post.activity || post.location || (author.relationshipStatus && author.relationshipVisibility !== 'hide' && !['Single','single',''].includes(author.relationshipStatus)) ? `
       <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--space-md) var(--space-xs);">
         ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
         ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
         ${post.location ? `<span class="tag" style="font-size:12px;padding:3px 10px;">📍 ${post.location.name}</span>` : ''}
+        ${author.relationshipStatus && author.relationshipVisibility !== 'hide' && !['Single','single',''].includes(author.relationshipStatus) ? `
+          <span class="tag tag--rel" title="${escapeHtml(capitalize(author.relationshipStatus))}${author.relationshipWithName ? ' with ' + escapeHtml(author.relationshipWithName) : ''}">
+            💑 ${escapeHtml(capitalize(author.relationshipStatus))}${author.relationshipWith && author.relationshipWithName ? ` with <a href="/profile.html?id=${encodeURIComponent(author.relationshipWith)}" style="color:inherit;text-decoration:underline;">${escapeHtml(author.relationshipWithName)}</a>` : ''}
+          </span>
+        ` : ''}
       </div>
     ` : ''}
 
@@ -2354,6 +2359,11 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+function capitalize(str) {
+  if (!str) return '';
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
 
 function avatarUrl(name) {
