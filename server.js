@@ -101,13 +101,28 @@ function sanitizeUser(user) {
   return safe;
 }
 
-function addNotification(userId, type, fromId, text) {
+const NOTIF_PRIORITY = {
+  friend_request: 'high',
+  friend_accept: 'high',
+  connect_request: 'high',
+  connect_accept: 'high',
+  match: 'high',
+  follow: 'medium',
+  follow_back: 'medium',
+  like: 'low',
+  comment: 'low',
+  share: 'low',
+  message: 'medium',
+};
+
+function addNotification(userId, type, fromId, text, priority) {
    if (!db.notifications.has(userId)) db.notifications.set(userId, []);
    const notif = {
      id: uuidv4(),
      type,
      fromId: fromId || null,
      text,
+     priority: priority || NOTIF_PRIORITY[type] || 'medium',
      read: false,
      time: new Date().toISOString(),
    };
@@ -116,7 +131,7 @@ function addNotification(userId, type, fromId, text) {
    if (socketId) io.to(socketId).emit("notification", notif);
  }
 
- function addNotificationWithPost(userId, type, fromId, text, postId) {
+ function addNotificationWithPost(userId, type, fromId, text, postId, priority) {
    if (!db.notifications.has(userId)) db.notifications.set(userId, []);
    const notif = {
      id: uuidv4(),
@@ -124,6 +139,7 @@ function addNotification(userId, type, fromId, text) {
      fromId: fromId || null,
      text,
      postId: postId || null,
+     priority: priority || NOTIF_PRIORITY[type] || 'medium',
      read: false,
      time: new Date().toISOString(),
    };
@@ -736,6 +752,15 @@ app.post("/api/follow/:id", authenticate, (req, res) => {
       followerId,
       `${follower.name} started following you`,
     );
+    // If target already follows the follower, send follow_back notification
+    if (follower.following.includes(targetId)) {
+      addNotification(
+        followerId,
+        "follow_back",
+        targetId,
+        `${target.name} followed you back`,
+      );
+    }
   }
   if (!follower.following.includes(targetId)) follower.following.push(targetId);
 
@@ -1005,7 +1030,24 @@ app.get("/api/chat/:userId", authenticate, (req, res) => {
 
 // ─── NOTIFICATION ROUTES ──────────────────────────────────────────────────────
 app.get("/api/notifications", authenticate, (req, res) => {
-  res.json(db.notifications.get(req.user.id) || []);
+  const notifs = db.notifications.get(req.user.id) || [];
+  const enriched = notifs.map(n => {
+    const fromUser = n.fromId ? db.users.get(n.fromId) : null;
+    return {
+      ...n,
+      fromName: fromUser ? fromUser.name : null,
+      fromAvatar: fromUser ? fromUser.avatar : null,
+    };
+  });
+  // Sort: unread first, then by priority (high > medium > low), then by time
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  enriched.sort((a, b) => {
+    if (a.read !== b.read) return a.read ? 1 : -1;
+    const pDiff = (priorityOrder[a.priority] || 1) - (priorityOrder[b.priority] || 1);
+    if (pDiff !== 0) return pDiff;
+    return new Date(b.time) - new Date(a.time);
+  });
+  res.json(enriched);
 });
 
 app.put("/api/notifications/read", authenticate, (req, res) => {
@@ -1013,7 +1055,20 @@ app.put("/api/notifications/read", authenticate, (req, res) => {
   notifs.forEach((n) => {
     n.read = true;
   });
+  saveDb();
   res.json({ message: "All notifications marked as read" });
+});
+
+app.put("/api/notifications/read/:id", authenticate, (req, res) => {
+  const notifs = db.notifications.get(req.user.id) || [];
+  const notif = notifs.find(n => n.id === req.params.id);
+  if (notif) {
+    notif.read = true;
+    saveDb();
+    res.json({ message: "Notification marked as read" });
+  } else {
+    res.status(404).json({ error: "Notification not found" });
+  }
 });
 
 // ─── ADMIN ROUTES ─────────────────────────────────────────────────────────────

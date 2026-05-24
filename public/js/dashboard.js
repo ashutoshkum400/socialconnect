@@ -425,7 +425,7 @@ function renderNotifications(notifs) {
 
   // Enrich notifications with user data from allUsers
   const enrichedNotifs = notifs.map(n => {
-    if (n.fromId) {
+    if (n.fromId && !n.fromName) {
       const fromUser = allUsers.find(u => u.id === n.fromId);
       if (fromUser) {
         return {
@@ -438,7 +438,15 @@ function renderNotifications(notifs) {
     return n;
   });
 
+  const priorityColors = { high: '#e53935', medium: '#f7b928', low: '#65676b' };
+  const priorityLabels = { high: 'HIGH', medium: '', low: '' };
+
+  // Group similar notifications (optional)
   list.innerHTML = enrichedNotifs.map(n => {
+    const avatarSrc = n.fromAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(n.fromName || 'U')}&background=random&color=fff&size=40`;
+    const priorityColor = priorityColors[n.priority] || '#65676b';
+    const priorityLabel = priorityLabels[n.priority] || '';
+
     const iconMap = {
       like: `<span class="notification-item__icon notification-item__icon--like">👍</span>`,
       comment: `<span class="notification-item__icon notification-item__icon--comment">💬</span>`,
@@ -478,19 +486,21 @@ function renderNotifications(notifs) {
     } else if (n.type === 'connect_request') {
       actionButtons = `
         <div class="notification-item__actions">
-          <button class="btn btn--match btn--xs" onclick="openRelationshipModal('${n.fromId}', '${escapeHtml(n.text)}', '${n.id}'); event.stopPropagation();">Connect</button>
+          <button class="btn btn--match btn--xs" onclick="openRelationshipModal('${n.fromId}', '${escapeHtml(n.text || '')}', '${n.id}'); event.stopPropagation();">Connect</button>
         </div>
       `;
     } else if (n.type === 'friend_accept') {
       actionButtons = `
         <div class="notification-item__actions">
           <button class="btn btn--outline-primary btn--xs" onclick="openChat('${n.fromId}', '${escapeHtml(n.fromName || '')}', '${escapeHtml(n.fromAvatar || '')}'); event.stopPropagation();">Message</button>
+          <button class="btn btn--outline-secondary btn--xs" onclick="window.location.href='/profile.html?id=${n.fromId}'; event.stopPropagation();">View Profile</button>
         </div>
       `;
     } else if (n.type === 'follow_back') {
       actionButtons = `
         <div class="notification-item__actions">
           <button class="btn btn--outline-primary btn--xs" onclick="openChat('${n.fromId}', '${escapeHtml(n.fromName || '')}', '${escapeHtml(n.fromAvatar || '')}'); event.stopPropagation();">Message</button>
+          <button class="btn btn--outline-secondary btn--xs" onclick="window.location.href='/profile.html?id=${n.fromId}'; event.stopPropagation();">View Profile</button>
         </div>
       `;
     } else if (n.type === 'match' || n.type === 'connect_accept') {
@@ -508,16 +518,20 @@ function renderNotifications(notifs) {
       `;
     }
 
+    // Priority badge for high priority
+    const priorityBadge = n.priority === 'high' ? `<span class="notif-priority-badge">HIGH</span>` : '';
+
     return `
-      <div class="notification-item${n.read ? '' : ' unread'}${isPostRelated ? ' notification-item--clickable' : ''}" 
+      <div class="notification-item${n.read ? '' : ' unread'} notif-priority-${n.priority || 'medium'}${isPostRelated ? ' notification-item--clickable' : ''}" 
            data-notif-id="${n.id}" 
            ${clickHandler}
-           style="cursor: pointer;">
+           style="cursor: pointer; border-left: 3px solid ${n.read ? 'transparent' : priorityColor};">
         <div class="notification-item__avatar-wrap">
-          ${icon}
+          <img src="${avatarSrc}" alt="${escapeHtml(n.fromName || 'User')}" class="notification-item__avatar" onerror="this.style.display='none'" style="width:40px;height:40px;border-radius:50%;object-fit:cover;">
+          <div style="position:absolute;bottom:-2px;right:-2px;">${icon}</div>
         </div>
         <div class="notification-item__content">
-          <p class="notification-item__text">${n.text || ''}</p>
+          <p class="notification-item__text">${n.text || ''} ${priorityBadge}</p>
           <span class="notification-item__time">${timeAgo(n.time)}</span>
         </div>
         ${!n.read ? `<span class="notification-item__unread-dot" aria-label="Unread"></span>` : ''}
@@ -547,14 +561,31 @@ function markNotifAsRead(notifId) {
   const notif = allNotifications.find(n => n.id === notifId);
   if (notif) {
     notif.read = true;
-    // Update the badge since unread count might have changed
     updateNotifBadge();
-    // Re-render if dropdown is open
     const dropdown = document.getElementById('notifDropdown');
     if (dropdown && !dropdown.classList.contains('hidden')) {
       renderNotifications(allNotifications);
     }
+    // Call server to mark as read
+    apiFetch(`/notifications/read/${notifId}`, { method: 'PUT' }).catch(() => {});
   }
+}
+
+// Play notification sound for high-priority notifications
+function playNotifSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.frequency.value = 800;
+    oscillator.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  } catch (e) { /* silent fallback */ }
 }
 
 // Navigate to a specific post when clicking on like/comment/share notifications
@@ -586,10 +617,12 @@ function navigateToPost(postId) {
 }
 
 async function markAllNotifsRead() {
-  await apiFetch('/notifications/read', { method: 'PUT' });
-  allNotifications = allNotifications.map(n => ({ ...n, read: true }));
-  renderNotifications(allNotifications);
-  updateNotifBadge();
+  const result = await apiFetch('/notifications/read', { method: 'PUT' });
+  if (result && result.ok) {
+    allNotifications = allNotifications.map(n => ({ ...n, read: true }));
+    renderNotifications(allNotifications);
+    updateNotifBadge();
+  }
 }
 
 function switchNotifTab(btn, type) {
@@ -795,6 +828,11 @@ async function followUser(userId) {
   });
 
   showToast(isFollowing ? 'Unfollowed' : 'Following! ✅', 'success');
+
+  // If this was a follow-back (triggered from notification), update notif
+  if (!isFollowing) {
+    loadNotifications();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1299,6 +1337,15 @@ socket.on('new_comment', ({ postId, comment }) => {
 });
 
 socket.on('notification', (notif) => {
+  // Enrich with user data
+  if (notif.fromId) {
+    const fromUser = allUsers.find(u => u.id === notif.fromId);
+    if (fromUser) {
+      notif.fromName = fromUser.name;
+      notif.fromAvatar = fromUser.avatar;
+    }
+  }
+  notif.priority = notif.priority || 'medium';
   allNotifications.unshift(notif);
   updateNotifBadge();
 
@@ -1306,10 +1353,20 @@ socket.on('notification', (notif) => {
   const dropdown = document.getElementById('notifDropdown');
   if (dropdown && !dropdown.classList.contains('hidden')) {
     renderNotifications(allNotifications);
+    // Animate the first (newest) notification
+    const firstItem = dropdown.querySelector('.notification-item');
+    if (firstItem) firstItem.classList.add('new-notif');
   }
 
-  // Show toast for the notification
-  showToast(notif.text || 'New notification', 'info', 4000);
+  // Show toast with icon based on priority
+  const priorityIcons = { high: '🔴', medium: '🔵', low: '🔔' };
+  const icon = priorityIcons[notif.priority] || '🔔';
+  showToast(`${icon} ${notif.text || 'New notification'}`, 'info', notif.priority === 'high' ? 6000 : 4000);
+
+  // Play notification sound for high priority
+  if (notif.priority === 'high') {
+    playNotifSound();
+  }
 });
 
 socket.on('new_message_notif', ({ from, text, time }) => {

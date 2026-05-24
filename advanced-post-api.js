@@ -376,19 +376,25 @@ module.exports = function(app, io, db, authenticateToken) {
 
         // Notification
         if (post.authorId !== userId) {
-          const notification = {
-            id: require('uuid').v4(),
-            type: 'share',
-            from: userId,
-            fromName: db.users.get(userId)?.name,
-            postId: req.params.postId,
-            content: `Someone shared your post`,
-            timestamp: new Date().toISOString(),
-            read: false,
-          };
-          if (!db.notifications.has(post.authorId)) db.notifications.set(post.authorId, []);
-          db.notifications.get(post.authorId).push(notification);
-          if (io) io.to(`user_${post.authorId}`).emit('notification', notification);
+          const sharer = db.users.get(userId);
+          if (typeof addNotificationWithPost === 'function') {
+            addNotificationWithPost(post.authorId, 'share', userId, `${sharer.name} shared your post`, req.params.postId);
+          } else {
+            const notification = {
+              id: require('uuid').v4(),
+              type: 'share',
+              from: userId,
+              fromName: sharer?.name,
+              postId: req.params.postId,
+              text: `${sharer.name} shared your post`,
+              priority: 'low',
+              timestamp: new Date().toISOString(),
+              read: false,
+            };
+            if (!db.notifications.has(post.authorId)) db.notifications.set(post.authorId, []);
+            db.notifications.get(post.authorId).push(notification);
+            if (io) io.to(`user_${post.authorId}`).emit('notification', notification);
+          }
         }
       }
 
