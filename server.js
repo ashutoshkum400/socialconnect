@@ -251,36 +251,35 @@ async function seedData() {
      },
    ];
 
-   for (const s of samples) {
-     db.users.set(s.id, {
-       ...s,
-       password: hash("Password@123"),
-       role: "user",
-       bio: `Hi, I'm ${s.name.split(" ")[0]}! Nice to meet you.`,
-       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&size=128`,
-       coverPhoto: `https://picsum.photos/seed/${s.id}/800/300`,
-       photos: [],
-       friends: [],
-       followers: [],
-       following: [],
-       connections: [],
-       relationships: [],
-       blocked: false,
-       joinedAt: new Date().toISOString(),
-       lastSeen: new Date().toISOString(),
-       birthDate: "1995-06-15",
-       interests: ["music", "travel", "food"],
-       lookingFor: "friends",
-       relationshipStatus: "single",
-     });
-     db.notifications.set(s.id, []);
-     db.friendRequests.set(s.id, []);
-     db.relationships.set(s.id, []);
-   }
-db.notifications.set("admin", []);
-             db.friendRequests.set("admin", []);
-             db.relationships.set("admin", []);
-           }
+    for (const s of samples) {
+      db.users.set(s.id, {
+        ...s,
+        password: hash("Password@123"),
+        role: "user",
+        bio: `Hi, I'm ${s.name.split(" ")[0]}! Nice to meet you.`,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&size=128`,
+        coverPhoto: `https://picsum.photos/seed/${s.id}/800/300`,
+        photos: [],
+        friends: [],
+        followers: [],
+        following: [],
+        connections: [],
+        relationships: [],
+        blocked: false,
+        joinedAt: new Date().toISOString(),
+        lastSeen: new Date().toISOString(),
+        birthDate: "1995-06-15",
+        interests: ["music", "travel", "food"],
+        lookingFor: "friends",
+        relationshipStatus: "single",
+      });
+      db.notifications.set(s.id, []);
+      db.friendRequests.set(s.id, []);
+      db.relationships.set(s.id, []);
+    }
+    db.notifications.set("admin", []);
+    db.friendRequests.set("admin", []);
+    db.relationships.set("admin", []);
 
            // Initialize relationships for sample users
            for (const s of samples) {
