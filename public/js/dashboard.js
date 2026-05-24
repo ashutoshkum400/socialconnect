@@ -829,6 +829,11 @@ async function connectUser(userId) {
      const matchedUser = allUsers.find(u => u.id === userId);
      const sub = document.getElementById('matchBannerSub');
      if (sub && matchedUser) sub.textContent = `You and ${matchedUser.name} connected!`;
+     // Set their avatar for the popup
+     const theirAvatar = document.getElementById('matchPopupTheirAvatar');
+     if (theirAvatar && matchedUser) {
+       theirAvatar.src = matchedUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedUser.name)}&background=ff69b4&color=fff&size=96`;
+     }
      showMatchBanner();
    } else {
      showToast('Connection request sent 💜', 'success');
@@ -1392,6 +1397,14 @@ socket.on('notification', (notif) => {
   if (notif.priority === 'high') {
     playNotifSound();
   }
+
+  // Show match popup when a "match" notification arrives via socket
+  if (notif.type === 'match' && notif.fromId) {
+    lastMatchedUserId = notif.fromId;
+    const sub = document.getElementById('matchBannerSub');
+    if (sub && notif.fromName) sub.textContent = `You and ${notif.fromName} connected!`;
+    showMatchBanner();
+  }
 });
 
 socket.on('new_message_notif', ({ from, text, time }) => {
@@ -1770,8 +1783,19 @@ function openRelationshipModal(userId, message, notifId) {
 
   const userNameEl = document.getElementById('relationshipModalUserName');
   if (userNameEl && message) {
-    const nameMatch = message.match(/with (\w+) wants/);
-    userNameEl.textContent = nameMatch ? nameMatch[1] : 'User';
+    // Try multiple patterns to extract the name
+    let name = 'User';
+    const patterns = [/with (\w+) wants/, /matched with ([^!]+)/, /connected with ([^!]+)/];
+    for (const p of patterns) {
+      const m = message.match(p);
+      if (m) { name = m[1]; break; }
+    }
+    // Fallback: if userId is known from allUsers, use that name
+    if (name === 'User' && userId) {
+      const found = allUsers.find(u => u.id === userId);
+      if (found) name = found.name;
+    }
+    userNameEl.textContent = name;
   }
 
   // Store userId and optional notifId for later
@@ -1991,22 +2015,119 @@ function handleModalOverlayClick(event, modalId) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// MATCH BANNER
+// MATCH POPUP — full overlay with love tone & auto-relationship
 // ═══════════════════════════════════════════════════════════════════
+
+let matchToneTimer = null;
+let matchToneContext = null;
+
+function playMatchTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    matchToneContext = ctx;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.25, ctx.currentTime);
+    master.connect(ctx.destination);
+
+    // Romantic chord progression: Cmaj7 → Am → F → G7 (looped twice)
+    const chords = [
+      { freqs: [261.63, 329.63, 392.00, 493.88], dur: 0.8 }, // Cmaj7
+      { freqs: [220.00, 261.63, 329.63, 440.00], dur: 0.8 }, // Am7
+      { freqs: [174.61, 220.00, 261.63, 349.23], dur: 0.8 }, // Fmaj7
+      { freqs: [196.00, 246.94, 311.13, 392.00], dur: 0.8 }, // G7
+    ];
+    let t = ctx.currentTime;
+    for (let loop = 0; loop < 1; loop++) {
+      for (const chord of chords) {
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.7, t + 0.08);
+        gain.gain.setValueAtTime(0.7, t + chord.dur - 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + chord.dur);
+        gain.connect(master);
+        for (const freq of chord.freqs) {
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          osc.connect(gain);
+          osc.start(t);
+          osc.stop(t + chord.dur);
+        }
+        t += chord.dur;
+      }
+    }
+    // Add a gentle pad for warmth
+    const padGain = ctx.createGain();
+    padGain.gain.setValueAtTime(0.06, ctx.currentTime);
+    padGain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 4.5);
+    padGain.connect(master);
+    [261.63, 329.63, 392.00].forEach(freq => {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      osc.connect(padGain);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 5);
+    });
+
+    // Stop context after 5 seconds
+    matchToneTimer = setTimeout(() => {
+      try { ctx.close(); } catch (e) { /* ignore */ }
+      matchToneContext = null;
+    }, 5200);
+  } catch (e) { /* silent fallback */ }
+}
 
 function showMatchBanner() {
   const banner = document.getElementById('matchBanner');
   if (!banner) return;
+
+  // Set avatars
+  const currentUserData = JSON.parse(localStorage.getItem('sc_user') || '{}');
+  const myAvatar = document.getElementById('matchPopupMyAvatar');
+  const theirAvatar = document.getElementById('matchPopupTheirAvatar');
+  if (myAvatar) {
+    myAvatar.src = currentUserData.avatar ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.name || 'You')}&background=1877f2&color=fff&size=96`;
+  }
+  if (theirAvatar && lastMatchedUserId) {
+    const matchedUser = allUsers.find(u => u.id === lastMatchedUserId);
+    if (matchedUser) {
+      theirAvatar.src = matchedUser.avatar ||
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedUser.name || 'Them')}&background=ff69b4&color=fff&size=96`;
+    }
+  }
+
   banner.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  // Auto-close after 8 seconds
-  setTimeout(closeMatchBanner, 8000);
+
+  // Play romantic love tone
+  playMatchTone();
+
+  // Auto-close after 5 seconds, then open relationship modal
+  setTimeout(() => {
+    closeMatchBanner();
+    // Auto-open relationship modal for both users to set relationship
+    if (lastMatchedUserId) {
+      const matchedUser = allUsers.find(u => u.id === lastMatchedUserId);
+      const name = matchedUser ? matchedUser.name : 'User';
+      openRelationshipModal(lastMatchedUserId, `You matched with ${name}! Would you like to set your relationship?`, null);
+    }
+  }, 5500);
 }
 
 function closeMatchBanner() {
   const banner = document.getElementById('matchBanner');
   if (banner) banner.classList.add('hidden');
   document.body.style.overflow = '';
+  if (matchToneTimer) {
+    clearTimeout(matchToneTimer);
+    matchToneTimer = null;
+  }
+  if (matchToneContext) {
+    try { matchToneContext.close(); } catch (e) { /* ignore */ }
+    matchToneContext = null;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════

@@ -836,42 +836,46 @@
         </div>
 
         <!-- ═══════════════════════════════════════════════════════════
-       MATCH BANNER (shown when mutual connect happens)
+       MATCH POPUP — full overlay "Congratulations! It's A Match"
   ═══════════════════════════════════════════════════════════ -->
         <div
             id="matchBanner"
-            class="match-banner hidden"
+            class="match-popup-overlay hidden"
             role="alert"
             aria-live="assertive"
         >
-            <div class="match-banner__icon">💜</div>
-            <h2 class="match-banner__title">It's a Match!</h2>
-            <p class="match-banner__sub" id="matchBannerSub">
-                You and someone connected!
-            </p>
-            <div
-                style="
-                    display: flex;
-                    gap: 12px;
-                    justify-content: center;
-                    margin-top: 16px;
-                "
-            >
-                <button
-                    class="btn btn--secondary btn--lg"
-                    onclick="
-                        closeMatchBanner();
-                        openChatFromMatch();
-                    "
-                >
-                    Send Message
-                </button>
-                <button
-                    class="btn btn--outline-secondary btn--lg"
-                    onclick="closeMatchBanner()"
-                >
-                    Keep Swiping
-                </button>
+            <div class="match-popup">
+                <!-- Floating hearts (animated by CSS) -->
+                <div class="match-popup__hearts" aria-hidden="true">
+                    <span>💜</span><span>❤️</span><span>💜</span><span>❤️</span><span>💜</span>
+                    <span>❤️</span><span>💜</span><span>❤️</span><span>💜</span><span>❤️</span>
+                </div>
+
+                <div class="match-popup__avatars">
+                    <img id="matchPopupMyAvatar" class="match-popup__avatar" src="" alt="You" />
+                    <span class="match-popup__heart-big">💜</span>
+                    <img id="matchPopupTheirAvatar" class="match-popup__avatar" src="" alt="Matched" />
+                </div>
+
+                <h2 class="match-popup__title">Congratulations!<br />It's A Match!</h2>
+                <p class="match-popup__sub" id="matchBannerSub">
+                    You and someone connected!
+                </p>
+
+                <div class="match-popup__actions">
+                    <button
+                        class="btn btn--secondary btn--lg"
+                        onclick="closeMatchBanner(); openChatFromMatch();"
+                    >
+                        💬 Send Message
+                    </button>
+                    <button
+                        class="btn btn--outline-secondary btn--lg"
+                        onclick="closeMatchBanner()"
+                    >
+                        Keep Swiping
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1157,14 +1161,26 @@
                              <input type="radio" id="relMarried" name="relType" value="married">
                              <label for="relMarried">Married</label>
                          </div>
-                         <div class="form-group" style="margin-bottom: 8px;">
-                             <input type="radio" id="relComplicated" name="relType" value="complicated">
-                             <label for="relComplicated">It's Complicated</label>
-                         </div>
-                     </div>
-                     <button class="btn btn--primary btn--full" onclick="addRelationship()">
-                         Add Relationship
-                     </button>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relComplicated" name="relType" value="complicated">
+                            <label for="relComplicated">It's Complicated</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relEngaged" name="relType" value="engaged">
+                            <label for="relEngaged">Engaged</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relOpen" name="relType" value="open">
+                            <label for="relOpen">Open Relationship</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relPartner" name="relType" value="partner">
+                            <label for="relPartner">Life Partner</label>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--full" onclick="addRelationship()">
+                        Add Relationship
+                    </button>
                  </div>
              </div>
          </div>

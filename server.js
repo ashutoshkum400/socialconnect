@@ -884,7 +884,7 @@ app.post("/api/connect/accept/:id", authenticate, (req, res) => {
   const acceptId = req.user.id;
   const { relationshipType } = req.body; // 'single', 'dating', 'relationship', 'married', 'complicated'
 
-  const validTypes = ['single', 'dating', 'relationship', 'married', 'complicated'];
+  const validTypes = ['single', 'dating', 'relationship', 'married', 'complicated', 'engaged', 'open', 'partner'];
   const relType = validTypes.includes(relationshipType) ? relationshipType : 'single';
 
   const acceptor = db.users.get(acceptId);
@@ -913,10 +913,13 @@ app.post("/api/connect/accept/:id", authenticate, (req, res) => {
   // Update relationship status on both users
   const relStatusMap = {
     single: 'Single',
-    dating: 'In a Relationship',
+    dating: 'Dating',
     relationship: 'In a Relationship',
     married: 'Married',
-    complicated: "It's Complicated"
+    complicated: "It's Complicated",
+    engaged: 'Engaged',
+    open: 'Open Relationship',
+    partner: 'Life Partner'
   };
   acceptor.relationshipStatus = relStatusMap[relType];
   requester.relationshipStatus = relStatusMap[relType];

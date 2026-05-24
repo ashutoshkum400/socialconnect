@@ -668,10 +668,14 @@
                                 >
                                     <option value="">Not specified</option>
                                     <option value="single">Single</option>
+                                    <option value="dating">Dating</option>
                                     <option value="in a relationship">
                                         In a Relationship
                                     </option>
+                                    <option value="engaged">Engaged</option>
                                     <option value="married">Married</option>
+                                    <option value="life partner">Life Partner</option>
+                                    <option value="open relationship">Open Relationship</option>
                                     <option value="it's complicated">
                                         It's Complicated
                                     </option>
@@ -830,53 +834,98 @@
         <!-- /#editProfileModal -->
 
         <!-- ═══════════════════════════════════════════════════════════
-       MATCH BANNER
+       MATCH POPUP — full overlay "Congratulations! It's A Match"
   ═══════════════════════════════════════════════════════════ -->
         <div
             id="matchBanner"
-            class="match-banner hidden"
+            class="match-popup-overlay hidden"
             role="alert"
             aria-live="assertive"
-            style="
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                max-width: 480px;
-                width: calc(100% - var(--space-xl));
-                z-index: var(--z-modal);
-            "
         >
-            <span class="match-banner__icon">🎉</span>
-            <h2 class="match-banner__title">It's a Match!</h2>
-            <p class="match-banner__sub" id="matchBannerText">
-                You and someone are connected!
-            </p>
-            <div
-                style="
-                    display: flex;
-                    gap: var(--space-sm);
-                    justify-content: center;
-                    margin-top: var(--space-lg);
-                "
-            >
-                <button
-                    class="btn btn--secondary btn--lg"
-                    onclick="closeMatchBanner()"
-                >
-                    💬 Send Message
-                </button>
-                <button
-                    class="btn"
-                    style="
-                        background: rgba(255, 255, 255, 0.2);
-                        color: white;
-                        border: 2px solid rgba(255, 255, 255, 0.5);
-                    "
-                    onclick="closeMatchBanner()"
-                >
-                    Close
-                </button>
+            <div class="match-popup">
+                <div class="match-popup__hearts" aria-hidden="true">
+                    <span>💜</span><span>❤️</span><span>💜</span><span>❤️</span><span>💜</span>
+                    <span>❤️</span><span>💜</span><span>❤️</span><span>💜</span><span>❤️</span>
+                </div>
+                <div class="match-popup__avatars">
+                    <img id="matchPopupMyAvatar" class="match-popup__avatar" src="" alt="You" />
+                    <span class="match-popup__heart-big">💜</span>
+                    <img id="matchPopupTheirAvatar" class="match-popup__avatar" src="" alt="Matched" />
+                </div>
+                <h2 class="match-popup__title">Congratulations!<br />It's A Match!</h2>
+                <p class="match-popup__sub" id="matchBannerText">
+                    You and someone connected!
+                </p>
+                <div class="match-popup__actions">
+                    <button class="btn btn--secondary btn--lg" onclick="closeMatchBanner()">
+                        💬 Send Message
+                    </button>
+                    <button class="btn btn--outline-secondary btn--lg" onclick="closeMatchBanner()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       RELATIONSHIP MODAL
+  ═══════════════════════════════════════════════════════════ -->
+        <div
+            id="relationshipModal"
+            class="modal-overlay hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="relationshipModalTitle"
+            onclick="if(event.target===this)closeRelationshipModal()"
+        >
+            <div class="modal modal--sm">
+                <div class="modal__header">
+                    <h2 class="modal__title" id="relationshipModalTitle">
+                        Add Relationship
+                    </h2>
+                    <button class="modal__close" onclick="closeRelationshipModal()" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal__body">
+                    <p>You and <span id="relationshipModalUserName">Someone</span> have a mutual connection!</p>
+                    <p>Select your relationship type:</p>
+                    <div class="form-group">
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relSingle" name="relType" value="single" checked>
+                            <label for="relSingle">Single</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relDating" name="relType" value="dating">
+                            <label for="relDating">Dating</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relRelationship" name="relType" value="relationship">
+                            <label for="relRelationship">In a Relationship</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relMarried" name="relType" value="married">
+                            <label for="relMarried">Married</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relComplicated" name="relType" value="complicated">
+                            <label for="relComplicated">It's Complicated</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relEngaged" name="relType" value="engaged">
+                            <label for="relEngaged">Engaged</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relOpen" name="relType" value="open">
+                            <label for="relOpen">Open Relationship</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relPartner" name="relType" value="partner">
+                            <label for="relPartner">Life Partner</label>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--full" onclick="addRelationship()">
+                        Add Relationship
+                    </button>
+                </div>
             </div>
         </div>
 

@@ -290,15 +290,16 @@ async function loadProfile(userId) {
       }
     }
 
-    // ── Meta pills: location · gender · age · lookingFor · joined
+    // ── Meta pills: location · gender · age · lookingFor · relationship · joined
     const metaEl = document.getElementById('profileMeta');
     if (metaEl) {
       const pills = [];
-      if (user.location)   pills.push(`<span class="profile-details__meta-item">📍 ${escapeHtml(user.location)}</span>`);
-      if (user.gender)     pills.push(`<span class="profile-details__meta-item">⚧ ${escapeHtml(capitalize(user.gender))}</span>`);
+      if (user.location)         pills.push(`<span class="profile-details__meta-item">📍 ${escapeHtml(user.location)}</span>`);
+      if (user.gender)           pills.push(`<span class="profile-details__meta-item">⚧ ${escapeHtml(capitalize(user.gender))}</span>`);
       const age = getAge(user.birthDate);
-      if (age)             pills.push(`<span class="profile-details__meta-item">🎂 ${age} yrs</span>`);
-      if (user.lookingFor) pills.push(`<span class="profile-details__meta-item">💜 ${escapeHtml(capitalize(user.lookingFor))}</span>`);
+      if (age)                   pills.push(`<span class="profile-details__meta-item">🎂 ${age} yrs</span>`);
+      if (user.lookingFor)       pills.push(`<span class="profile-details__meta-item">💜 ${escapeHtml(capitalize(user.lookingFor))}</span>`);
+      if (user.relationshipStatus) pills.push(`<span class="profile-details__meta-item">💑 ${escapeHtml(capitalize(user.relationshipStatus))}</span>`);
       if (user.joinedAt) {
         const d = new Date(user.joinedAt);
         const joinedStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -1193,23 +1194,169 @@ async function deletePost(postId) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// MATCH BANNER
+// MATCH POPUP — full overlay with love tone & auto-relationship
 // ═══════════════════════════════════════════════════════════════
 
+let matchToneTimer = null;
+let matchToneContext = null;
+
+function playMatchTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    matchToneContext = ctx;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.25, ctx.currentTime);
+    master.connect(ctx.destination);
+
+    const chords = [
+      { freqs: [261.63, 329.63, 392.00, 493.88], dur: 0.8 },
+      { freqs: [220.00, 261.63, 329.63, 440.00], dur: 0.8 },
+      { freqs: [174.61, 220.00, 261.63, 349.23], dur: 0.8 },
+      { freqs: [196.00, 246.94, 311.13, 392.00], dur: 0.8 },
+    ];
+    let t = ctx.currentTime;
+    for (let loop = 0; loop < 1; loop++) {
+      for (const chord of chords) {
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.7, t + 0.08);
+        gain.gain.setValueAtTime(0.7, t + chord.dur - 0.15);
+        gain.gain.exponentialRampToValueAtTime(0.001, t + chord.dur);
+        gain.connect(master);
+        for (const freq of chord.freqs) {
+          const osc = ctx.createOscillator();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          osc.connect(gain);
+          osc.start(t);
+          osc.stop(t + chord.dur);
+        }
+        t += chord.dur;
+      }
+    }
+    const padGain = ctx.createGain();
+    padGain.gain.setValueAtTime(0.06, ctx.currentTime);
+    padGain.gain.linearRampToValueAtTime(0.02, ctx.currentTime + 4.5);
+    padGain.connect(master);
+    [261.63, 329.63, 392.00].forEach(freq => {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      osc.connect(padGain);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 5);
+    });
+
+    matchToneTimer = setTimeout(() => {
+      try { ctx.close(); } catch (e) { /* ignore */ }
+      matchToneContext = null;
+    }, 5200);
+  } catch (e) { /* silent fallback */ }
+}
+
 function showMatchBanner(name) {
-  const banner  = document.getElementById('matchBanner');
+  const banner = document.getElementById('matchBanner');
   const subText = document.getElementById('matchBannerText');
   if (!banner) return;
   if (subText) subText.textContent = `You and ${name} are connected!`;
+
+  // Set avatars
+  const currentUserData = JSON.parse(localStorage.getItem('sc_user') || '{}');
+  const myAvatar = document.getElementById('matchPopupMyAvatar');
+  const theirAvatar = document.getElementById('matchPopupTheirAvatar');
+  if (myAvatar) {
+    myAvatar.src = currentUserData.avatar ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUserData.name || 'You')}&background=1877f2&color=fff&size=96`;
+  }
+  if (theirAvatar) {
+    const avatarName = (name || '').split(' ')[0] || 'Them';
+    theirAvatar.src = profileUser?.avatar ||
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(avatarName)}&background=ff69b4&color=fff&size=96`;
+  }
+
   banner.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
-  setTimeout(closeMatchBanner, 8000);
+
+  // Play romantic love tone
+  playMatchTone();
+
+  // Auto-close after 5 seconds, then open relationship modal
+  setTimeout(() => {
+    closeMatchBanner();
+    const uid = profileUserId || profileUser?.id || profileUser?._id;
+    if (uid) {
+      openRelationshipModal(uid, `You matched with ${name}! Would you like to set your relationship?`, null);
+    }
+  }, 5500);
 }
 
 function closeMatchBanner() {
   const banner = document.getElementById('matchBanner');
   if (banner) banner.classList.add('hidden');
   document.body.style.overflow = '';
+  if (matchToneTimer) {
+    clearTimeout(matchToneTimer);
+    matchToneTimer = null;
+  }
+  if (matchToneContext) {
+    try { matchToneContext.close(); } catch (e) { /* ignore */ }
+    matchToneContext = null;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RELATIONSHIP MODAL (for profile page)
+// ═══════════════════════════════════════════════════════════════
+
+function openRelationshipModal(userId, message, notifId) {
+  const modal = document.getElementById('relationshipModal');
+  if (!modal) return;
+
+  const userNameEl = document.getElementById('relationshipModalUserName');
+  if (userNameEl) {
+    userNameEl.textContent = profileUser?.name || 'User';
+  }
+
+  modal.dataset.userId = userId;
+  if (notifId) modal.dataset.notifId = notifId;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRelationshipModal() {
+  const modal = document.getElementById('relationshipModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    delete modal.dataset.userId;
+    delete modal.dataset.notifId;
+  }
+}
+
+async function addRelationship() {
+  const modal = document.getElementById('relationshipModal');
+  const userId = modal?.dataset?.userId;
+  const notifId = modal?.dataset?.notifId;
+  if (!userId) return;
+
+  const selectedType = document.querySelector('input[name="relType"]:checked');
+  const relType = selectedType ? selectedType.value : 'single';
+
+  const result = await apiFetch(`/api/connect/accept/${userId}`, {
+    method: 'POST',
+    body: JSON.stringify({ relationshipType: relType })
+  });
+
+  if (result) {
+    SC.showSuccess(`Relationship added: ${relType}!`);
+    closeRelationshipModal();
+    await loadProfile(profileUserId);
+    if (notifId) {
+      try { await apiFetch(`/api/notifications/read/${notifId}`, { method: 'PUT' }); } catch (e) { /* ignore */ }
+    }
+  } else {
+    SC.showError('Could not add relationship');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════

@@ -3873,7 +3873,131 @@ p {
 }
 
 /* ==========================================================================
-   23. INTEREST TAGS
+   23. MATCH POPUP — full-screen overlay
+   ========================================================================== */
+
+.match-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal, 9999);
+  animation: fadeIn 0.3s ease both;
+}
+
+.match-popup {
+  background: var(--gradient-match);
+  color: white;
+  text-align: center;
+  padding: var(--space-2xl) var(--space-xl);
+  border-radius: var(--radius-lg, 20px);
+  max-width: 440px;
+  width: calc(100% - var(--space-xl));
+  position: relative;
+  overflow: hidden;
+  animation: matchIn 0.5s ease both;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.match-popup__hearts {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.match-popup__hearts span {
+  position: absolute;
+  font-size: 1.2rem;
+  animation: floatHeart 3s ease-in-out infinite;
+  opacity: 0.3;
+}
+
+.match-popup__hearts span:nth-child(1)  { top: 5%;  left: 10%; animation-delay: 0s;   font-size: 1.4rem; }
+.match-popup__hearts span:nth-child(2)  { top: 15%; left: 80%; animation-delay: 0.3s; font-size: 1rem;   }
+.match-popup__hearts span:nth-child(3)  { top: 40%; left: 5%;  animation-delay: 0.6s; font-size: 1.6rem; }
+.match-popup__hearts span:nth-child(4)  { top: 60%; left: 85%; animation-delay: 0.9s; font-size: 1.1rem; }
+.match-popup__hearts span:nth-child(5)  { top: 75%; left: 15%; animation-delay: 1.2s; font-size: 1.3rem; }
+.match-popup__hearts span:nth-child(6)  { top: 10%; left: 45%; animation-delay: 1.5s; font-size: 0.9rem; }
+.match-popup__hearts span:nth-child(7)  { top: 50%; left: 50%; animation-delay: 1.8s; font-size: 1.5rem; }
+.match-popup__hearts span:nth-child(8)  { top: 80%; left: 70%; animation-delay: 2.1s; font-size: 1rem;   }
+.match-popup__hearts span:nth-child(9)  { top: 25%; left: 25%; animation-delay: 2.4s; font-size: 1.2rem; }
+.match-popup__hearts span:nth-child(10) { top: 70%; left: 35%; animation-delay: 2.7s; font-size: 1.1rem; }
+
+.match-popup__avatars {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.match-popup__avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  animation: avatarPop 0.5s ease both;
+}
+
+.match-popup__avatar:first-child {
+  animation-delay: 0.1s;
+}
+
+.match-popup__avatar:last-child {
+  animation-delay: 0.3s;
+}
+
+.match-popup__heart-big {
+  font-size: 2.4rem;
+  animation: heartbeat 1s ease 0.5s infinite;
+  filter: drop-shadow(0 2px 8px rgba(255, 64, 129, 0.4));
+}
+
+.match-popup__title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  line-height: 1.3;
+  margin-bottom: var(--space-xs);
+  color: white;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.match-popup__sub {
+  font-size: var(--font-size-base);
+  opacity: 0.9;
+  margin-bottom: var(--space-lg);
+}
+
+.match-popup__actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes avatarPop {
+  0%   { transform: scale(0); opacity: 0; }
+  60%  { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes floatHeart {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-20px) scale(1.1); }
+}
+
+/* ==========================================================================
+   24. INTEREST TAGS
    ========================================================================== */
 .tag {
   display: inline-flex;
