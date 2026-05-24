@@ -775,26 +775,26 @@ p {
 }
 
 /* ==========================================================================
-   6. POST CARD
+   6. POST CARD — Facebook Style
    ========================================================================== */
 .post-card {
   background: var(--card-bg);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   overflow: hidden;
-  transition: box-shadow var(--transition);
+  transition: box-shadow 0.2s ease;
+  margin-bottom: var(--space-md);
 }
 
 .post-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 }
 
 .post-card__header {
   display: flex;
   align-items: flex-start;
   gap: var(--space-sm);
-  padding: var(--space-md);
-  padding-bottom: var(--space-sm);
+  padding: var(--space-md) var(--space-md) 4px;
 }
 
 .post-card__avatar {
@@ -804,7 +804,12 @@ p {
   object-fit: cover;
   flex-shrink: 0;
   cursor: pointer;
-  position: relative;
+  border: 2px solid var(--border-light);
+  transition: border-color 0.2s ease;
+}
+
+.post-card__avatar:hover {
+  border-color: var(--primary);
 }
 
 .post-card__meta {
@@ -813,36 +818,39 @@ p {
 }
 
 .post-card__name {
-  font-weight: 700;
-  font-size: var(--font-size-base);
+  font-weight: 600;
+  font-size: var(--font-size-sm);
   color: var(--text);
   cursor: pointer;
-  transition: color var(--transition);
 }
 
 .post-card__name:hover {
-  color: var(--primary);
+  text-decoration: underline;
 }
 
 .post-card__time {
-  font-size: var(--font-size-xs);
-  color: var(--text-muted);
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
 }
 
 .post-card__options {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--transition);
-  font-size: 1.1rem;
+  transition: background 0.2s ease;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -1px;
+  background: none;
+  border: none;
 }
 
 .post-card__options:hover {
@@ -850,7 +858,7 @@ p {
 }
 
 .post-card__content {
-  padding: 0 var(--space-md) var(--space-sm);
+  padding: 8px var(--space-md) var(--space-sm);
   font-size: var(--font-size-base);
   color: var(--text);
   line-height: 1.6;
@@ -863,49 +871,50 @@ p {
   font-weight: 500;
 }
 
+.post-card__media {
+  width: 100%;
+  border-top: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--border-light);
+  background: #000;
+}
+
 .post-card__image {
   width: 100%;
   max-height: 500px;
   object-fit: cover;
-  cursor: pointer;
-  transition: opacity var(--transition);
+  display: block;
+  transition: opacity 0.2s ease;
 }
 
 .post-card__image:hover {
   opacity: 0.95;
 }
 
-.post-card__image-grid {
-  display: grid;
-  gap: 2px;
-}
-
-.post-card__image-grid.cols-2 {
-  grid-template-columns: 1fr 1fr;
-}
-
-.post-card__image-grid.cols-3 {
-  grid-template-columns: 2fr 1fr;
-  grid-template-rows: 1fr 1fr;
-}
-
-.post-card__image-grid.cols-3 .post-card__image:first-child {
-  grid-row: 1 / 3;
-}
-
+/* Stats bar — Facebook style */
 .post-card__stats {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--space-xs) var(--space-md);
-  border-top: 1px solid var(--border-light);
-  border-bottom: 1px solid var(--border-light);
+  padding: 6px var(--space-md);
+  min-height: 32px;
+}
+
+.post-card__stats-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.post-card__stats-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .post-card__reactions {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 4px;
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
   cursor: pointer;
@@ -913,17 +922,48 @@ p {
 
 .post-card__reactions:hover {
   text-decoration: underline;
-  color: var(--primary);
 }
 
 .post-card__reactions-icons {
   display: flex;
-  font-size: 1rem;
+  align-items: center;
 }
 
+.react-thumb, .react-heart {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.react-thumb {
+  z-index: 2;
+}
+
+.react-heart {
+  margin-left: -4px;
+  z-index: 1;
+}
+
+.post-card__stat-item {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+}
+
+.post-card__stat-item:hover {
+  text-decoration: underline;
+  color: var(--primary);
+}
+
+/* Action buttons — Facebook style */
 .post-card__actions {
   display: flex;
-  padding: 4px var(--space-sm);
+  padding: 0 var(--space-sm);
+  border-top: 1px solid var(--border-light);
+  margin: 0;
 }
 
 .post-card__action-btn {
@@ -932,15 +972,17 @@ p {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 8px;
-  border-radius: var(--radius-sm);
+  padding: 8px 4px;
+  border-radius: 4px;
   font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
-  transition: background var(--transition), color var(--transition);
+  transition: background 0.2s ease, color 0.2s ease;
   border: none;
   background: none;
+  height: 36px;
+  margin: 4px 2px;
 }
 
 .post-card__action-btn:hover {
@@ -950,17 +992,28 @@ p {
 
 .post-card__action-btn.liked {
   color: var(--primary);
-  animation: likeBounce 0.4s ease;
+}
+
+.post-card__action-btn.liked .like-icon {
+  fill: var(--primary);
+  stroke: var(--primary);
+  animation: likePop 0.3s ease;
 }
 
 .post-card__action-btn.liked:hover {
   background: var(--primary-light);
 }
 
-/* Comments */
+@keyframes likePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Comments — Facebook style */
 .post-card__comments {
   border-top: 1px solid var(--border-light);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-sm) var(--space-md) var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -982,8 +1035,8 @@ p {
 
 .post-card__comment-bubble {
   background: var(--bg);
-  border-radius: var(--radius-sm);
-  padding: var(--space-xs) var(--space-sm);
+  border-radius: 18px;
+  padding: 8px 12px;
   flex: 1;
 }
 
@@ -991,6 +1044,11 @@ p {
   font-weight: 700;
   font-size: var(--font-size-xs);
   color: var(--text);
+}
+
+.post-card__comment-name:hover {
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 .post-card__comment-text {
@@ -1004,6 +1062,7 @@ p {
   margin-top: 2px;
   font-size: var(--font-size-xs);
   color: var(--text-muted);
+  padding-left: 44px;
 }
 
 .post-card__comment-actions span {
@@ -1023,31 +1082,66 @@ p {
   margin-top: var(--space-xs);
 }
 
-.post-card__comment-input input {
+.post-card__comment-input-wrap {
   flex: 1;
-  height: 36px;
+  display: flex;
+  align-items: center;
   background: var(--bg);
-  border: 1.5px solid transparent;
   border-radius: var(--radius-full);
-  padding: 0 var(--space-md);
-  font-size: var(--font-size-sm);
-  outline: none;
-  color: var(--text);
+  padding-left: var(--space-md);
+  border: 1.5px solid transparent;
   transition: border-color var(--transition);
 }
 
-.post-card__comment-input input:focus {
+.post-card__comment-input-wrap:focus-within {
   border-color: var(--primary);
+}
+
+.post-card__comment-input-wrap input {
+  flex: 1;
+  height: 36px;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: var(--font-size-sm);
+  color: var(--text);
+}
+
+.post-card__comment-input-wrap input::placeholder {
+  color: var(--text-muted);
+}
+
+.post-card__comment-emoji {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+  margin-right: 4px;
+}
+
+.post-card__comment-emoji:hover {
+  opacity: 1;
 }
 
 .post-card__show-comments {
   font-size: var(--font-size-sm);
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-secondary);
   cursor: pointer;
   padding: var(--space-xs) 0;
   display: block;
   transition: color var(--transition);
+  background: none;
+  border: none;
+  font-family: inherit;
 }
 
 .post-card__show-comments:hover {

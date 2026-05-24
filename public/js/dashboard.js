@@ -178,12 +178,20 @@ function createPostElement(post) {
   const liked = likes.includes(currentUser.id);
   const likeCount = likes.length;
   const commentCount = comments.length;
+  const shareCount = post.shares ? post.shares.length : 0;
+  const viewCount = post.views ? post.views.length : (post.interactionMetrics?.impressions || 0);
 
   const div = document.createElement('article');
   div.className = 'post-card card';
   div.setAttribute('data-post-id', post.id);
   div.setAttribute('role', 'article');
   div.setAttribute('aria-label', `Post by ${author.name || 'Unknown'}`);
+
+  const formatCount = (n) => {
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+  };
 
   div.innerHTML = `
     <div class="post-card__header">
@@ -196,106 +204,78 @@ function createPostElement(post) {
         >
       </a>
       <div class="post-card__meta">
-        <a href="/profile.html?id=${authorId}" class="post-card__name">${authorName}</a>
-        ${authorUsername ? `<span style="font-size:var(--font-size-xs);color:var(--text-secondary);">@${authorUsername}</span>` : ''}
-        <span class="post-card__time" title="${post.time || post.timestamp || ''}">${timeAgo(post.time || post.timestamp)}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <a href="/profile.html?id=${authorId}" class="post-card__name">${authorName}</a>
+          ${authorUsername ? `<span style="font-size:var(--font-size-xs);color:var(--text-secondary);">@${authorUsername}</span>` : ''}
+        </div>
+        <div class="post-card__time">
+          <span>${timeAgo(post.time || post.timestamp)}</span>
+          <span style="margin:0 4px;">·</span>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.6;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+        </div>
       </div>
       ${isOwn ? `
         <div class="dropdown" style="margin-left:auto;">
-          <button
-            class="post-card__options"
-            onclick="togglePostOptionsMenu(event, '${post.id}')"
-            aria-label="Post options"
-            aria-haspopup="true"
-          >•••</button>
+          <button class="post-card__options" onclick="togglePostOptionsMenu(event, '${post.id}')" aria-label="Post options">•••</button>
           <div class="dropdown__menu hidden" id="postMenu_${post.id}" style="right:0;min-width:160px;">
-            <div class="dropdown__item dropdown__item--danger" onclick="deletePost('${post.id}')">
-              <span class="dropdown__icon">🗑️</span> Delete Post
-            </div>
+            <div class="dropdown__item dropdown__item--danger" onclick="deletePost('${post.id}')">🗑️ Delete Post</div>
           </div>
         </div>
       ` : `
-        <div style="margin-left:auto;">
-          <button
-            class="post-card__options"
-            onclick="togglePostOptionsMenu(event, '${post.id}')"
-            aria-label="Post options"
-            aria-haspopup="true"
-          >•••</button>
-          <div class="dropdown__menu hidden" id="postMenu_${post.id}" style="right:0;min-width:160px;position:absolute;z-index:var(--z-dropdown);">
-            <div class="dropdown__item" onclick="sendFriendRequest('${authorId}'); closeAllMenus();">
-              <span class="dropdown__icon">👥</span> Add Friend
-            </div>
-            <div class="dropdown__item" onclick="followUser('${authorId}'); closeAllMenus();">
-              <span class="dropdown__icon">➕</span> Follow
-            </div>
-            <div class="dropdown__item" onclick="openChat('${authorId}', '${authorName}', '${authorAvatar}'); closeAllMenus();">
-              <span class="dropdown__icon">💬</span> Message
-            </div>
+        <div class="dropdown" style="margin-left:auto;">
+          <button class="post-card__options" onclick="togglePostOptionsMenu(event, '${post.id}')" aria-label="Post options">•••</button>
+          <div class="dropdown__menu hidden" id="postMenu_${post.id}" style="right:0;min-width:160px;">
+            <div class="dropdown__item" onclick="sendFriendRequest('${authorId}'); closeAllMenus();">👥 Add Friend</div>
+            <div class="dropdown__item" onclick="followUser('${authorId}'); closeAllMenus();">➕ Follow</div>
+            <div class="dropdown__item" onclick="openChat('${authorId}', '${authorName}', '${authorAvatar}'); closeAllMenus();">💬 Message</div>
           </div>
         </div>
       `}
-    </div>                <!-- Feeling / Activity badges -->
-                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">
-                  ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
-                  ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
-                  ${post.location ? `<span class="tag" style="font-size:12px;padding:3px 10px;">📍 ${post.location.name}</span>` : ''}
-                </div>
-
-                <div class="post-card__content${!post.image && (!post.media || !post.media.photos || !post.media.photos.length) && post.text && post.text.length < 120 ? ' large-text' : ''}">
-      ${highlightHashtags(escapeHtml(post.text || ''))}
     </div>
 
+    ${post.feeling || post.activity || post.location ? `
+      <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--space-md) var(--space-xs);">
+        ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
+        ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
+        ${post.location ? `<span class="tag" style="font-size:12px;padding:3px 10px;">📍 ${post.location.name}</span>` : ''}
+      </div>
+    ` : ''}
+
+    ${post.text ? `
+      <div class="post-card__content${!post.image && (!post.media || !post.media.photos || !post.media.photos.length) && post.text.length < 120 ? ' large-text' : ''}">
+        ${highlightHashtags(escapeHtml(post.text))}
+      </div>
+    ` : ''}
+
     ${post.image ? `
-      <div style="margin-top:var(--space-sm);">
-        <img
-          src="${post.image}"
-          alt="Post image"
-          class="post-card__image"
-          loading="lazy"
-          onerror="this.parentElement.style.display='none'"
-          onclick="openPostModal('${post.id}')"
-          style="cursor:pointer;"
-        >
+      <div class="post-card__media">
+        <img src="${post.image}" alt="Post image" class="post-card__image" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="openPostModal('${post.id}')" style="cursor:pointer;">
       </div>
     ` : ''}
 
     ${post.media && post.media.photos && post.media.photos.length > 0 ? `
-      <div style="margin-top:var(--space-sm);display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">
+      <div class="post-card__media" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:2px;">
         ${post.media.photos.map((photo, idx) => `
-          <img
-            src="${photo.data || photo.thumbnail || ''}"
-            alt="Photo ${idx + 1}"
-            style="width:100%;height:150px;object-fit:cover;border-radius:8px;cursor:pointer;"
-            loading="lazy"
-            onclick="window.open('${photo.data || photo.thumbnail || ''}', '_blank')"
-            onerror="this.parentElement.style.display='none'"
-          >
+          <img src="${photo.data || photo.thumbnail || ''}" alt="Photo ${idx + 1}" style="width:100%;height:150px;object-fit:cover;cursor:pointer;" loading="lazy" onclick="window.open('${photo.data || photo.thumbnail || ''}', '_blank')" onerror="this.parentElement.style.display='none'">
         `).join('')}
       </div>
     ` : ''}
 
     ${post.media && post.media.videos && post.media.videos.length > 0 ? `
-      <div style="margin-top:var(--space-sm);display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;">
+      <div class="post-card__media" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:2px;">
         ${post.media.videos.map((video, idx) => `
-          <video
-            src="${video.data || ''}"
-            style="width:100%;max-height:300px;border-radius:8px;background:#000;"
-            controls
-            preload="metadata"
-            ${idx > 0 ? '' : 'autoplay muted'}
-          ></video>
+          <video src="${video.data || ''}" style="width:100%;max-height:300px;background:#000;" controls preload="metadata" ${idx === 0 ? 'autoplay muted' : ''}></video>
         `).join('')}
       </div>
     ` : ''}
 
     ${post.media && post.media.audio && post.media.audio.length > 0 ? `
-      <div style="margin-top:var(--space-sm);display:flex;flex-wrap:wrap;gap:10px;">
+      <div class="post-card__media" style="display:flex;flex-wrap:wrap;gap:10px;padding:0 var(--space-md) var(--space-sm);">
         ${post.media.audio.map(audio => `
-          <div style="flex:1;min-width:200px;padding:12px;background:var(--input-bg);border-radius:8px;border:1px solid var(--border);">
+          <div style="flex:1;min-width:200px;padding:12px;background:var(--bg);border-radius:8px;">
             <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
               <span style="font-size:20px;">🎵</span>
-              <span style="font-size:13px;color:var(--text-secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;">${audio.name || 'Audio file'}</span>
+              <span style="font-size:13px;color:var(--text-secondary);">${audio.name || 'Audio file'}</span>
             </div>
             <audio src="${audio.data || ''}" controls style="width:100%;height:36px;" preload="none"></audio>
           </div>
@@ -304,72 +284,52 @@ function createPostElement(post) {
     ` : ''}
 
     ${post.tags && post.tags.length > 0 ? `
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:var(--space-sm);">
+      <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--space-md) var(--space-sm);">
         ${post.tags.map(tag => `<span class="tag tag--pink" style="font-size:12px;padding:2px 8px;">#${tag}</span>`).join('')}
       </div>
     ` : ''}
 
     <div class="post-card__stats">
-      ${likeCount > 0 ? `
-        <div class="post-card__reactions">
-          <div class="post-card__reactions-icons">👍❤️</div>
-          <span>${likeCount} ${likeCount === 1 ? 'like' : 'likes'}</span>
-        </div>
-      ` : ''}
-      ${commentCount > 0 ? `
-        <button class="post-card__show-comments" onclick="toggleComments('${post.id}')">
-          ${commentCount} ${commentCount === 1 ? 'comment' : 'comments'}
-        </button>
-      ` : ''}
+      <div class="post-card__stats-left">
+        ${likeCount > 0 ? `
+          <div class="post-card__reactions" title="${likeCount} like${likeCount !== 1 ? 's' : ''}">
+            <div class="post-card__reactions-icons"><span class="react-thumb">👍</span>${likeCount > 1 ? '<span class="react-heart">❤️</span>' : ''}</div>
+            <span>${formatCount(likeCount)}</span>
+          </div>
+        ` : ''}
+      </div>
+      <div class="post-card__stats-right">
+        ${viewCount > 0 ? `<span class="post-card__stat-item" title="${viewCount} view${viewCount !== 1 ? 's' : ''}">${formatCount(viewCount)} view${viewCount !== 1 ? 's' : ''}</span>` : ''}
+        ${commentCount > 0 ? `<button class="post-card__stat-item" onclick="toggleComments('${post.id}')">${formatCount(commentCount)} comment${commentCount !== 1 ? 's' : ''}</button>` : ''}
+        ${shareCount > 0 ? `<span class="post-card__stat-item">${formatCount(shareCount)} share${shareCount !== 1 ? 's' : ''}</span>` : ''}
+      </div>
     </div>
 
     <div class="post-card__actions">
-      <button
-        class="post-card__action-btn${liked ? ' liked' : ''}"
-        id="likeBtn_${post.id}"
-        onclick="likePost('${post.id}')"
-        aria-label="${liked ? 'Unlike' : 'Like'} post"
-        aria-pressed="${liked}"
-      >
-        <span aria-hidden="true">${liked ? '👍' : '👍'}</span>
+      <button class="post-card__action-btn${liked ? ' liked' : ''}" id="likeBtn_${post.id}" onclick="likePost('${post.id}')" aria-label="${liked ? 'Unlike' : 'Like'} post" aria-pressed="${liked}">
+        <svg class="like-icon" width="20" height="20" viewBox="0 0 24 24" fill="${liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>
         <span id="likeLabel_${post.id}">${liked ? 'Liked' : 'Like'}</span>
       </button>
-      <button
-        class="post-card__action-btn"
-        onclick="toggleComments('${post.id}')"
-        aria-label="Comment on post"
-      >
-        <span aria-hidden="true">💬</span> Comment
+      <button class="post-card__action-btn" onclick="toggleComments('${post.id}')" aria-label="Comment on post">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <span>Comment</span>
       </button>
-      <button
-        class="post-card__action-btn"
-        onclick="sharePost('${post.id}')"
-        aria-label="Share post"
-      >
-        <span aria-hidden="true">↗️</span> Share
+      <button class="post-card__action-btn" onclick="sharePost('${post.id}')" aria-label="Share post">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        <span>Share</span>
       </button>
     </div>
 
-    <!-- Comments Section (hidden by default) -->
     <div class="post-card__comments hidden" id="comments_${post.id}">
       <div id="commentList_${post.id}">
         ${comments.map(c => renderComment(c)).join('')}
       </div>
       <div class="post-card__comment-input">
-        <img
-          src="${currentUser.avatar || avatarUrl(currentUser.name || 'Me')}"
-          alt="Your avatar"
-          class="post-card__comment-avatar"
-          style="width:32px;height:32px;border-radius:50%;object-fit:cover;"
-          onerror="this.src='${avatarUrl(currentUser.name || 'Me')}'"
-        >
-        <input
-          type="text"
-          placeholder="Write a comment..."
-          aria-label="Write a comment"
-          data-post-id="${post.id}"
-          onkeydown="handleCommentKeydown(event, '${post.id}')"
-        >
+        <img src="${currentUser.avatar || avatarUrl(currentUser.name || 'Me')}" alt="Your avatar" class="post-card__comment-avatar" onerror="this.src='${avatarUrl(currentUser.name || 'Me')}'">
+        <div class="post-card__comment-input-wrap">
+          <input type="text" placeholder="Write a comment..." aria-label="Write a comment" data-post-id="${post.id}" onkeydown="handleCommentKeydown(event, '${post.id}')">
+          <button class="post-card__comment-emoji" aria-label="Add emoji">😊</button>
+        </div>
       </div>
     </div>
   `;
@@ -381,17 +341,22 @@ function renderComment(comment) {
   const user = comment.user || {};
   const name = escapeHtml(user.name || 'Unknown');
   const avatar = user.avatar || avatarUrl(user.name || 'U');
+  const userId = user.id || comment.userId || '';
   return `
     <div class="post-card__comment" data-comment-id="${comment.id || ''}">
-      <img
-        src="${avatar}"
-        alt="${name}"
-        class="post-card__comment-avatar"
-        onerror="this.src='${avatarUrl(user.name || 'U')}'"
-      >
-      <div class="post-card__comment-bubble">
-        <span class="post-card__comment-name">${name}</span>
-        <p class="post-card__comment-text">${escapeHtml(comment.text || '')}</p>
+      <a href="/profile.html?id=${userId}" style="flex-shrink:0;">
+        <img src="${avatar}" alt="${name}" class="post-card__comment-avatar" onerror="this.src='${avatarUrl(user.name || 'U')}'">
+      </a>
+      <div style="flex:1;">
+        <div class="post-card__comment-bubble">
+          <a href="/profile.html?id=${userId}" class="post-card__comment-name">${name}</a>
+          <p class="post-card__comment-text">${escapeHtml(comment.text || '')}</p>
+        </div>
+        <div class="post-card__comment-actions">
+          <span>Like</span>
+          <span>Reply</span>
+          <span>${timeAgo(comment.time)}</span>
+        </div>
       </div>
     </div>
   `;
@@ -1107,21 +1072,28 @@ async function likePost(postId) {
 function updateLikeCountInDOM(postId, likes) {
   const card = document.querySelector(`[data-post-id="${postId}"]`);
   if (!card) return;
-  const statsBar = card.querySelector('.post-card__stats');
+  const statsBar = card.querySelector('.post-card__stats-left');
   if (!statsBar) return;
 
   const count = Array.isArray(likes) ? likes.length : likes;
+  let reactEl = statsBar.querySelector('.post-card__reactions');
   if (count > 0) {
-    let reactEl = statsBar.querySelector('.post-card__reactions');
     if (!reactEl) {
       reactEl = document.createElement('div');
       reactEl.className = 'post-card__reactions';
-      statsBar.prepend(reactEl);
+      statsBar.appendChild(reactEl);
     }
+    const formatCount = (n) => {
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+      if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+      return String(n);
+    };
     reactEl.innerHTML = `
-      <div class="post-card__reactions-icons">👍❤️</div>
-      <span>${count} ${count === 1 ? 'like' : 'likes'}</span>
+      <div class="post-card__reactions-icons"><span class="react-thumb">👍</span>${count > 1 ? '<span class="react-heart">❤️</span>' : ''}</div>
+      <span>${formatCount(count)}</span>
     `;
+  } else if (reactEl) {
+    reactEl.remove();
   }
 }
 
@@ -1164,17 +1136,24 @@ async function commentPost(postId, text) {
   // Update comment count in stats bar
   const card = document.querySelector(`[data-post-id="${postId}"]`);
   if (card) {
-    const statsBar = card.querySelector('.post-card__stats');
-    if (statsBar) {
-      let showBtn = statsBar.querySelector('.post-card__show-comments');
-      if (!showBtn) {
-        showBtn = document.createElement('button');
-        showBtn.className = 'post-card__show-comments';
-        showBtn.onclick = () => toggleComments(postId);
-        statsBar.appendChild(showBtn);
-      }
+    const statsRight = card.querySelector('.post-card__stats-right');
+    if (statsRight) {
+      let commentStat = statsRight.querySelector('.post-card__stat-item[onclick]');
       const count = (document.getElementById(`commentList_${postId}`)?.children.length) || 1;
-      showBtn.textContent = `${count} ${count === 1 ? 'comment' : 'comments'}`;
+      const formatCount = (n) => {
+        if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+        if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+        return String(n);
+      };
+      if (commentStat) {
+        commentStat.textContent = `${formatCount(count)} comment${count !== 1 ? 's' : ''}`;
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'post-card__stat-item';
+        btn.onclick = () => toggleComments(postId);
+        btn.textContent = `${formatCount(count)} comment${count !== 1 ? 's' : ''}`;
+        statsRight.appendChild(btn);
+      }
     }
   }
 }
