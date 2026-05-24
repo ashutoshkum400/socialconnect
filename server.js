@@ -30,6 +30,7 @@ const db = {
   chats: new Map(), // `${uid1}_${uid2}` sorted -> [messages]
   notifications: new Map(), // userId -> [notifications]
   friendRequests: new Map(), // userId -> [{from, time}]
+  relationships: new Map(), // userId -> [{withUserId, type, time}]
 };
 const onlineUsers = new Map(); // userId -> socketId
 
@@ -182,84 +183,93 @@ async function seedData() {
     relationshipStatus: null,
   });
 
-  // Sample users
-  const samples = [
-    {
-      id: "u1",
-      name: "Alice Johnson",
-      username: "alice_j",
-      email: "alice@example.com",
-      gender: "female",
-      location: "New York",
-    },
-    {
-      id: "u2",
-      name: "Bob Smith",
-      username: "bob_smith",
-      email: "bob@example.com",
-      gender: "male",
-      location: "San Francisco",
-    },
-    {
-      id: "u3",
-      name: "Carol Williams",
-      username: "carol_w",
-      email: "carol@example.com",
-      gender: "female",
-      location: "Los Angeles",
-    },
-    {
-      id: "u4",
-      name: "David Brown",
-      username: "david_b",
-      email: "david@example.com",
-      gender: "male",
-      location: "Chicago",
-    },
-    {
-      id: "u5",
-      name: "Emma Davis",
-      username: "emma_d",
-      email: "emma@example.com",
-      gender: "female",
-      location: "Austin",
-    },
-    {
-      id: "u6",
-      name: "Frank Wilson",
-      username: "frank_w",
-      email: "frank@example.com",
-      gender: "male",
-      location: "Miami",
-    },
-  ];
+// Sample users
+   const samples = [
+     {
+       id: "u1",
+       name: "Alice Johnson",
+       username: "alice_j",
+       email: "alice@example.com",
+       gender: "female",
+       location: "New York",
+     },
+     {
+       id: "u2",
+       name: "Bob Smith",
+       username: "bob_smith",
+       email: "bob@example.com",
+       gender: "male",
+       location: "San Francisco",
+     },
+     {
+       id: "u3",
+       name: "Carol Williams",
+       username: "carol_w",
+       email: "carol@example.com",
+       gender: "female",
+       location: "Los Angeles",
+     },
+     {
+       id: "u4",
+       name: "David Brown",
+       username: "david_b",
+       email: "david@example.com",
+       gender: "male",
+       location: "Chicago",
+     },
+     {
+       id: "u5",
+       name: "Emma Davis",
+       username: "emma_d",
+       email: "emma@example.com",
+       gender: "female",
+       location: "Austin",
+     },
+     {
+       id: "u6",
+       name: "Frank Wilson",
+       username: "frank_w",
+       email: "frank@example.com",
+       gender: "male",
+       location: "Miami",
+     },
+   ];
 
-  for (const s of samples) {
-    db.users.set(s.id, {
-      ...s,
-      password: hash("Password@123"),
-      role: "user",
-      bio: `Hi, I'm ${s.name.split(" ")[0]}! Nice to meet you.`,
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&size=128`,
-      coverPhoto: `https://picsum.photos/seed/${s.id}/800/300`,
-      photos: [],
-      friends: [],
-      followers: [],
-      following: [],
-      connections: [],
-      blocked: false,
-      joinedAt: new Date().toISOString(),
-      lastSeen: new Date().toISOString(),
-      birthDate: "1995-06-15",
-      interests: ["music", "travel", "food"],
-      lookingFor: "friends",
-      relationshipStatus: "single",
-    });
-    db.notifications.set(s.id, []);
-    db.friendRequests.set(s.id, []);
-  }
-  db.notifications.set("admin", []);
-  db.friendRequests.set("admin", []);
+   for (const s of samples) {
+     db.users.set(s.id, {
+       ...s,
+       password: hash("Password@123"),
+       role: "user",
+       bio: `Hi, I'm ${s.name.split(" ")[0]}! Nice to meet you.`,
+       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=random&size=128`,
+       coverPhoto: `https://picsum.photos/seed/${s.id}/800/300`,
+       photos: [],
+       friends: [],
+       followers: [],
+       following: [],
+       connections: [],
+       relationships: [],
+       blocked: false,
+       joinedAt: new Date().toISOString(),
+       lastSeen: new Date().toISOString(),
+       birthDate: "1995-06-15",
+       interests: ["music", "travel", "food"],
+       lookingFor: "friends",
+       relationshipStatus: "single",
+     });
+     db.notifications.set(s.id, []);
+     db.friendRequests.set(s.id, []);
+     db.relationships.set(s.id, []);
+   }
+db.notifications.set("admin", []);
+             db.friendRequests.set("admin", []);
+             db.relationships.set("admin", []);
+           }
+
+           // Initialize relationships for sample users
+           for (const s of samples) {
+             db.relationships.set(s.id, []);
+           }
 
   // u1 and u2 are already friends
   db.users.get("u1").friends.push("u2");
@@ -386,32 +396,33 @@ app.post("/api/auth/register", async (req, res) => {
         return res.status(409).json({ error: "Username already taken" });
     }
 
-    const id = uuidv4();
-    const user = {
-      id,
-      username,
-      email,
-      password: await bcrypt.hash(password, 10),
-      role: "user",
-      name,
-      bio: bio || "",
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`,
-      coverPhoto: `https://picsum.photos/seed/${id}/800/300`,
-      photos: [],
-      friends: [],
-      followers: [],
-      following: [],
-      connections: [],
-      blocked: false,
-      joinedAt: new Date().toISOString(),
-      lastSeen: new Date().toISOString(),
-      location: location || "",
-      birthDate: birthDate || "",
-      gender: gender || "",
-      interests: [],
-      lookingFor: null,
-      relationshipStatus: null,
-    };
+const id = uuidv4();
+     const user = {
+       id,
+       username,
+       email,
+       password: await bcrypt.hash(password, 10),
+       role: "user",
+       name,
+       bio: bio || "",
+       avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=128`,
+       coverPhoto: `https://picsum.photos/seed/${id}/800/300`,
+       photos: [],
+       friends: [],
+       followers: [],
+       following: [],
+       connections: [],
+       relationships: [],
+       blocked: false,
+       joinedAt: new Date().toISOString(),
+       lastSeen: new Date().toISOString(),
+       location: location || "",
+       birthDate: birthDate || "",
+       gender: gender || "",
+       interests: [],
+       lookingFor: null,
+       relationshipStatus: null,
+     };
 
     db.users.set(id, user);
     db.notifications.set(id, []);
@@ -765,11 +776,88 @@ app.post("/api/connect/:id", authenticate, (req, res) => {
 
   addNotification(
     targetId,
-    "connect",
+    "connect_request",
     requesterId,
     `${requester.name} wants to connect with you`,
   );
   res.json({ message: "Connection request sent", match: false });
+});
+
+// Accept connection request and set relationship type
+app.post("/api/connect/accept/:id", authenticate, (req, res) => {
+  const fromId = req.params.id;
+  const acceptId = req.user.id;
+  const { relationshipType } = req.body; // 'single', 'dating', 'relationship', 'married', 'complicated'
+
+  const validTypes = ['single', 'dating', 'relationship', 'married', 'complicated'];
+  const relType = validTypes.includes(relationshipType) ? relationshipType : 'single';
+
+  const acceptor = db.users.get(acceptId);
+  const requester = db.users.get(fromId);
+  if (!acceptor || !requester) return res.status(404).json({ error: "User not found" });
+
+  // Add each other to connections
+  if (!acceptor.connections.includes(fromId)) acceptor.connections.push(fromId);
+  if (!requester.connections.includes(acceptId)) requester.connections.push(acceptId);
+
+  // Set relationship
+  if (!db.relationships.has(acceptId)) db.relationships.set(acceptId, []);
+  if (!db.relationships.has(fromId)) db.relationships.set(fromId, []);
+  
+  db.relationships.get(acceptId).push({
+    withUserId: fromId,
+    type: relType,
+    time: new Date().toISOString()
+  });
+  db.relationships.get(fromId).push({
+    withUserId: acceptId,
+    type: relType,
+    time: new Date().toISOString()
+  });
+
+  // Update relationship status on both users
+  const relStatusMap = {
+    single: 'Single',
+    dating: 'In a Relationship',
+    relationship: 'In a Relationship',
+    married: 'Married',
+    complicated: "It's Complicated"
+  };
+  acceptor.relationshipStatus = relStatusMap[relType];
+  requester.relationshipStatus = relStatusMap[relType];
+
+  saveDb();
+
+  addNotification(
+    fromId,
+    "connect_accept",
+    acceptId,
+    `${acceptor.name} accepted your connection (${relType})`,
+  );
+
+  res.json({ message: "Connection accepted", relationshipType: relType });
+});
+
+// Follow back endpoint
+app.post("/api/follow/back/:id", authenticate, (req, res) => {
+  const targetId = req.params.id;
+  const followerId = req.user.id;
+  if (targetId === followerId)
+    return res.status(400).json({ error: "Cannot follow yourself" });
+
+  const target = db.users.get(targetId);
+  const follower = db.users.get(followerId);
+  if (!target) return res.status(404).json({ error: "User not found" });
+
+  if (!target.followers.includes(followerId)) {
+    target.followers.push(followerId);
+  }
+  if (!follower.following.includes(targetId)) {
+    follower.following.push(targetId);
+  }
+
+  saveDb();
+  res.json({ message: "Follow back successful" });
 });
 
 // ─── POST ROUTES ──────────────────────────────────────────────────────────────

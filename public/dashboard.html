@@ -1073,38 +1073,92 @@
             </a>
         </nav>
 
-        <script src="/socket.io/socket.io.js"></script>
-        <script src="/js/app.js"></script>
-        <script src="/js/responsive.js"></script>
-        <script src="/js/dashboard.js"></script>
-        <script src="/js/scroll-nav.js"></script>
-        <script src="/js/call.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+         <script src="/js/app.js"></script>
+         <script src="/js/responsive.js"></script>
+         <script src="/js/dashboard.js"></script>
+         <script src="/js/scroll-nav.js"></script>
+         <script src="/js/call.js"></script>
 
-        <!-- Advanced Post System -->
-        <script src="/js/advanced-post.js"></script>
+         <!-- Advanced Post System -->
+         <script src="/js/advanced-post.js"></script>
 
-        <!-- Advanced Post Modal HTML -->
-        <div id="advancedPostContainer"></div>
-        <script>
-          document.addEventListener('DOMContentLoaded', async () => {
-            try {
-              const response = await fetch('/html/advanced-post-modal.html');
-              const html = await response.text();
-              let container = document.getElementById('advancedPostContainer');
-              if (!container) {
-                container = document.createElement('div');
-                container.id = 'advancedPostContainer';
-                document.body.appendChild(container);
-              }
-              container.innerHTML = html;
-              // Initialize AdvancedPost after modal HTML is in the DOM
-              if (window.AdvancedPost) {
-                setTimeout(() => AdvancedPost.init(), 50);
-              }
-            } catch (error) {
-              console.error('Failed to load advanced post modal:', error);
-            }
-          });
-        </script>
-    </body>
+         <!-- Advanced Post Modal HTML -->
+         <div id="advancedPostContainer"></div>
+         <script>
+           document.addEventListener('DOMContentLoaded', async () => {
+             try {
+               const response = await fetch('/html/advanced-post-modal.html');
+               const html = await response.text();
+               let container = document.getElementById('advancedPostContainer');
+               if (!container) {
+                 container = document.createElement('div');
+                 container.id = 'advancedPostContainer';
+                 document.body.appendChild(container);
+               }
+               container.innerHTML = html;
+               // Initialize AdvancedPost after modal HTML is in the DOM
+               if (window.AdvancedPost) {
+                 setTimeout(() => AdvancedPost.init(), 50);
+               }
+             } catch (error) {
+               console.error('Failed to load advanced post modal:', error);
+             }
+           });
+         </script>
+
+         <!-- Relationship Modal -->
+         <div
+             id="relationshipModal"
+             class="modal-overlay hidden"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="relationshipModalTitle"
+             onclick="handleModalOverlayClick(event, 'relationshipModal')"
+         >
+             <div class="modal modal--sm">
+                 <div class="modal__header">
+                     <h2 class="modal__title" id="relationshipModalTitle">
+                         Add Relationship
+                     </h2>
+                     <button
+                         class="modal__close"
+                         onclick="closeRelationshipModal()"
+                         aria-label="Close"
+                     >
+                         &times;
+                     </button>
+                 </div>
+                 <div class="modal__body">
+                     <p>You and <span id="relationshipModalUserName">Someone</span> have a mutual connection!</p>
+                     <p>Select your relationship type:</p>
+                     <div class="form-group">
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relSingle" name="relType" value="single" checked>
+                             <label for="relSingle">Single</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relDating" name="relType" value="dating">
+                             <label for="relDating">Dating</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relRelationship" name="relType" value="relationship">
+                             <label for="relRelationship">In a Relationship</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relMarried" name="relType" value="married">
+                             <label for="relMarried">Married</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relComplicated" name="relType" value="complicated">
+                             <label for="relComplicated">It's Complicated</label>
+                         </div>
+                     </div>
+                     <button class="btn btn--primary btn--full" onclick="addRelationship()">
+                         Add Relationship
+                     </button>
+                 </div>
+             </div>
+         </div>
+     </body>
 </html>

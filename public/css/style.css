@@ -2097,6 +2097,11 @@ p {
   color: white;
 }
 
+.notification-item__icon--share {
+  background: var(--warning);
+  color: white;
+}
+
 .notification-item__icon--friend {
   background: var(--secondary);
   color: white;
@@ -2105,6 +2110,26 @@ p {
 .notification-item__icon--match {
   background: var(--gradient-match);
   color: white;
+}
+
+.notification-item--clickable {
+  transition: background-color 0.2s ease;
+}
+
+.notification-item--clickable:hover {
+  background-color: var(--bg);
+}
+
+.notification-item--clickable:active {
+  background-color: var(--primary-light);
+}
+
+.notification-item__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
 }
 
 .notification-item__content {

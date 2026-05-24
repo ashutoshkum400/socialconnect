@@ -417,7 +417,7 @@ function renderNotifications(notifs) {
     list.innerHTML = `
       <div class="empty-state" style="padding:var(--space-lg) 0;">
         <div class="empty-state__icon">🔔</div>
-        <p class="empty-state__text">No notifications yet</p>
+        <p class="empty-state__text" style="font-size:var(--font-size-sm);color:var(--text-secondary);">No notifications yet</p>
       </div>
     `;
     return;
@@ -427,16 +427,52 @@ function renderNotifications(notifs) {
     const iconMap = {
       like: `<span class="notification-item__icon notification-item__icon--like">👍</span>`,
       comment: `<span class="notification-item__icon notification-item__icon--comment">💬</span>`,
+      share: `<span class="notification-item__icon notification-item__icon--share">📤</span>`,
       friend_request: `<span class="notification-item__icon notification-item__icon--friend">👥</span>`,
       friend_accept: `<span class="notification-item__icon notification-item__icon--friend">✅</span>`,
       follow: `<span class="notification-item__icon notification-item__icon--friend">➕</span>`,
+      follow_back: `<span class="notification-item__icon notification-item__icon--friend">🔄</span>`,
       match: `<span class="notification-item__icon notification-item__icon--match">💜</span>`,
+      connect_request: `<span class="notification-item__icon notification-item__icon--match">💜</span>`,
+      connect_accept: `<span class="notification-item__icon notification-item__icon--match">✅</span>`,
       message: `<span class="notification-item__icon">💬</span>`,
     };
     const icon = iconMap[n.type] || `<span class="notification-item__icon">🔔</span>`;
 
+    // Check if notification should be clickable (like, comment, share)
+    const isPostRelated = ['like', 'comment', 'share'].includes(n.type);
+    const clickHandler = isPostRelated && n.postId 
+      ? `onclick="navigateToPost('${n.postId}'); event.stopPropagation();"`
+      : '';
+
+    // Generate action buttons based on notification type
+    let actionButtons = '';
+    if (n.type === 'friend_request') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--primary btn--xs" onclick="acceptFriendRequest('${n.fromId}'); event.stopPropagation();">Accept</button>
+          <button class="btn btn--outline-secondary btn--xs" onclick="rejectFriendRequest('${n.fromId}'); event.stopPropagation();">Reject</button>
+        </div>
+      `;
+    } else if (n.type === 'follow') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--outline-primary btn--xs" onclick="followUser('${n.fromId}'); event.stopPropagation();">Follow Back</button>
+        </div>
+      `;
+    } else if (n.type === 'connect_request') {
+      actionButtons = `
+        <div class="notification-item__actions">
+          <button class="btn btn--match btn--xs" onclick="openRelationshipModal('${n.fromId}', '${escapeHtml(n.text)}'); event.stopPropagation();">Add Relationship</button>
+        </div>
+      `;
+    }
+
     return `
-      <div class="notification-item${n.read ? '' : ' unread'}" data-notif-id="${n.id}">
+      <div class="notification-item${n.read ? '' : ' unread'}${isPostRelated ? ' notification-item--clickable' : ''}" 
+           data-notif-id="${n.id}" 
+           ${clickHandler}
+           style="${isPostRelated ? 'cursor: pointer;' : ''}">
         <div class="notification-item__avatar-wrap">
           ${icon}
         </div>
@@ -445,6 +481,7 @@ function renderNotifications(notifs) {
           <span class="notification-item__time">${timeAgo(n.time)}</span>
         </div>
         ${!n.read ? `<span class="notification-item__unread-dot" aria-label="Unread"></span>` : ''}
+        ${actionButtons}
       </div>
     `;
   }).join('');
@@ -464,6 +501,34 @@ function updateNotifBadge() {
       el.classList.add('hidden');
     }
   });
+}
+
+// Navigate to a specific post when clicking on like/comment/share notifications
+function navigateToPost(postId) {
+  // Close the notification dropdown
+  const dropdown = document.getElementById('notifDropdown');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+  }
+
+  // Try to find the post in the current feed
+  const postCard = document.querySelector(`[data-post-id="${postId}"]`);
+  
+  if (postCard) {
+    // Scroll to the post
+    postCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Highlight the post temporarily
+    postCard.style.transition = 'box-shadow 0.3s ease';
+    postCard.style.boxShadow = '0 0 0 3px var(--primary), 0 4px 12px rgba(88, 86, 214, 0.3)';
+    
+    setTimeout(() => {
+      postCard.style.boxShadow = '';
+    }, 2000);
+  } else {
+    // If post not found in current feed, open it in a modal
+    openPostModal(postId);
+  }
 }
 
 async function markAllNotifsRead() {
@@ -1541,6 +1606,57 @@ function openChatFromMatch() {
   if (lastMatchedUserId) {
     const user = allUsers.find(u => u.id === lastMatchedUserId);
     if (user) openChat(user.id, user.name, user.avatar || avatarUrl(user.name));
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// RELATIONSHIP MODAL
+// ═══════════════════════════════════════════════════════════════════
+
+function openRelationshipModal(userId, message) {
+  const modal = document.getElementById('relationshipModal');
+  if (!modal) return;
+
+  const userNameEl = document.getElementById('relationshipModalUserName');
+  if (userNameEl && message) {
+    const nameMatch = message.match(/with (\w+) wants/);
+    userNameEl.textContent = nameMatch ? nameMatch[1] : 'User';
+  }
+
+  // Store userId for later
+  modal.dataset.userId = userId;
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeRelationshipModal() {
+  const modal = document.getElementById('relationshipModal');
+  if (modal) {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+    delete modal.dataset.userId;
+  }
+}
+
+async function addRelationship() {
+  const modal = document.getElementById('relationshipModal');
+  const userId = modal?.dataset.userId;
+  if (!userId) return;
+
+  const selectedType = document.querySelector('input[name="relType"]:checked');
+  const relType = selectedType ? selectedType.value : 'single';
+
+  const result = await apiFetch(`/connect/accept/${userId}`, {
+    method: 'POST',
+    body: JSON.stringify({ relationshipType: relType })
+  });
+
+  if (result && result.ok) {
+    showToast(`Relationship added: ${relType}!`, 'success');
+    closeRelationshipModal();
+    loadCurrentUser();
+  } else {
+    showToast(result?.data?.error || 'Could not add relationship', 'error');
   }
 }
 
