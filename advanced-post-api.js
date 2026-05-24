@@ -227,7 +227,7 @@ module.exports = function(app, io, db, authenticateToken) {
 
       // Enrich with author info (sanitized)
       const enrichedFeed = paginatedFeed.map(post => {
-        const rawAuthor = db.users.get(post.authorId);
+        const rawAuthor = db.users.get(post.authorId) || (global.powerBotManager ? global.powerBotManager.getBotById(post.authorId) : null);
         const author = rawAuthor ? (({ password, ...safe }) => safe)(rawAuthor) : null;
         return {
           ...post,

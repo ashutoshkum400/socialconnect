@@ -10,6 +10,8 @@ const path = require("path");
 const fs = require("fs");
 const cors = require("cors");
 const { seedBots, startBotActivity } = require('./seed-bots');
+const { powerBotManager } = require('./power-bots');
+global.powerBotManager = powerBotManager;
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -32,6 +34,7 @@ const db = {
   notifications: new Map(), // userId -> [notifications]
   friendRequests: new Map(), // userId -> [{from, time}]
   relationships: new Map(), // userId -> [{withUserId, type, time}]
+  powerBotInteractions: new Map(), // botId -> { friends:[], followers:[], following:[], connections:[] }
 };
 const onlineUsers = new Map(); // userId -> socketId
 
@@ -67,6 +70,7 @@ function saveDb() {
     const dir = path.dirname(DATA_FILE);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(DATA_FILE, JSON.stringify(dbToJSON(), null, 2), "utf-8");
+    if (powerBotManager && powerBotManager.flushAll) powerBotManager.flushAll();
   } catch (err) {
     console.error("❌ Failed to persist data:", err.message);
   }
@@ -100,6 +104,23 @@ function sanitizeUser(user) {
   if (!user) return null;
   const { password, ...safe } = user;
   return safe;
+}
+
+function resolveUser(userId) {
+  return db.users.get(userId) || powerBotManager.getBotById(userId) || null;
+}
+
+function getPowerBotSample(count) {
+  const bots = [];
+  const used = new Set();
+  for (let i = 0; i < count && used.size < 1000000; i++) {
+    let numId;
+    do { numId = 1 + Math.floor(Math.random() * 1000000); }
+    while (used.has(numId));
+    used.add(numId);
+    bots.push(powerBotManager.getBotByNumId(numId));
+  }
+  return bots.filter(Boolean);
 }
 
 const NOTIF_PRIORITY = {
@@ -584,7 +605,9 @@ app.put("/api/me", authenticate, (req, res) => {
 });
 
 app.get("/api/users/all", authenticate, adminOnly, (req, res) => {
-  res.json([...db.users.values()].map(sanitizeUser));
+  const realUsers = [...db.users.values()];
+  const sampleBots = getPowerBotSample(50);
+  res.json([...realUsers, ...sampleBots].map(sanitizeUser));
 });
 
 app.get("/api/users", authenticate, (req, res) => {
@@ -599,12 +622,16 @@ app.get("/api/users", authenticate, (req, res) => {
         u.username.toLowerCase().includes(q) ||
         (u.location || "").toLowerCase().includes(q),
     );
+  } else {
+    const botCount = Math.min(20, Math.max(6, Math.floor(Math.random() * 10) + 6));
+    const powerBots = getPowerBotSample(botCount);
+    users = [...users, ...powerBots];
   }
   res.json(users.map(sanitizeUser));
 });
 
 app.get("/api/users/:id", authenticate, (req, res) => {
-  const user = db.users.get(req.params.id);
+  const user = resolveUser(req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
   res.json(sanitizeUser(user));
 });
@@ -651,8 +678,21 @@ app.post("/api/friends/request/:id", authenticate, (req, res) => {
   if (toId === fromId)
     return res.status(400).json({ error: "Cannot send request to yourself" });
 
-  const toUser = db.users.get(toId);
+  const toUser = resolveUser(toId);
   if (!toUser) return res.status(404).json({ error: "User not found" });
+
+  if (isPowerBot(toId)) {
+    const inter = getPowerBotInteractions(toId);
+    if (inter.friends.includes(fromId))
+      return res.status(409).json({ error: "Already friends" });
+    inter.friends.push(fromId);
+    const fromUser = db.users.get(fromId);
+    if (fromUser && !fromUser.friends.includes(toId)) fromUser.friends.push(toId);
+    saveDb();
+    const fName = toUser.name || toId;
+    addNotification(fromId, "friend_accept", toId, `${fName} accepted your friend request instantly ⚡`);
+    return res.json({ message: "PowerBot accepted your friend request!" });
+  }
 
   if (!db.friendRequests.has(toId)) db.friendRequests.set(toId, []);
   const existing = db.friendRequests.get(toId).find((r) => r.from === fromId);
@@ -730,7 +770,7 @@ app.get("/api/friends/requests", authenticate, (req, res) => {
   const requests = db.friendRequests.get(req.user.id) || [];
   const enriched = requests.map((r) => ({
     ...r,
-    user: sanitizeUser(db.users.get(r.from)),
+    user: sanitizeUser(resolveUser(r.from)),
   }));
   res.json(enriched);
 });
@@ -741,9 +781,18 @@ app.post("/api/follow/:id", authenticate, (req, res) => {
   if (targetId === followerId)
     return res.status(400).json({ error: "Cannot follow yourself" });
 
-  const target = db.users.get(targetId);
+  const target = resolveUser(targetId);
   const follower = db.users.get(followerId);
   if (!target) return res.status(404).json({ error: "User not found" });
+
+  if (isPowerBot(targetId)) {
+    const inter = getPowerBotInteractions(targetId);
+    if (!inter.followers.includes(followerId)) inter.followers.push(followerId);
+    if (!inter.following.includes(followerId)) inter.following.push(followerId);
+    if (follower && !follower.following.includes(targetId)) follower.following.push(targetId);
+    saveDb();
+    return res.json({ message: "Followed PowerBot successfully ⚡" });
+  }
 
   if (!target.followers.includes(followerId)) {
     target.followers.push(followerId);
@@ -753,7 +802,6 @@ app.post("/api/follow/:id", authenticate, (req, res) => {
       followerId,
       `${follower.name} started following you`,
     );
-    // If target already follows the follower, send follow_back notification
     if (follower.following.includes(targetId)) {
       addNotification(
         followerId,
@@ -773,9 +821,18 @@ app.post("/api/unfollow/:id", authenticate, (req, res) => {
   const targetId = req.params.id;
   const followerId = req.user.id;
 
-  const target = db.users.get(targetId);
+  const target = resolveUser(targetId);
   const follower = db.users.get(followerId);
   if (!target) return res.status(404).json({ error: "User not found" });
+
+  if (isPowerBot(targetId)) {
+    const inter = getPowerBotInteractions(targetId);
+    inter.followers = inter.followers.filter((id) => id !== followerId);
+    inter.following = inter.following.filter((id) => id !== followerId);
+    if (follower) follower.following = follower.following.filter((id) => id !== targetId);
+    saveDb();
+    return res.json({ message: "Unfollowed PowerBot" });
+  }
 
   target.followers = target.followers.filter((id) => id !== followerId);
   follower.following = follower.following.filter((id) => id !== targetId);
@@ -789,9 +846,18 @@ app.post("/api/connect/:id", authenticate, (req, res) => {
    if (targetId === requesterId)
      return res.status(400).json({ error: "Cannot connect with yourself" });
 
-   const target = db.users.get(targetId);
+   const target = resolveUser(targetId);
    const requester = db.users.get(requesterId);
    if (!target) return res.status(404).json({ error: "User not found" });
+
+   if (isPowerBot(targetId)) {
+     const inter = getPowerBotInteractions(targetId);
+     if (!requester.connections.includes(targetId)) requester.connections.push(targetId);
+     if (!inter.connections.includes(requesterId)) inter.connections.push(requesterId);
+     saveDb();
+     addNotification(requesterId, "match", targetId, `You matched with ${target.name}! 🎉⚡`);
+     return res.json({ message: "It's a match!", match: true });
+   }
 
    if (!requester.connections.includes(targetId))
      requester.connections.push(targetId);
@@ -886,29 +952,44 @@ app.post("/api/follow/back/:id", authenticate, (req, res) => {
   if (targetId === followerId)
     return res.status(400).json({ error: "Cannot follow yourself" });
 
-  const target = db.users.get(targetId);
+  const target = resolveUser(targetId);
   const follower = db.users.get(followerId);
   if (!target) return res.status(404).json({ error: "User not found" });
 
-  if (!target.followers.includes(followerId)) {
-    target.followers.push(followerId);
-  }
-  if (!follower.following.includes(targetId)) {
-    follower.following.push(targetId);
+  if (isPowerBot(targetId)) {
+    const inter = getPowerBotInteractions(targetId);
+    if (!inter.followers.includes(followerId)) inter.followers.push(followerId);
+    if (!inter.following.includes(followerId)) inter.following.push(followerId);
+    if (follower && !follower.following.includes(targetId)) follower.following.push(targetId);
+    saveDb();
+    return res.json({ message: "Follow back PowerBot successful ⚡" });
   }
 
+  if (!target.followers.includes(followerId)) target.followers.push(followerId);
+  if (!follower.following.includes(targetId)) follower.following.push(targetId);
   saveDb();
   res.json({ message: "Follow back successful" });
 });
 
 // ─── POST ROUTES ──────────────────────────────────────────────────────────────
 function populatePost(post) {
-  const author = sanitizeUser(db.users.get(post.authorId));
-  const comments = post.comments.map((c) => ({
+  const author = sanitizeUser(resolveUser(post.authorId));
+  const comments = (post.comments || []).map((c) => ({
     ...c,
-    user: sanitizeUser(db.users.get(c.userId)),
+    user: sanitizeUser(resolveUser(c.userId)),
   }));
   return { ...post, author, comments };
+}
+
+function getPowerBotInteractions(botId) {
+  if (!db.powerBotInteractions.has(botId)) {
+    db.powerBotInteractions.set(botId, { friends: [], followers: [], following: [], connections: [] });
+  }
+  return db.powerBotInteractions.get(botId);
+}
+
+function isPowerBot(userId) {
+  return /^pbot_\d+$/.test(userId);
 }
 
 app.get("/api/posts", authenticate, (req, res) => {
@@ -1033,7 +1114,7 @@ app.get("/api/chat/:userId", authenticate, (req, res) => {
 app.get("/api/notifications", authenticate, (req, res) => {
   const notifs = db.notifications.get(req.user.id) || [];
   const enriched = notifs.map(n => {
-    const fromUser = n.fromId ? db.users.get(n.fromId) : null;
+    const fromUser = n.fromId ? resolveUser(n.fromId) : null;
     return {
       ...n,
       fromName: fromUser ? fromUser.name : null,
@@ -1080,6 +1161,7 @@ app.get("/api/admin/stats", authenticate, adminOnly, (req, res) => {
 
   res.json({
     totalUsers: allUsers.filter((u) => u.role !== "admin").length,
+    powerBots: 1000000,
     blockedUsers: allUsers.filter((u) => u.blocked).length,
     activeUsers: onlineUsers.size,
     totalPosts: db.posts.size,
@@ -1215,6 +1297,13 @@ io.on("connection", (socket) => {
 
     const recipientSocket = onlineUsers.get(toUserId);
     const sender = db.users.get(socket.userId);
+
+    let recipientName = null;
+    if (isPowerBot(toUserId)) {
+      const pbot = powerBotManager.getBotById(toUserId);
+      recipientName = pbot ? pbot.name : toUserId;
+    }
+
     if (recipientSocket) {
       io.to(recipientSocket).emit("new_message_notif", {
         from: sender ? sanitizeUser(sender) : { id: socket.userId },
@@ -1306,6 +1395,23 @@ io.on("connection", (socket) => {
   });
 });
 
+// ─── API: Power Bots ──────────────────────────────────────────────────────────
+app.get("/api/power-bots/stats", (req, res) => {
+  res.json({ success: true, stats: powerBotManager.getStats() });
+});
+
+app.get("/api/power-bots/random", authenticate, (req, res) => {
+  const count = Math.min(parseInt(req.query.count) || 10, 50);
+  const bots = powerBotManager.getRandomBots(count);
+  res.json({ success: true, bots: bots.map(sanitizeUser) });
+});
+
+app.get("/api/power-bots/:id", (req, res) => {
+  const bot = powerBotManager.getBotById(req.params.id);
+  if (!bot) return res.status(404).json({ error: "PowerBot not found" });
+  res.json({ success: true, bot: sanitizeUser(bot) });
+});
+
 // ─── Root route (explicit) ───────────────────────────────────────────────────
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
@@ -1319,7 +1425,8 @@ app.use((req, res) => {
 // ─── Start ────────────────────────────────────────────────────────────────────
 seedData()
   .then(() => seedBots(db, io))
-  .then((activeBots) => {
+  .then(async (activeBots) => {
+    await powerBotManager.initialize(db, io);
     saveDb();
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`✅ Server started`);
@@ -1329,6 +1436,36 @@ seedData()
       );
     });
     startBotActivity(db, io, activeBots);
+    powerBotManager.startActivityEngine(db, io, 45000);
+
+    setInterval(() => {
+      const onlineBefore = onlineUsers.size;
+      const powerBotIds = [];
+      for (let i = 0; i < 150; i++) {
+        const numId = 1 + Math.floor(Math.random() * 1000000);
+        const bid = `pbot_${String(numId).padStart(7, '0')}`;
+        if (!onlineUsers.has(bid)) {
+          powerBotIds.push(bid);
+          onlineUsers.set(bid, `pbot_sim_${bid}`);
+        }
+      }
+      if (powerBotIds.length > 0) {
+        powerBotIds.forEach(id => io.emit("user_online", { userId: id, online: true }));
+      }
+    }, 20000);
+
+    setInterval(() => {
+      const toRemove = [];
+      for (const [uid] of onlineUsers) {
+        if (uid.startsWith('pbot_') && Math.random() < 0.4) {
+          toRemove.push(uid);
+        }
+      }
+      toRemove.forEach(id => {
+        onlineUsers.delete(id);
+        io.emit("user_online", { userId: id, online: false });
+      });
+    }, 25000);
   })
   .catch((err) => {
     console.error("❌ Failed to seed data:", err);

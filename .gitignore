@@ -3,3 +3,4 @@ node_modules/
 *.log
 bik0/
 biko/
+power-bots/chunk_*.json
