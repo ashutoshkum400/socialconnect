@@ -12,12 +12,15 @@ const cors = require("cors");
 const { seedBots, startBotActivity } = require('./seed-bots');
 const { powerBotManager } = require('./power-bots');
 global.powerBotManager = powerBotManager;
+const { DataManager } = require('./data-manager');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "socialconnect-secret-key-2024";
 const ADMIN_SECRET = process.env.ADMIN_SECRET || "Admin@2024";
 const DATA_FILE = path.join(__dirname, "data.json");
+
+const dataManager = new DataManager({ dataFile: DATA_FILE });
 
 // ─── App / Server ─────────────────────────────────────────────────────────────
 const app = express();
@@ -37,6 +40,7 @@ const db = {
   powerBotInteractions: new Map(), // botId -> { friends:[], followers:[], following:[], connections:[] }
 };
 const onlineUsers = new Map(); // userId -> socketId
+dataManager.db = db;
 
 // ─── Persistence ──────────────────────────────────────────────────────────────
 /**
@@ -66,31 +70,14 @@ function dbFromJSON(json) {
  * on server shutdown / restart).
  */
 function saveDb() {
-  try {
-    const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DATA_FILE, JSON.stringify(dbToJSON(), null, 2), "utf-8");
-    if (powerBotManager && powerBotManager.flushAll) powerBotManager.flushAll();
-  } catch (err) {
-    console.error("❌ Failed to persist data:", err.message);
-  }
+  dataManager.save();
 }
 
 /**
  * Load db from disk. Returns true if data was loaded, false otherwise.
  */
 function loadDb() {
-  try {
-    if (!fs.existsSync(DATA_FILE)) return false;
-    const raw = fs.readFileSync(DATA_FILE, "utf-8");
-    const json = JSON.parse(raw);
-    dbFromJSON(json);
-    console.log("✅ Data restored from disk");
-    return true;
-  } catch (err) {
-    console.error("❌ Failed to load data.json:", err.message);
-    return false;
-  }
+  return dataManager.load();
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -198,6 +185,7 @@ function adminOnly(req, res, next) {
 const advancedPostAPI = require('./advanced-post-api');
 advancedPostAPI(app, io, db, authenticate);
 global.saveDb = saveDb;
+global.dataManager = dataManager;
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 async function seedData() {
@@ -1231,6 +1219,7 @@ app.get("/api/control/status", (req, res) => {
     activeUsers: onlineUsers.size,
     totalPosts: db.posts.size,
     totalChats: db.chats.size,
+    dataManager: dataManager.getStats(),
     message: "Control endpoint is active",
   });
 });
@@ -1427,7 +1416,9 @@ seedData()
   .then(() => seedBots(db, io))
   .then(async (activeBots) => {
     await powerBotManager.initialize(db, io);
+    dataManager.init(db, powerBotManager);
     saveDb();
+    dataManager.createBackup();
     server.listen(PORT, "0.0.0.0", () => {
       console.log(`✅ Server started`);
       console.log(`🚀 SocialConnect running on port ${PORT}`);
