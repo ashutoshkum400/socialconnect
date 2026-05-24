@@ -462,6 +462,9 @@
                         id="createPostCard"
                         aria-label="Create a post"
                     >
+                        <button class="create-post__minimize" onclick="toggleCreatePost()" aria-label="Minimize" title="Minimize">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="9 8 5 12 9 16"/></svg>
+                        </button>
                         <div class="create-post__top">
                             <img
                                 id="createPostAvatar"
@@ -493,6 +496,10 @@
                             </button>
                         </div>
                     </div>
+
+                    <button id="createPostFloatBtn" class="create-post__float-btn hidden" onclick="toggleCreatePost(); openAdvancedPostModal();" aria-label="Create post" title="Create post">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
 
                     <!-- Feed Loading Skeletons -->
                     <div

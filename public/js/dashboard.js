@@ -2022,6 +2022,30 @@ function collapseCreatePost() {
   // No longer needed - old create post UI removed
 }
 
+// ─── TOGGLE CREATE POST MINIMIZE ──────────────────────────────────────────────
+function toggleCreatePost() {
+  const card = document.getElementById('createPostCard');
+  const floatBtn = document.getElementById('createPostFloatBtn');
+  if (!card) return;
+
+  const isMinimized = card.classList.toggle('minimized');
+  if (isMinimized) {
+    card.style.maxHeight = '0';
+    card.style.opacity = '0';
+    card.style.marginBottom = '0';
+    card.style.padding = '0 12px';
+    card.style.overflow = 'hidden';
+    if (floatBtn) floatBtn.classList.remove('hidden');
+  } else {
+    card.style.maxHeight = '';
+    card.style.opacity = '';
+    card.style.marginBottom = '';
+    card.style.padding = '';
+    card.style.overflow = '';
+    if (floatBtn) floatBtn.classList.add('hidden');
+  }
+}
+
 // ─── OPEN ADVANCED POST MODAL ────────────────────────────────────────────────
 function openAdvancedPostModal() {
   if (window.AdvancedPost) {
