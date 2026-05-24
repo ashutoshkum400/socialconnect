@@ -25,6 +25,8 @@ let pendingRequests = [];      // pending friend requests list
 let openChatWindows = {};      // { userId: windowElement }
 let chatListAllUsers = [];     // all users for chat list
 let lastMatchedUserId = null;  // for "send message" after match banner
+let unreadCounts = {};         // { userId: count }
+let totalUnread = 0;           // total unread messages across all users
 
 // ─── API Helper ──────────────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
@@ -563,6 +565,63 @@ function playNotifSound() {
   } catch (e) { /* silent fallback */ }
 }
 
+// Sweet desirable love tone for incoming messages (1 second)
+function playMessageTone() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.2, ctx.currentTime);
+    master.connect(ctx.destination);
+
+    // Two-note romantic chime: C5 → E5 with gentle vibrato
+    const notes = [
+      { freq: 523.25, start: 0, dur: 0.5 },
+      { freq: 659.25, start: 0.25, dur: 0.6 },
+    ];
+    notes.forEach(({ freq, start, dur }) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+      // Gentle vibrato
+      const vibrato = ctx.createOscillator();
+      vibrato.frequency.value = 6;
+      vibrato.type = 'sine';
+      const vibratoGain = ctx.createGain();
+      vibratoGain.gain.value = 3;
+      vibrato.connect(vibratoGain);
+      vibratoGain.connect(osc.frequency);
+      vibrato.start(ctx.currentTime + start);
+      vibrato.stop(ctx.currentTime + start + dur);
+
+      gain.gain.setValueAtTime(0, ctx.currentTime + start);
+      gain.gain.linearRampToValueAtTime(0.8, ctx.currentTime + start + 0.06);
+      gain.gain.setValueAtTime(0.8, ctx.currentTime + start + dur - 0.15);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.connect(gain);
+      gain.connect(master);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur);
+    });
+
+    // Soft triangle pad underneath for warmth
+    const padGain = ctx.createGain();
+    padGain.gain.setValueAtTime(0.05, ctx.currentTime);
+    padGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+    padGain.connect(master);
+    [392.00, 523.25].forEach(f => {
+      const o = ctx.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = f;
+      o.connect(padGain);
+      o.start(ctx.currentTime);
+      o.stop(ctx.currentTime + 1.2);
+    });
+
+    setTimeout(() => { try { ctx.close(); } catch (e) {} }, 1500);
+  } catch (e) { /* silent fallback */ }
+}
+
 // Navigate to a specific post when clicking on like/comment/share notifications
 function navigateToPost(postId) {
   // Close the notification dropdown
@@ -870,6 +929,7 @@ async function loadSuggestions() {
     allUsers = result.data || [];
     chatListAllUsers = allUsers;
     renderChatList(allUsers);
+    loadUnreadCounts().then(() => renderChatList(allUsers));
     renderStories(allUsers);
   }
 
@@ -1413,18 +1473,25 @@ socket.on('notification', (notif) => {
 });
 
 socket.on('new_message_notif', ({ from, text, time }) => {
-  const chatBadge = document.getElementById('chatLauncherBadge');
-  if (chatBadge) {
-    const current = parseInt(chatBadge.textContent) || 0;
-    chatBadge.textContent = current + 1;
-    chatBadge.classList.remove('hidden');
+  // from can be an object { id, name, ... } or a string ID
+  const senderId = typeof from === 'object' ? (from.id || from._id) : from;
+  const senderName = typeof from === 'object' ? (from.name || 'Someone') : 'Someone';
+  const senderAvatar = typeof from === 'object' ? (from.avatar || '') : '';
+
+  // Play sweet love tone
+  playMessageTone();
+
+  // Update per-user unread count
+  if (senderId) {
+    unreadCounts[senderId] = (unreadCounts[senderId] || 0) + 1;
+    totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+    updateChatLauncherBadge();
   }
 
-  // Find sender name from allUsers
-  const sender = allUsers.find(u => u.id === from);
-  const senderName = sender ? sender.name : 'Someone';
-
-  showToast(`💬 ${senderName}: ${text}`, 'info', 5000);
+  // Show toast with sender info
+  showToast(`💬 ${senderName}: ${text}`, 'info', 5000, () => {
+    openChat(senderId, senderName, senderAvatar);
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1432,6 +1499,17 @@ socket.on('new_message_notif', ({ from, text, time }) => {
 // ═══════════════════════════════════════════════════════════════════
 
 // --- Chat List Panel ---
+function updateChatLauncherBadge() {
+  const badge = document.getElementById('chatLauncherBadge');
+  if (!badge) return;
+  if (totalUnread > 0) {
+    badge.textContent = formatBadgeCount(totalUnread);
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+}
+
 function toggleChatListPanel() {
   const panel = document.getElementById('chatListPanel');
   if (!panel) return;
@@ -1439,14 +1517,30 @@ function toggleChatListPanel() {
   panel.classList.toggle('hidden', !isHidden);
 
   if (isHidden) {
-    // Populate chat list
-    renderChatList(chatListAllUsers);
-    // Reset badge
-    const msgBadge = document.getElementById('msgBadge');
-    const chatBadge = document.getElementById('chatLauncherBadge');
-    if (msgBadge) msgBadge.classList.add('hidden');
-    if (chatBadge) chatBadge.classList.add('hidden');
+    // Load fresh unread counts then populate
+    loadUnreadCounts().then(() => {
+      renderChatList(chatListAllUsers);
+    });
+    // Clear the badge when opening panel
+    totalUnread = 0;
+    updateChatLauncherBadge();
   }
+}
+
+// Load unread message counts from server
+async function loadUnreadCounts() {
+  try {
+    const result = await apiFetch('/chat/unread/counts');
+    if (result && result.ok) {
+      unreadCounts = result.data.counts || {};
+      totalUnread = result.data.total || 0;
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function formatBadgeCount(count) {
+  if (!count || count <= 0) return '';
+  return count >= 100 ? '99+' : String(count);
 }
 
 function renderChatList(users) {
@@ -1459,14 +1553,25 @@ function renderChatList(users) {
     return;
   }
 
-  list.innerHTML = others.map(u => `
+  // Sort by unread count descending so most active conversations appear first
+  const sorted = [...others].sort((a, b) => {
+    const aUnread = unreadCounts[a.id] || 0;
+    const bUnread = unreadCounts[b.id] || 0;
+    if (bUnread !== aUnread) return bUnread - aUnread;
+    return a.name.localeCompare(b.name);
+  });
+
+  list.innerHTML = sorted.map(u => {
+    const uc = unreadCounts[u.id] || 0;
+    const badgeText = formatBadgeCount(uc);
+    return `
     <div
-      class="chat-list-item"
+      class="chat-list-item${uc > 0 ? ' unread' : ''}"
       role="listitem"
       onclick="openChat('${u.id}', '${escapeHtml(u.name)}', '${u.avatar || avatarUrl(u.name)}')"
       tabindex="0"
       onkeydown="if(event.key==='Enter') openChat('${u.id}', '${escapeHtml(u.name)}', '${u.avatar || avatarUrl(u.name)}')"
-      aria-label="Chat with ${escapeHtml(u.name)}"
+      aria-label="Chat with ${escapeHtml(u.name)}${uc > 0 ? ', ' + uc + ' unread messages' : ''}"
     >
       <div class="chat-list-item__avatar-wrap" style="position:relative;">
         <img
@@ -1476,13 +1581,14 @@ function renderChatList(users) {
           onerror="this.src='${avatarUrl(u.name)}'"
         >
         ${onlineUserIds.has(u.id) ? `<span class="online-dot online-dot--sm" style="position:absolute;bottom:0;right:0;"></span>` : ''}
+        ${uc > 0 ? `<span class="chat-list-item__badge">${badgeText}</span>` : ''}
       </div>
       <div class="chat-list-item__info">
         <span class="chat-list-item__name">${escapeHtml(u.name)}</span>
-        <span class="chat-list-item__preview">${onlineUserIds.has(u.id) ? 'Active now' : 'Tap to message'}</span>
+        <span class="chat-list-item__preview">${uc > 0 ? `${uc} unread message${uc !== 1 ? 's' : ''}` : (onlineUserIds.has(u.id) ? 'Active now' : 'Tap to message')}</span>
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
 function filterChatList(query) {
@@ -1500,6 +1606,17 @@ function openChat(userId, userName, userAvatar) {
   // Close chat list panel
   const panel = document.getElementById('chatListPanel');
   if (panel) panel.classList.add('hidden');
+
+  // Reset unread count for this user
+  if (unreadCounts[userId]) {
+    delete unreadCounts[userId];
+    totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+    updateChatLauncherBadge();
+    // Re-render chat list if panel is open
+    if (panel && !panel.classList.contains('hidden')) {
+      renderChatList(chatListAllUsers);
+    }
+  }
 
   // If window already open, focus it
   if (openChatWindows[userId]) {

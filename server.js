@@ -1102,12 +1102,33 @@ app.get("/api/chat/:userId", authenticate, (req, res) => {
   if (!db.chats.has(key)) db.chats.set(key, []);
   const messages = db.chats.get(key);
 
-  // Mark received messages as read
+  // Mark received messages as read and persist
+  let changed = false;
   messages.forEach((m) => {
-    if (m.receiverId === myId) m.read = true;
+    if (m.receiverId === myId && !m.read) { m.read = true; changed = true; }
   });
+  if (changed) saveDb();
 
   res.json(messages);
+});
+
+// GET unread message counts per user
+app.get("/api/chat/unread/counts", authenticate, (req, res) => {
+  const myId = req.user.id;
+  const counts = {};
+  let total = 0;
+  for (const [key, msgs] of db.chats.entries()) {
+    const parts = key.split('_');
+    if (parts.includes(myId)) {
+      const otherId = parts.find(id => id !== myId);
+      const unread = msgs.filter(m => m.receiverId === myId && !m.read).length;
+      if (unread > 0) {
+        counts[otherId] = (counts[otherId] || 0) + unread;
+        total += unread;
+      }
+    }
+  }
+  res.json({ total, counts });
 });
 
 // ─── NOTIFICATION ROUTES ──────────────────────────────────────────────────────
