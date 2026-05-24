@@ -233,7 +233,8 @@ function createPostElement(post) {
       `}
     </div>
 
-    ${post.feeling || post.activity || post.location ? `
+    <div class="post-card__body" id="postBody_${post.id}">
+      ${post.feeling || post.activity || post.location ? `
       <div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 var(--space-md) var(--space-xs);">
         ${post.feeling ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.feeling}</span>` : ''}
         ${post.activity ? `<span class="tag" style="font-size:12px;padding:3px 10px;">${post.activity}</span>` : ''}
@@ -304,6 +305,7 @@ function createPostElement(post) {
         ${shareCount > 0 ? `<span class="post-card__stat-item">${formatCount(shareCount)} share${shareCount !== 1 ? 's' : ''}</span>` : ''}
       </div>
     </div>
+    </div>
 
     <div class="post-card__actions">
       <button class="post-card__action-btn${liked ? ' liked' : ''}" id="likeBtn_${post.id}" onclick="likePost('${post.id}')" aria-label="${liked ? 'Unlike' : 'Like'} post" aria-pressed="${liked}">
@@ -317,6 +319,9 @@ function createPostElement(post) {
       <button class="post-card__action-btn" onclick="sharePost('${post.id}')" aria-label="Share post">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
         <span>Share</span>
+      </button>
+      <button class="post-card__action-btn post-card__minimize-btn" onclick="toggleMinimizePost('${post.id}')" aria-label="Minimize post" title="Minimize">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="9 8 5 12 9 16"/></svg>
       </button>
     </div>
 
@@ -1164,6 +1169,47 @@ function handleCommentKeydown(event, postId) {
     const text = event.target.value;
     event.target.value = '';
     commentPost(postId, text);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 16b. MINIMIZE POST
+// ═══════════════════════════════════════════════════════════════════
+function toggleMinimizePost(postId) {
+  const card = document.querySelector(`article[data-post-id="${postId}"]`);
+  if (!card) return;
+
+  if (card.classList.contains('minimized')) {
+    card.classList.remove('minimized');
+    const body = card.querySelector('.post-card__body');
+    if (body) body.style.display = '';
+    const btn = card.querySelector('.post-card__minimize-btn');
+    if (btn) {
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="9 8 5 12 9 16"/></svg>';
+      btn.title = 'Minimize';
+    }
+    return;
+  }
+
+  const body = card.querySelector('.post-card__body');
+  const hasContent = body && body.innerHTML.trim().length > 20;
+  const btn = card.querySelector('.post-card__minimize-btn');
+
+  if (!hasContent) {
+    card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.95)';
+    setTimeout(() => card.remove(), 300);
+    return;
+  }
+
+  card.classList.add('minimized');
+  if (body) body.style.display = 'none';
+  const comments = card.querySelector('.post-card__comments');
+  if (comments) comments.classList.add('hidden');
+  if (btn) {
+    btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="15 8 19 12 15 16"/></svg>';
+    btn.title = 'Expand';
   }
 }
 
