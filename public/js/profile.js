@@ -270,7 +270,7 @@ async function loadProfile(userId) {
       cpAvatar.onerror = function () { this.src = avatarFallback(user.name || 'Me'); };
     }
 
-    // ── Name, username, bio
+    // ── Name, username, bio, joined
     const nameEl = document.getElementById('profileName');
     if (nameEl) nameEl.textContent = user.name || 'Unknown';
 
@@ -280,7 +280,17 @@ async function loadProfile(userId) {
     const bioEl = document.getElementById('profileBio');
     if (bioEl) bioEl.textContent = user.bio || '';
 
-    // ── Meta pills: location · gender · age · lookingFor
+    const joinedEl = document.getElementById('profileJoined');
+    if (joinedEl) {
+      if (user.joinedAt) {
+        const d = new Date(user.joinedAt);
+        joinedEl.textContent = `📅 Joined ${d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`;
+      } else {
+        joinedEl.textContent = '';
+      }
+    }
+
+    // ── Meta pills: location · gender · age · lookingFor · joined
     const metaEl = document.getElementById('profileMeta');
     if (metaEl) {
       const pills = [];
@@ -289,6 +299,11 @@ async function loadProfile(userId) {
       const age = getAge(user.birthDate);
       if (age)             pills.push(`<span class="profile-details__meta-item">🎂 ${age} yrs</span>`);
       if (user.lookingFor) pills.push(`<span class="profile-details__meta-item">💜 ${escapeHtml(capitalize(user.lookingFor))}</span>`);
+      if (user.joinedAt) {
+        const d = new Date(user.joinedAt);
+        const joinedStr = d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        pills.push(`<span class="profile-details__meta-item">📅 Joined ${joinedStr}</span>`);
+      }
       metaEl.innerHTML = pills.join('');
     }
 
