@@ -1892,15 +1892,15 @@ function togglePostOptionsMenu(event, postId) {
 // Close dropdowns on outside click
 document.addEventListener('click', (e) => {
   const dropdown = document.getElementById('notifDropdown');
-  const notifBtn = e.target.closest('[onclick*="toggleNotifDropdown"]');
+  const isNotifBtn = e.target.closest('#notifBtn') || e.target.closest('[onclick*="toggleNotifDropdown"]');
 
-  // If notification dropdown is open and we clicked outside it
-  if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.notifications-dropdown')) {
+  // If notification dropdown is open and we clicked outside it (and not on the button)
+  if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.notifications-dropdown') && !isNotifBtn) {
     closeNotifDropdown();
   }
 
-  // Close other dropdowns
-  if (!e.target.closest('.dropdown') && !e.target.closest('.notifications-dropdown')) {
+  // Close other dropdowns (but not when clicking notification button or its dropdown)
+  if (!e.target.closest('.dropdown') && !e.target.closest('.notifications-dropdown') && !isNotifBtn) {
     closeAllDropdowns();
     closeAllMenus();
   }
