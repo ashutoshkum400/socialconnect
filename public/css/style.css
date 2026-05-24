@@ -2155,13 +2155,28 @@ p {
   display: block;
 }
 
+.notification-item__actions {
+   display: flex;
+   gap: var(--space-xs);
+   margin-top: var(--space-xs);
+   flex-shrink: 0;
+}
+
+/* Unread dot indicator */
 .notification-item__unread-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--primary);
-  flex-shrink: 0;
-  margin-top: 6px;
+   position: absolute;
+   top: 12px;
+   right: 12px;
+   width: 8px;
+   height: 8px;
+   background: var(--primary);
+   border-radius: 50%;
+}
+
+/* Ensure action buttons are small */
+.notification-item__actions .btn--xs {
+   padding: 2px 6px;
+   font-size: var(--font-size-xs);
 }
 
 /* ==========================================================================

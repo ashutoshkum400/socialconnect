@@ -747,31 +747,46 @@ async function followUser(userId) {
 // 11. CONNECT USER (dating)
 // ═══════════════════════════════════════════════════════════════════
 async function connectUser(userId) {
-  const result = await apiFetch(`/connect/${userId}`, { method: 'POST' });
-  if (!result || !result.ok) {
-    showToast('Could not connect', 'error');
-    return;
-  }
+   const result = await apiFetch(`/connect/${userId}`, { method: 'POST' });
+   if (!result || !result.ok) {
+     showToast('Could not connect', 'error');
+     return;
+   }
 
-  const data = result.data;
+   const data = result.data;
 
-  // Update connect buttons for this user
-  document.querySelectorAll(`[data-connect-btn="${userId}"]`).forEach(btn => {
-    btn.textContent = data.match ? '💜 Matched!' : '💜 Interested';
-    btn.disabled = data.match;
-    btn.classList.add('btn--match', 'matched');
-  });
+   // Update connect buttons for this user
+   document.querySelectorAll(`[data-connect-btn="${userId}"]`).forEach(btn => {
+     btn.textContent = data.match ? '💜 Matched!' : '💜 Interested';
+     btn.disabled = data.match;
+     btn.classList.add('btn--match', 'matched');
+   });
 
-  if (data.match) {
-    lastMatchedUserId = userId;
-    const matchedUser = allUsers.find(u => u.id === userId);
-    const sub = document.getElementById('matchBannerSub');
-    if (sub && matchedUser) sub.textContent = `You and ${matchedUser.name} connected!`;
-    showMatchBanner();
-  } else {
-    showToast('Connection request sent 💜', 'success');
-  }
-}
+   if (data.match) {
+     lastMatchedUserId = userId;
+     const matchedUser = allUsers.find(u => u.id === userId);
+     const sub = document.getElementById('matchBannerSub');
+     if (sub && matchedUser) sub.textContent = `You and ${matchedUser.name} connected!`;
+     showMatchBanner();
+   } else {
+     showToast('Connection request sent 💜', 'success');
+   }
+ }
+
+ async function acceptConnection(userId) {
+   const result = await apiFetch(`/connect/accept/${userId}`, { method: 'POST' });
+   if (!result || !result.ok) {
+     showToast('Could not accept connection', 'error');
+     return;
+   }
+
+   showToast('Connection accepted! 💜', 'success');
+   
+   // Update notifications
+   allNotifications = allNotifications.filter(n => !(n.type === 'connect' && n.fromId === userId));
+   renderNotifications(allNotifications);
+   updateNotifBadge();
+ }
 
 // ═══════════════════════════════════════════════════════════════════
 // 12. LOAD SUGGESTIONS
@@ -1698,7 +1713,6 @@ document.addEventListener('click', (e) => {
 // Notifications dropdown
 function toggleNotifDropdown() {
   const dropdown = document.getElementById('notifDropdown');
-  const btn = document.getElementById('notifBtn');
   if (!dropdown) return;
 
   const isHidden = dropdown.classList.contains('hidden');
@@ -1706,11 +1720,20 @@ function toggleNotifDropdown() {
 
   if (isHidden) {
     dropdown.classList.remove('hidden');
-    btn && btn.setAttribute('aria-expanded', 'true');
+    document.getElementById('notifBtn')?.setAttribute('aria-expanded', 'true');
     // Mark as read when opened
     if (allNotifications.some(n => !n.read)) {
       setTimeout(markAllNotifsRead, 2000);
     }
+  }
+}
+
+// Close notification dropdown (for mobile)
+function closeNotifDropdown() {
+  const dropdown = document.getElementById('notifDropdown');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+    document.getElementById('notifBtn')?.setAttribute('aria-expanded', 'false');
   }
 }
 
@@ -1752,6 +1775,15 @@ function togglePostOptionsMenu(event, postId) {
 
 // Close dropdowns on outside click
 document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('notifDropdown');
+  const notifBtn = e.target.closest('[onclick*="toggleNotifDropdown"]');
+
+  // If notification dropdown is open and we clicked outside it
+  if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('.notifications-dropdown')) {
+    closeNotifDropdown();
+  }
+
+  // Close other dropdowns
   if (!e.target.closest('.dropdown') && !e.target.closest('.notifications-dropdown')) {
     closeAllDropdowns();
     closeAllMenus();

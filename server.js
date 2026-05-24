@@ -102,19 +102,35 @@ function sanitizeUser(user) {
 }
 
 function addNotification(userId, type, fromId, text) {
-  if (!db.notifications.has(userId)) db.notifications.set(userId, []);
-  const notif = {
-    id: uuidv4(),
-    type,
-    fromId,
-    text,
-    read: false,
-    time: new Date().toISOString(),
-  };
-  db.notifications.get(userId).unshift(notif);
-  const socketId = onlineUsers.get(userId);
-  if (socketId) io.to(socketId).emit("notification", notif);
-}
+   if (!db.notifications.has(userId)) db.notifications.set(userId, []);
+   const notif = {
+     id: uuidv4(),
+     type,
+     fromId: fromId || null,
+     text,
+     read: false,
+     time: new Date().toISOString(),
+   };
+   db.notifications.get(userId).unshift(notif);
+   const socketId = onlineUsers.get(userId);
+   if (socketId) io.to(socketId).emit("notification", notif);
+ }
+
+ function addNotificationWithPost(userId, type, fromId, text, postId) {
+   if (!db.notifications.has(userId)) db.notifications.set(userId, []);
+   const notif = {
+     id: uuidv4(),
+     type,
+     fromId: fromId || null,
+     text,
+     postId: postId || null,
+     read: false,
+     time: new Date().toISOString(),
+   };
+   db.notifications.get(userId).unshift(notif);
+   const socketId = onlineUsers.get(userId);
+   if (socketId) io.to(socketId).emit("notification", notif);
+ }
 
 function chatKey(a, b) {
   return [a, b].sort().join("_");
@@ -743,36 +759,36 @@ app.post("/api/unfollow/:id", authenticate, (req, res) => {
 });
 
 app.post("/api/connect/:id", authenticate, (req, res) => {
-  const targetId = req.params.id;
-  const requesterId = req.user.id;
-  if (targetId === requesterId)
-    return res.status(400).json({ error: "Cannot connect with yourself" });
+   const targetId = req.params.id;
+   const requesterId = req.user.id;
+   if (targetId === requesterId)
+     return res.status(400).json({ error: "Cannot connect with yourself" });
 
-  const target = db.users.get(targetId);
-  const requester = db.users.get(requesterId);
-  if (!target) return res.status(404).json({ error: "User not found" });
+   const target = db.users.get(targetId);
+   const requester = db.users.get(requesterId);
+   if (!target) return res.status(404).json({ error: "User not found" });
 
-  if (!requester.connections.includes(targetId))
-    requester.connections.push(targetId);
+   if (!requester.connections.includes(targetId))
+     requester.connections.push(targetId);
 
-  saveDb();
+   saveDb();
 
-  // Check for mutual connection (match)
-  if (target.connections.includes(requesterId)) {
-    addNotification(
-      targetId,
-      "match",
-      requesterId,
-      `You matched with ${requester.name}! 🎉`,
-    );
-    addNotification(
-      requesterId,
-      "match",
-      targetId,
-      `You matched with ${target.name}! 🎉`,
-    );
-    return res.json({ message: "It's a match!", match: true });
-  }
+   // Check for mutual connection (match)
+   if (target.connections.includes(requesterId)) {
+     addNotification(
+       targetId,
+       "match",
+       requesterId,
+       `You matched with ${requester.name}! 🎉`,
+     );
+     addNotification(
+       requesterId,
+       "match",
+       targetId,
+       `You matched with ${target.name}! 🎉`,
+     );
+     return res.json({ message: "It's a match!", match: true });
+   }
 
   addNotification(
     targetId,
@@ -913,61 +929,63 @@ app.delete("/api/posts/:id", authenticate, (req, res) => {
 });
 
 app.post("/api/posts/:id/like", authenticate, (req, res) => {
-  const post = db.posts.get(req.params.id);
-  if (!post) return res.status(404).json({ error: "Post not found" });
+   const post = db.posts.get(req.params.id);
+   if (!post) return res.status(404).json({ error: "Post not found" });
 
-  const uid = req.user.id;
-  const idx = post.likes.indexOf(uid);
-  if (idx === -1) {
-    post.likes.push(uid);
-    if (post.authorId !== uid) {
-      const liker = db.users.get(uid);
-      addNotification(
-        post.authorId,
-        "like",
-        uid,
-        `${liker.name} liked your post`,
-      );
-    }
-  } else {
-    post.likes.splice(idx, 1);
-  }
+   const uid = req.user.id;
+   const idx = post.likes.indexOf(uid);
+   if (idx === -1) {
+     post.likes.push(uid);
+     if (post.authorId !== uid) {
+       const liker = db.users.get(uid);
+       addNotificationWithPost(
+         post.authorId,
+         "like",
+         uid,
+         `${liker.name} liked your post`,
+         post.id
+       );
+     }
+   } else {
+     post.likes.splice(idx, 1);
+   }
 
-  saveDb();
-  io.emit("post_like", { postId: post.id, likes: post.likes });
-  res.json({ likes: post.likes });
-});
+   saveDb();
+   io.emit("post_like", { postId: post.id, likes: post.likes });
+   res.json({ likes: post.likes });
+ });
 
 app.post("/api/posts/:id/comment", authenticate, (req, res) => {
-  const post = db.posts.get(req.params.id);
-  if (!post) return res.status(404).json({ error: "Post not found" });
+   const post = db.posts.get(req.params.id);
+   if (!post) return res.status(404).json({ error: "Post not found" });
 
-  const { text } = req.body;
-  if (!text) return res.status(400).json({ error: "Comment text required" });
+   const { text } = req.body;
+   if (!text) return res.status(400).json({ error: "Comment text required" });
 
-  const commenter = db.users.get(req.user.id);
-  const comment = {
-    id: uuidv4(),
-    userId: req.user.id,
-    text,
-    time: new Date().toISOString(),
-  };
-  post.comments.push(comment);
-  saveDb();
+   const commenter = db.users.get(req.user.id);
+   const comment = {
+     id: uuidv4(),
+     userId: req.user.id,
+     text,
+     time: new Date().toISOString(),
+   };
+   post.comments.push(comment);
+   saveDb();
 
-  if (post.authorId !== req.user.id) {
-    addNotification(
-      post.authorId,
-      "comment",
-      req.user.id,
-      `${commenter.name} commented on your post`,
-    );
-  }
+   if (post.authorId !== req.user.id) {
+     addNotificationWithPost(
+       post.authorId,
+       "comment",
+       req.user.id,
+       `${commenter.name} commented on your post`,
+       post.id
+     );
+   }
 
-  const enriched = { ...comment, user: sanitizeUser(commenter) };
-  io.emit("new_comment", { postId: post.id, comment: enriched });
-  res.status(201).json(enriched);
-});
+   const enriched = { ...comment, user: sanitizeUser(commenter) };
+   io.emit("new_comment", { postId: post.id, comment: enriched });
+   res.status(201).json(enriched);
+ });
 
 // ─── CHAT ROUTES ──────────────────────────────────────────────────────────────
 app.get("/api/chat/:userId", authenticate, (req, res) => {
