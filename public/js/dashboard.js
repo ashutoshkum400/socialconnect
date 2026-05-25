@@ -1527,14 +1527,13 @@ async function loadStickerLibrary() {
 }
 
 function toggleMediaPicker(userId, pickerType) {
-  if (pickerType === 'emoji') {
-    openEmojiModal(userId);
-    return;
-  }
   const existing = document.querySelector(`[data-chat-picker="${userId}"]`);
   if (existing) {
+    if (existing.dataset.pickerType === pickerType) {
+      existing.remove();
+      return;
+    }
     existing.remove();
-    if (existing.dataset.pickerType === pickerType) return;
   }
   const picker = document.createElement('div');
   picker.className = 'chat-media-picker';
@@ -1542,7 +1541,9 @@ function toggleMediaPicker(userId, pickerType) {
   picker.setAttribute('data-picker-type', pickerType);
   picker.style.pointerEvents = 'all';
 
-  if (pickerType === 'gif') {
+  if (pickerType === 'emoji') {
+    renderEmojiPicker(picker, userId);
+  } else if (pickerType === 'gif') {
     renderGifPicker(picker, userId);
   } else if (pickerType === 'sticker') {
     renderStickerPicker(picker, userId);
@@ -1554,98 +1555,60 @@ function toggleMediaPicker(userId, pickerType) {
   }
 }
 
-function openEmojiModal(userId) {
-  const existing = document.getElementById('emojiModal');
-  if (existing) existing.remove();
-
-  const overlay = document.createElement('div');
-  overlay.className = 'modal-overlay emoji-modal-overlay';
-  overlay.id = 'emojiModal';
-  overlay.style.zIndex = '10000';
-
-  const modal = document.createElement('div');
-  modal.className = 'modal emoji-modal';
-
-  if (!emojiData) {
-    modal.innerHTML = '<div class="emoji-modal__loading">Loading emojis...</div>';
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-    loadEmojiData().then(() => {
-      modal.innerHTML = '';
-      renderEmojiPicker(modal, userId);
-    });
-  } else {
-    renderEmojiPicker(modal, userId);
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-  }
-
-  overlay.addEventListener('click', (e) => {
-    if (e.target === overlay) overlay.remove();
-  });
-}
-
-function renderEmojiPicker(container, userId) {
+function renderEmojiPicker(picker, userId) {
   const cats = emojiData ? Object.keys(emojiData) : [];
   let activeCat = cats[0] || 'Smileys';
 
   const header = document.createElement('div');
-  header.className = 'emoji-modal__header';
-  header.innerHTML = `
-    <div class="emoji-modal__title">Choose an emoji</div>
-    <button class="emoji-modal__close" aria-label="Close emoji picker">&times;</button>
-  `;
-  header.querySelector('.emoji-modal__close').addEventListener('click', () => {
-    const overlay = document.getElementById('emojiModal');
-    if (overlay) overlay.remove();
-  });
-
-  const tabs = document.createElement('div');
-  tabs.className = 'emoji-modal__tabs';
-  tabs.innerHTML = cats.map(c => `
-    <button class="emoji-modal__tab${c === activeCat ? ' active' : ''}" data-cat="${c}">${c}</button>
+  header.className = 'chat-media-picker__tabs';
+  header.innerHTML = cats.map(c => `
+    <button class="chat-media-picker__tab${c === activeCat ? ' active' : ''}" data-cat="${c}">${c}</button>
   `).join('');
 
   const body = document.createElement('div');
-  body.className = 'emoji-modal__body';
+  body.className = 'chat-media-picker__body';
 
   function renderCategory(cat) {
     const emojis = (emojiData && emojiData[cat]) || [];
-    body.innerHTML = `<div class="emoji-modal__grid">${emojis.map(e => {
+    body.innerHTML = `<div class="chat-media-picker__grid">${emojis.map(e => {
       if (typeof e === 'object' && e.url) {
-        return `<button class="emoji-modal__emoji" data-type="animated" data-url="${e.url}" data-name="${escapeHtml(e.name || '')}" title="${escapeHtml(e.name || '')}">
+        return `<button class="chat-media-picker__emoji" data-type="animated" data-url="${e.url}" data-name="${escapeHtml(e.name || '')}" title="${escapeHtml(e.name || '')}">
           <img src="${e.url}" alt="${escapeHtml(e.name || '')}" loading="lazy">
         </button>`;
       }
-      return `<button class="emoji-modal__emoji" data-type="static" data-char="${e}">${e}</button>`;
+      return `<button class="chat-media-picker__emoji" data-type="static" data-char="${e}">${e}</button>`;
     }).join('')}</div>`;
 
-    body.querySelectorAll('.emoji-modal__emoji').forEach(btn => {
+    body.querySelectorAll('.chat-media-picker__emoji').forEach(btn => {
       btn.addEventListener('click', () => {
         if (btn.dataset.type === 'animated') {
           sendMediaMessage(userId, 'emoji', btn.dataset.url, btn.dataset.name);
         } else {
           sendMediaMessage(userId, 'emoji', null, btn.dataset.char);
         }
-        const overlay = document.getElementById('emojiModal');
-        if (overlay) overlay.remove();
+        const pickerEl = document.querySelector(`[data-chat-picker="${userId}"]`);
+        if (pickerEl) pickerEl.remove();
       });
     });
   }
 
   renderCategory(activeCat);
 
-  tabs.addEventListener('click', (e) => {
-    const tab = e.target.closest('.emoji-modal__tab');
+  header.addEventListener('click', (e) => {
+    const tab = e.target.closest('.chat-media-picker__tab');
     if (!tab) return;
-    tabs.querySelectorAll('.emoji-modal__tab').forEach(t => t.classList.remove('active'));
+    header.querySelectorAll('.chat-media-picker__tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     renderCategory(tab.dataset.cat);
   });
 
-  container.appendChild(header);
-  container.appendChild(tabs);
-  container.appendChild(body);
+  if (!emojiData) {
+    body.innerHTML = '<div style="padding:var(--space-md);text-align:center;color:var(--text-muted);">Loading emojis...</div>';
+    loadEmojiData();
+  }
+
+  picker.appendChild(header);
+  picker.appendChild(body);
 }
 
 function renderGifPicker(picker, userId) {
@@ -1658,18 +1621,43 @@ function renderGifPicker(picker, userId) {
     return;
   }
 
-  body.innerHTML = `<div class="chat-media-picker__grid chat-media-picker__grid--media">${gifLibrary.map(g => `
-    <button class="chat-media-picker__media" data-gif-id="${g.id}" data-url="${g.url}" title="${escapeHtml(g.name)}">
-      <img src="${g.url}" alt="${escapeHtml(g.name)}" loading="lazy">
-    </button>
-  `).join('')}</div>`;
+  const searchDiv = document.createElement('div');
+  searchDiv.className = 'chat-media-picker__search';
+  searchDiv.innerHTML = '<input class="chat-media-picker__search-input" type="text" placeholder="Search GIFs...">';
 
-  body.querySelectorAll('.chat-media-picker__media').forEach(btn => {
-    btn.addEventListener('click', () => {
-      sendMediaMessage(userId, 'gif', btn.dataset.url, btn.querySelector('img').alt);
+  const grid = document.createElement('div');
+  grid.className = 'chat-media-picker__grid chat-media-picker__grid--media';
+
+  function renderGifs(query) {
+    const q = query.toLowerCase().trim();
+    const filtered = q ? gifLibrary.filter(g => g.name.toLowerCase().includes(q)) : gifLibrary;
+    if (!filtered.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">No GIFs found</div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(g => `
+      <button class="chat-media-picker__media" data-gif-id="${g.id}" data-url="${g.url}" title="${escapeHtml(g.name)}">
+        <img src="${g.url}" alt="${escapeHtml(g.name)}" loading="lazy">
+      </button>
+    `).join('');
+    grid.querySelectorAll('.chat-media-picker__media').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sendMediaMessage(userId, 'gif', btn.dataset.url, btn.querySelector('img').alt);
+      });
     });
+  }
+
+  renderGifs('');
+
+  const input = searchDiv.querySelector('input');
+  let debounceTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => renderGifs(input.value), 150);
   });
 
+  body.appendChild(searchDiv);
+  body.appendChild(grid);
   picker.appendChild(body);
 }
 
@@ -1683,18 +1671,43 @@ function renderStickerPicker(picker, userId) {
     return;
   }
 
-  body.innerHTML = `<div class="chat-media-picker__grid chat-media-picker__grid--media">${stickerLibrary.map(s => `
-    <button class="chat-media-picker__media chat-media-picker__media--sticker" data-sticker-id="${s.id}" data-url="${s.url}" title="${escapeHtml(s.name)}">
-      <img src="${s.url}" alt="${escapeHtml(s.name)}" loading="lazy">
-    </button>
-  `).join('')}</div>`;
+  const searchDiv = document.createElement('div');
+  searchDiv.className = 'chat-media-picker__search';
+  searchDiv.innerHTML = '<input class="chat-media-picker__search-input" type="text" placeholder="Search stickers...">';
 
-  body.querySelectorAll('.chat-media-picker__media').forEach(btn => {
-    btn.addEventListener('click', () => {
-      sendMediaMessage(userId, 'sticker', btn.dataset.url, btn.querySelector('img').alt);
+  const grid = document.createElement('div');
+  grid.className = 'chat-media-picker__grid chat-media-picker__grid--media';
+
+  function renderStickers(query) {
+    const q = query.toLowerCase().trim();
+    const filtered = q ? stickerLibrary.filter(s => s.name.toLowerCase().includes(q)) : stickerLibrary;
+    if (!filtered.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted);font-size:12px;">No stickers found</div>';
+      return;
+    }
+    grid.innerHTML = filtered.map(s => `
+      <button class="chat-media-picker__media chat-media-picker__media--sticker" data-sticker-id="${s.id}" data-url="${s.url}" title="${escapeHtml(s.name)}">
+        <img src="${s.url}" alt="${escapeHtml(s.name)}" loading="lazy">
+      </button>
+    `).join('');
+    grid.querySelectorAll('.chat-media-picker__media').forEach(btn => {
+      btn.addEventListener('click', () => {
+        sendMediaMessage(userId, 'sticker', btn.dataset.url, btn.querySelector('img').alt);
+      });
     });
+  }
+
+  renderStickers('');
+
+  const input = searchDiv.querySelector('input');
+  let debounceTimer;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => renderStickers(input.value), 150);
   });
 
+  body.appendChild(searchDiv);
+  body.appendChild(grid);
   picker.appendChild(body);
 }
 

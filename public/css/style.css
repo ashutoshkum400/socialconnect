@@ -2298,6 +2298,32 @@ p {
   background: var(--bg);
 }
 
+.chat-media-picker__search {
+  padding: 6px 8px;
+  flex-shrink: 0;
+}
+
+.chat-media-picker__search-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color var(--transition);
+}
+
+.chat-media-picker__search-input:focus {
+  border-color: var(--primary);
+}
+
+.chat-media-picker__search-input::placeholder {
+  color: var(--text-muted);
+}
+
 /* Emoji modal */
 .emoji-modal-overlay {
   z-index: 10000 !important;
