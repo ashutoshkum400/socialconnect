@@ -1289,26 +1289,53 @@ const GIPHY_IDS = [
 ];
 const GIF_NAMES = ['Dancing','Celebrate','Love','Party','Wave','LOL','Cool','OMG','Bye','Sleepy','Happy','Clap','Mindblown','Fire','Heart','Cute','Kiss','Hug','Joy','Sad','Angry','Thumbs Up','Confetti','Sparkle','Dance','Groove','Funny','Wow','Chill','Goodbye','Tired','Jump','Spin','Blush','Cry','Yay','Cheers','Amazed','Peace','Smile','Laugh','Star','Sunshine','Rainbow','Magic','Dream','Cozy','BFF','Hi','Bye'];
 
-// Download all unique Giphy GIFs to local disk
-function downloadAllMedia() {
-  if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true });
-  const unique = [...new Set(GIPHY_IDS)];
-  let done = 0;
-  unique.forEach((id) => {
-    const filePath = path.join(MEDIA_DIR, `${id}.gif`);
-    if (fs.existsSync(filePath)) { done++; return; }
-    https.get(`https://media0.giphy.com/media/${id}/giphy.gif`, (res) => {
-      if (res.statusCode !== 200) { done++; return; }
+function getGiphyMediaUrl(id) {
+  const localPath = path.join(MEDIA_DIR, `${id}.gif`);
+  if (fs.existsSync(localPath)) {
+    return `/media/giphy/${id}.gif`;
+  }
+  return `https://media.giphy.com/media/${id}/giphy.gif`;
+}
+
+function downloadUrlToFile(url, filePath, redirectCount = 0) {
+  return new Promise((resolve) => {
+    const client = url.startsWith('https://') ? https : http;
+    const req = client.get(url, (res) => {
+      if ([301, 302, 303, 307, 308].includes(res.statusCode) && res.headers.location) {
+        if (redirectCount >= 5) return resolve(false);
+        return resolve(downloadUrlToFile(res.headers.location, filePath, redirectCount + 1));
+      }
+      if (res.statusCode !== 200) {
+        return resolve(false);
+      }
       const file = fs.createWriteStream(filePath);
       res.pipe(file);
-      file.on('finish', () => { file.close(); done++; });
-      file.on('error', () => { done++; });
-    }).on('error', () => { done++; });
+      file.on('finish', () => file.close(() => resolve(true)));
+      file.on('error', () => {
+        file.close?.();
+        fs.unlink(filePath, () => resolve(false));
+      });
+    });
+
+    req.on('error', () => resolve(false));
   });
-  const total = unique.length;
-  const checkDone = setInterval(() => {
-    if (done >= total) { clearInterval(checkDone); console.log(`✅ Downloaded ${total} Giphy files`); }
-  }, 1000);
+}
+
+async function downloadAllMedia() {
+  if (!fs.existsSync(MEDIA_DIR)) fs.mkdirSync(MEDIA_DIR, { recursive: true });
+  const unique = [...new Set(GIPHY_IDS)];
+
+  await Promise.all(unique.map(async (id) => {
+    const filePath = path.join(MEDIA_DIR, `${id}.gif`);
+    if (fs.existsSync(filePath)) return true;
+    const success = await downloadUrlToFile(`https://media0.giphy.com/media/${id}/giphy.gif`, filePath);
+    if (!success) {
+      console.warn(`[Giphy] Could not download ${id}, remote URL fallback will be used`);
+    }
+    return success;
+  }));
+
+  console.log(`✅ Giphy media initialization complete`);
 }
 downloadAllMedia();
 
@@ -1316,14 +1343,11 @@ function generateMediaLibrary(prefix, count) {
   const lib = [];
   for (let i = 1; i <= count; i++) {
     const giphyId = GIPHY_IDS[i % GIPHY_IDS.length];
-    const name = GIF_NAMES[i % GIF_NAMES.length] + (i > GIF_NAMES.length ? ` ${Math.ceil(i/GIF_NAMES.length)}` : '');
-    lib.push({ id: `${prefix}${i}`, url: `/media/giphy/${giphyId}.gif`, name });
+    const name = GIF_NAMES[i % GIF_NAMES.length] + (i > GIF_NAMES.length ? ` ${Math.ceil(i / GIF_NAMES.length)}` : '');
+    lib.push({ id: `${prefix}${i}`, url: getGiphyMediaUrl(giphyId), name });
   }
   return lib;
 }
-
-const GIF_LIBRARY = generateMediaLibrary('g', 500);
-const STICKER_LIBRARY = generateMediaLibrary('s', 500);
 
 // ─── Emoji / GIF / Sticker library ──────────────────────────────────────────────
 const EMOJI_DATA = {
@@ -1555,11 +1579,11 @@ app.get("/api/emoji", (req, res) => {
 });
 
 app.get("/api/gifs", (req, res) => {
-  res.json({ success: true, data: GIF_LIBRARY });
+  res.json({ success: true, data: generateMediaLibrary('g', 500) });
 });
 
 app.get("/api/stickers", (req, res) => {
-  res.json({ success: true, data: STICKER_LIBRARY });
+  res.json({ success: true, data: generateMediaLibrary('s', 500) });
 });
 
 // ─── API: Power Bots ──────────────────────────────────────────────────────────
