@@ -1931,8 +1931,8 @@ p {
   position: fixed;
   bottom: 0;
   right: calc(var(--space-lg) + 64px);
-  width: 280px;
-  height: 380px;
+  width: 340px;
+  height: 520px;
   background: var(--card-bg);
   border-radius: var(--radius) var(--radius) 0 0;
   box-shadow: var(--shadow-xl);
@@ -2388,6 +2388,15 @@ p {
   overflow-y: auto;
   padding: 8px;
   min-height: 200px;
+}
+
+.emoji-modal__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
 }
 
 .emoji-modal__grid {

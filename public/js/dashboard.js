@@ -1507,7 +1507,7 @@ async function loadEmojiData() {
     const res = await fetch(`${API}/emoji`, { headers: HEADERS() });
     const json = await res.json();
     if (json.success) emojiData = json.data;
-  } catch (e) { /* ignore */ }
+  } catch (e) { console.error('loadEmojiData error:', e); }
 }
 
 async function loadGifLibrary() {
@@ -1566,10 +1566,19 @@ function openEmojiModal(userId) {
   const modal = document.createElement('div');
   modal.className = 'modal emoji-modal';
 
-  renderEmojiPicker(modal, userId);
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
+  if (!emojiData) {
+    modal.innerHTML = '<div class="emoji-modal__loading">Loading emojis...</div>';
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+    loadEmojiData().then(() => {
+      modal.innerHTML = '';
+      renderEmojiPicker(modal, userId);
+    });
+  } else {
+    renderEmojiPicker(modal, userId);
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+  }
 
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) overlay.remove();
