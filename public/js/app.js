@@ -407,11 +407,11 @@ const SC = {
   initNavbar() {
     const user = this.getCurrentUser();
 
-    // Populate avatar image
+    // Populate avatar (button element uses backgroundImage)
     const navAvatar = document.getElementById('navAvatar');
     if (navAvatar) {
-      navAvatar.src = this.getAvatar(user);
-      navAvatar.alt = user.name || 'User';
+      navAvatar.style.backgroundImage = `url('${this.getAvatar(user)}')`;
+      navAvatar.setAttribute('aria-label', `${user.name || 'User'}'s profile`);
     }
 
     // Populate display name

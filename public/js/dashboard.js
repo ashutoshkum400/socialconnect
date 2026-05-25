@@ -45,8 +45,9 @@ async function loadCurrentUser() {
   if (!result || !result.ok) return;
   const user = result.data;
 
-  // Persist freshest user data
+  // Persist freshest user data & sync local reference
   localStorage.setItem('sc_user', JSON.stringify(user));
+  Object.assign(currentUser, user);
 
   // Nav avatars
   ['navAvatar'].forEach(id => {
@@ -1495,6 +1496,176 @@ socket.on('new_message_notif', ({ from, text, time }) => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
+// EMOJI / GIF / STICKER PICKER DATA
+// ═══════════════════════════════════════════════════════════════════
+let emojiData = null;
+let gifLibrary = [];
+let stickerLibrary = [];
+
+async function loadEmojiData() {
+  try {
+    const res = await fetch(`${API}/emoji`, { headers: HEADERS() });
+    const json = await res.json();
+    if (json.success) emojiData = json.data;
+  } catch (e) { /* ignore */ }
+}
+
+async function loadGifLibrary() {
+  try {
+    const res = await fetch(`${API}/gifs`, { headers: HEADERS() });
+    const json = await res.json();
+    if (json.success) gifLibrary = json.data;
+  } catch (e) { /* ignore */ }
+}
+
+async function loadStickerLibrary() {
+  try {
+    const res = await fetch(`${API}/stickers`, { headers: HEADERS() });
+    const json = await res.json();
+    if (json.success) stickerLibrary = json.data;
+  } catch (e) { /* ignore */ }
+}
+
+function toggleMediaPicker(userId, pickerType) {
+  const existing = document.querySelector(`[data-chat-picker="${userId}"]`);
+  if (existing) {
+    if (existing.dataset.pickerType === pickerType) {
+      existing.remove();
+      return;
+    }
+    existing.remove();
+  }
+  const picker = document.createElement('div');
+  picker.className = 'chat-media-picker';
+  picker.setAttribute('data-chat-picker', userId);
+  picker.setAttribute('data-picker-type', pickerType);
+  picker.style.pointerEvents = 'all';
+
+  if (pickerType === 'emoji') {
+    renderEmojiPicker(picker, userId);
+  } else if (pickerType === 'gif') {
+    renderGifPicker(picker, userId);
+  } else if (pickerType === 'sticker') {
+    renderStickerPicker(picker, userId);
+  }
+
+  const inputArea = document.querySelector(`[data-chat-user-id="${userId}"] .chat-window__input-area`);
+  if (inputArea) {
+    inputArea.parentNode.insertBefore(picker, inputArea);
+  }
+}
+
+function renderEmojiPicker(picker, userId) {
+  const cats = emojiData ? Object.keys(emojiData) : [];
+  let activeCat = cats[0] || 'Smileys';
+
+  const header = document.createElement('div');
+  header.className = 'chat-media-picker__tabs';
+  header.innerHTML = cats.map(c => `
+    <button class="chat-media-picker__tab${c === activeCat ? ' active' : ''}" data-cat="${c}">${c}</button>
+  `).join('');
+
+  const body = document.createElement('div');
+  body.className = 'chat-media-picker__body';
+
+  function renderCategory(cat) {
+    const emojis = (emojiData && emojiData[cat]) || [];
+    body.innerHTML = `<div class="chat-media-picker__grid">${emojis.map(e => `
+      <button class="chat-media-picker__emoji" data-emoji="${e}">${e}</button>
+    `).join('')}</div>`;
+    body.querySelectorAll('.chat-media-picker__emoji').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const input = document.getElementById(`chatInput_${userId}`);
+        if (input) {
+          input.value += btn.dataset.emoji;
+          input.focus();
+        }
+      });
+    });
+  }
+
+  renderCategory(activeCat);
+
+  header.addEventListener('click', (e) => {
+    const tab = e.target.closest('.chat-media-picker__tab');
+    if (!tab) return;
+    header.querySelectorAll('.chat-media-picker__tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderCategory(tab.dataset.cat);
+  });
+
+  picker.appendChild(header);
+  picker.appendChild(body);
+}
+
+function renderGifPicker(picker, userId) {
+  const body = document.createElement('div');
+  body.className = 'chat-media-picker__body';
+
+  if (!gifLibrary.length) {
+    body.innerHTML = '<div style="padding:var(--space-md);text-align:center;color:var(--text-muted);">Loading GIFs...</div>';
+    picker.appendChild(body);
+    return;
+  }
+
+  body.innerHTML = `<div class="chat-media-picker__grid chat-media-picker__grid--media">${gifLibrary.map(g => `
+    <button class="chat-media-picker__media" data-gif-id="${g.id}" data-url="${g.url}" title="${escapeHtml(g.name)}">
+      <img src="${g.url}" alt="${escapeHtml(g.name)}" loading="lazy">
+    </button>
+  `).join('')}</div>`;
+
+  body.querySelectorAll('.chat-media-picker__media').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sendMediaMessage(userId, 'gif', btn.dataset.url, btn.querySelector('img').alt);
+    });
+  });
+
+  picker.appendChild(body);
+}
+
+function renderStickerPicker(picker, userId) {
+  const body = document.createElement('div');
+  body.className = 'chat-media-picker__body';
+
+  if (!stickerLibrary.length) {
+    body.innerHTML = '<div style="padding:var(--space-md);text-align:center;color:var(--text-muted);">Loading stickers...</div>';
+    picker.appendChild(body);
+    return;
+  }
+
+  body.innerHTML = `<div class="chat-media-picker__grid chat-media-picker__grid--media">${stickerLibrary.map(s => `
+    <button class="chat-media-picker__media chat-media-picker__media--sticker" data-sticker-id="${s.id}" data-url="${s.url}" title="${escapeHtml(s.name)}">
+      <img src="${s.url}" alt="${escapeHtml(s.name)}" loading="lazy">
+    </button>
+  `).join('')}</div>`;
+
+  body.querySelectorAll('.chat-media-picker__media').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sendMediaMessage(userId, 'sticker', btn.dataset.url, btn.querySelector('img').alt);
+    });
+  });
+
+  picker.appendChild(body);
+}
+
+function sendMediaMessage(toUserId, mediaType, mediaUrl, name) {
+  const text = name || '';
+  socket.emit('send_message', { toUserId, text, type: mediaType, mediaUrl, mediaType });
+  // Optimistically append
+  appendChatBubble(toUserId, {
+    text,
+    type: mediaType,
+    mediaUrl,
+    mediaType,
+    senderId: currentUser.id,
+    time: new Date().toISOString()
+  });
+  // Close picker
+  const picker = document.querySelector(`[data-chat-picker="${toUserId}"]`);
+  if (picker) picker.remove();
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // CHAT SYSTEM
 // ═══════════════════════════════════════════════════════════════════
 
@@ -1687,7 +1858,11 @@ function openChat(userId, userName, userAvatar) {
       <div class="chat-typing__dot"></div>
     </div>
     <div class="chat-window__input-area">
-      <button class="chat-window__emoji-btn" aria-label="Emoji">😊</button>
+      <div class="chat-window__picker-toolbar">
+        <button class="chat-window__picker-btn" onclick="toggleMediaPicker('${userId}', 'emoji')" aria-label="Emoji picker" title="Emoji">😊</button>
+        <button class="chat-window__picker-btn" onclick="toggleMediaPicker('${userId}', 'gif')" aria-label="GIF picker" title="GIF">GIF</button>
+        <button class="chat-window__picker-btn" onclick="toggleMediaPicker('${userId}', 'sticker')" aria-label="Sticker picker" title="Sticker">🎯</button>
+      </div>
       <input
         type="text"
         class="chat-window__input"
@@ -1761,6 +1936,49 @@ async function loadChatHistory(userId) {
   renderChatHistory(userId, messages);
 }
 
+function renderChatMessage(msg) {
+  const isSent = msg.senderId === currentUser.id;
+  const type = msg.type || 'text';
+
+  let content = '';
+
+  if (type === 'gif' && msg.mediaUrl) {
+    content = `
+      <div class="chat-media-bubble">
+        <img src="${msg.mediaUrl}" alt="${escapeHtml(msg.text || 'GIF')}" class="chat-media-bubble__img" loading="lazy" onclick="window.open('${msg.mediaUrl}', '_blank')">
+        ${msg.text ? `<div class="chat-media-bubble__caption">${escapeHtml(msg.text)}</div>` : ''}
+      </div>
+    `;
+  } else if (type === 'sticker' && msg.mediaUrl) {
+    content = `
+      <div class="chat-media-bubble chat-media-bubble--sticker">
+        <img src="${msg.mediaUrl}" alt="${escapeHtml(msg.text || 'Sticker')}" class="chat-media-bubble__sticker" loading="lazy">
+      </div>
+    `;
+  } else if (type === 'emoji' && msg.mediaUrl) {
+    content = `
+      <div class="chat-media-bubble chat-media-bubble--emoji">
+        <span style="font-size:48px;">${msg.text || ''}</span>
+      </div>
+    `;
+  } else {
+    // Check if message is only emojis
+    const emojiOnly = msg.text && /^[\p{Emoji}\p{Extended_Pictographic}\s]+$/u.test(msg.text);
+    if (emojiOnly && msg.text.length < 10) {
+      content = `<span style="font-size:32px;line-height:1.2;">${escapeHtml(msg.text)}</span>`;
+    } else {
+      content = escapeHtml(msg.text || '');
+    }
+  }
+
+  return `
+    <div class="chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}">
+      ${content}
+      <span class="chat-bubble__time">${formatTime(msg.time)}</span>
+    </div>
+  `;
+}
+
 function renderChatHistory(userId, messages) {
   const msgContainer = document.getElementById(`chatMessages_${userId}`);
   if (!msgContainer) return;
@@ -1772,7 +1990,6 @@ function renderChatHistory(userId, messages) {
 
   let lastDate = null;
   msgContainer.innerHTML = messages.map(msg => {
-    const isSent = msg.senderId === currentUser.id;
     const msgDate = new Date(msg.time).toDateString();
     let separator = '';
 
@@ -1781,13 +1998,7 @@ function renderChatHistory(userId, messages) {
       separator = `<div class="chat-date-separator"><span>${formatChatDate(msg.time)}</span></div>`;
     }
 
-    return `
-      ${separator}
-      <div class="chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}">
-        ${escapeHtml(msg.text || '')}
-        <span class="chat-bubble__time">${formatTime(msg.time)}</span>
-      </div>
-    `;
+    return `${separator}${renderChatMessage(msg)}`;
   }).join('');
 
   // Scroll to bottom
@@ -1807,11 +2018,18 @@ function sendMessageFromInput(userId) {
 function sendMessage(toUserId, text) {
   if (!text.trim()) return;
 
-  socket.emit('send_message', { toUserId, text });
+  // Detect if message is emoji-only
+  const emojiOnly = /^[\p{Emoji}\p{Extended_Pictographic}\s]+$/u.test(text) && text.length < 10;
+  const type = emojiOnly ? 'emoji' : 'text';
+
+  socket.emit('send_message', { toUserId, text, type, mediaUrl: null, mediaType: null });
 
   // Optimistically append sent message
   appendChatBubble(toUserId, {
     text,
+    type,
+    mediaUrl: null,
+    mediaType: null,
     senderId: currentUser.id,
     time: new Date().toISOString()
   });
@@ -1826,14 +2044,24 @@ function appendChatBubble(userId, msg) {
   if (placeholder) placeholder.remove();
 
   const isSent = msg.senderId === currentUser.id;
-  const bubble = document.createElement('div');
-  bubble.className = `chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}`;
-  bubble.innerHTML = `
-    ${escapeHtml(msg.text || '')}
-    <span class="chat-bubble__time">${formatTime(msg.time)}</span>
-  `;
-  msgContainer.appendChild(bubble);
-  msgContainer.scrollTop = msgContainer.scrollHeight;
+
+  // Add date separator if needed
+  const lastMsg = msgContainer.lastElementChild;
+  if (lastMsg && lastMsg.classList.contains('chat-bubble')) {
+    const lastTime = lastMsg.querySelector('.chat-bubble__time');
+    if (lastTime) {
+      const lastDate = new Date(lastTime.textContent ? lastTime.closest('.chat-bubble').dataset.time : Date.now());
+      // For simplicity just skip date check on append
+    }
+  }
+
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = renderChatMessage(msg);
+  const bubble = wrapper.firstElementChild;
+  if (bubble) {
+    msgContainer.appendChild(bubble);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
 }
 
 // --- Socket: Incoming Messages ---
@@ -1851,7 +2079,12 @@ socket.on('message', ({ chatKey, message }) => {
     const sender = allUsers.find(u => u.id === message.senderId);
     const senderName = sender ? sender.name : 'Someone';
     const senderAvatar = sender ? (sender.avatar || avatarUrl(sender.name)) : '';
-    showToast(`💬 ${senderName}: ${message.text}`, 'info', 5000, () => {
+    const type = message.type || 'text';
+    let preview = message.text || '';
+    if (type === 'gif') preview = '📷 GIF';
+    else if (type === 'sticker') preview = '🎯 Sticker';
+    else if (type === 'emoji' && message.text) preview = message.text;
+    showToast(`💬 ${senderName}: ${preview}`, 'info', 5000, () => {
       openChat(message.senderId, senderName, senderAvatar);
     });
   }
@@ -2530,7 +2763,10 @@ async function init() {
       loadFeed(),
       loadNotifications(),
       loadFriendRequests(),
-      loadSuggestions()
+      loadSuggestions(),
+      loadEmojiData(),
+      loadGifLibrary(),
+      loadStickerLibrary()
     ]);
 
     // Load online friends after we have users

@@ -210,7 +210,7 @@ openPostModal() {
       // Update avatar
       const avatarEl = document.getElementById('createPostAvatar');
       if (avatarEl) {
-        avatarEl.src = this.currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser.name || 'User')}&background=random&color=fff&size=40`;
+        avatarEl.src = this.currentUser.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.currentUser.name || 'User')}&background=1877f2&color=fff&size=40`;
       }
       
       // Update user name and handle using explicit IDs

@@ -1299,8 +1299,58 @@ io.on("connection", (socket) => {
     socket.join(room);
   });
 
-  socket.on("send_message", ({ toUserId, text }) => {
-    if (!socket.userId || !text) return;
+  // ─── Emoji / GIF / Sticker library ──────────────────────────────────
+  const EMOJI_DATA = {
+    "Smileys": ["😀","😃","😄","😁","😆","😅","🤣","😂","🙂","🙃","🫠","😉","😊","😇","🥰","😍","🤩","😘","😗","😚","😙","🥲","😋","😛","😜","🤪","😝","🤑","🤗","🤭","🫢","🫣","🤫","🤔","🫡","🤐","🤨","😐","😑","😶","🫥","😏","😒","🙄","😬","🤥","😌","😔","😪","🤤","😴","😷","🤒","🤕","🤢","🤮","🥴","😵","🤯","🥳","🥺","😢","😭","😤","😠","😡","🤬","💀","☠️","💩","🤡","👹","👺","👻","👽","👾","🤖","😺","😸","😹","😻","😼","😽","🙀","😿","😾"],
+    "People": ["👋","🤚","🖐️","✋","🖖","🫱","🫲","🫳","🫴","👌","🤌","🤏","✌️","🤞","🫰","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","🫵","👍","👎","✊","👊","🤛","🤜","👏","🙌","🫶","👐","🤲","🤝","🙏","✍️","💅","🤳","💪","🦵","🦶","👂","🦻","👃","🧠","🫀","🫁","🦷","🦴","👀","👁️","👅","👄","🫦","👶","🧒","👦","👧","🧑","👱","👨","👩","🧔","👴","👵","🙍","🙎","🙅","🙆","💁","🙋","🧏","🙇","🤦","🤷","👮","🕵️","💂","🥷","👳","👸","🤴","👰","🤵","🤰","🫃","🫄","👼","🎅","🤶","🦸","🦹","🧙","🧚","🧛","🧜","🧝","🧞","🧟","🧌","💆","💇","🚶","🧍","🧎","🏃","💃","🕺","🕴️","👯","🧖","🧗","🤸","⛹️","🏋️","🚴","🚵","🤼","🤽","🤾","🤺","⛷️","🏂","🏄","🚣","🏊","🤿"],
+    "Animals": ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐻‍❄️","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🙈","🙉","🙊","🐒","🐔","🐧","🐦","🐤","🐣","🐥","🦆","🦅","🦉","🦇","🐺","🐗","🐴","🦄","🐝","🪱","🐛","🦋","🐌","🐞","🐜","🪰","🪲","🪳","🦟","🦗","🕷️","🦂","🐢","🐍","🦎","🦖","🦕","🐙","🦑","🦐","🦞","🦀","🐡","🐠","🐟","🐬","🐳","🐋","🦈","🪸","🐊","🐅","🐆","🦓","🦍","🦧","🐘","🦛","🦏","🐪","🐫","🦒","🦘","🦬","🐃","🐂","🐄","🐎","🐖","🐏","🐑","🦙","🐐","🦌","🐕","🐩","🦮","🐈","🐓","🦃","🦤","🦚","🦜","🦢","🦩","🐇","🦝","🦨","🦡","🦫","🦦","🦥","🐁","🐀","🐿️","🦔","🐾","🐉","🐲"],
+    "Food": ["🍏","🍎","🍐","🍊","🍋","🍌","🍉","🍇","🍓","🫐","🍈","🍒","🍑","🥭","🍍","🥥","🥝","🍅","🍆","🥑","🥦","🥬","🥒","🌶️","🫑","🌽","🥕","🫒","🧄","🧅","🥔","🍠","🫘","🥐","🍞","🥖","🥨","🧀","🥚","🍳","🧈","🥞","🧇","🥓","🥩","🍗","🍖","🦴","🌭","🍔","🍟","🍕","🫓","🥪","🥙","🧆","🌮","🌯","🫔","🥗","🥘","🫕","🥫","🍝","🍜","🍲","🍛","🍣","🍱","🥟","🦪","🍤","🍙","🍚","🍘","🍥","🥠","🥮","🍢","🍡","🍧","🍨","🍦","🥧","🧁","🍰","🎂","🍮","🍭","🍬","🍫","🍿","🍩","🍪","🌰","🥜","🍯","🥛","🍼","🫖","☕","🍵","🧃","🥤","🧋","🍶","🍺","🍻","🥂","🍷","🫗","🥃","🍸","🍹","🧉","🍾","🧊","🥄","🍴","🥣","🍽️","🔪","🫙"],
+    "Travel": ["🌍","🌎","🌏","🌐","🗺️","🗾","🧭","🏔️","⛰️","🌋","🗻","🏕️","🏖️","🏜️","🏝️","🏞️","🏟️","🏛️","🏗️","🧱","🪨","🪵","🛖","🏘️","🏚️","🏠","🏡","🏢","🏣","🏤","🏥","🏦","🏨","🏩","🏪","🏫","🏬","🏭","🏯","🏰","💒","🗼","🗽","⛪","🕌","🛕","🕍","⛩️","🕋","⛲","⛺","🌁","🌃","🏙️","🌄","🌅","🌆","🌇","🌉","🌌","🎠","🎡","🎢","💈","🎪","🚂","🚃","🚄","🚅","🚆","🚇","🚈","🚉","🚊","🚝","🚞","🚋","🚌","🚍","🚎","🚐","🚑","🚒","🚓","🚔","🚕","🚖","🚗","🚘","🚙","🛻","🚚","🚛","🚜","🏎️","🏍️","🛵","🛺","🚲","🛴","🛹","🛼","🚏","🛣️","🛤️","⛽","🛞","🚨","🚥","🚦","🛑","🚧","⚓","🛟","⛵","🛶","🚤","🛳️","⛴️","🛥️","🚢","✈️","🛩️","🛫","🛬","🪂","💺","🚁","🚟","🚠","🚡","🛰️","🚀","🛸"],
+    "Activities": ["🎃","🎄","🎆","🎇","🧨","✨","🎈","🎉","🎊","🎋","🎍","🎎","🎏","🎐","🎑","🧧","🎀","🎁","🎗️","🎟️","🎫","🎖️","🏆","🏅","🥇","🥈","🥉","⚽","⚾","🥎","🏀","🏐","🏈","🏉","🎾","🥏","🎳","🏏","🏑","🏒","🥍","🏓","🏸","🥊","🥋","🥅","⛳","⛸️","🎣","🤿","🎽","🎿","🛷","🥌","🎯","🪀","🪁","🔫","🎱","🔮","🪄","🎮","🕹️","🎰","🎲","🧩","♟️","🎴","🃏","🎭","🖼️","🎨","🧵","🪡","🧶","🪢"],
+    "Objects": ["👓","🕶️","🥽","🥼","🦺","👔","👕","👖","🧣","🧤","🧥","🧦","👗","👘","🥻","🩱","🩲","🩳","👙","👚","👛","👜","👝","🛍️","🎒","🩴","👞","👟","🥾","🥿","👠","👡","🩰","👢","👑","👒","🎩","🎓","🧢","🪖","⛑️","💄","💍","💎","🔇","🔈","🔉","🔊","📢","📣","📯","🔔","🔕","🎼","🎵","🎶","🎙️","📻","🎛️","🎤","🎧","📻","🎷","🪗","🎸","🎺","🎻","🪘","🥁","🪇","📱","📲","☎️","📞","📟","📠","🔋","🪫","🔌","💻","🖥️","🖨️","⌨️","🖱️","🖲️","💽","💾","💿","📀","🧮","🎥","🎞️","📽️","🎬","📺","📷","📸","📹","🎥","📼","🔍","🔎","🕯️","💡","🔦","🏮","🪔","📔","📕","📖","📗","📘","📙","📚","📓","📒","📃","📜","📄","📰","🗞️","📑","🔖","🏷️","💰","🪙","💴","💵","💶","💷","💸","💳","🧾","✉️","📧","📨","📩","📤","📥","📦","📫","📪","📬","📭","📮","🗳️","✏️","✒️","🖋️","🖊️","🖌️","🖍️","📝","💼","📁","📂","🗂️","📅","📆","🗒️","🗓️","📇","📈","📉","📊","📋","📌","📍","📎","🖇️","📏","📐","✂️","🗃️","🗄️","🗑️","🔑","🗝️","🔨","🪓","⛏️","⚒️","🛠️","🗡️","⚔️","💣","🪃","🏹","🛡️","🪚","🔧","🪛","🔩","⚙️","🗜️","⚖️","🦯","🔗","⛓️","🪝","🧰","🧲","🪜","⚗️","🧪","🧫","🧬","🔬","🔭","📡","💉","🩸","💊","🩹","🩺","🚪","🛗","🪞","🪟","🛏️","🛋️","🪑","🚽","🚿","🛁","🪤","🪥","🪣","🧴","🪒","🧹","🪠","🧺","🧻","🪈","🪭","🪮","🪪","🗣️","👤","👥","🫂","👪"],
+    "Symbols": ["❤️","🧡","💛","💚","💙","💜","🖤","🤍","🤎","💔","❣️","💕","💞","💓","💗","💖","💘","💝","💟","☮️","✝️","☪️","🕉️","☸️","✡️","🔯","🕎","☯️","🦉","🪯","🔱","🛐","⛎","♈","♉","♊","♋","♌","♍","♎","♏","♐","♑","♒","♓","🆔","⚕️","♻️","⚜️","🔰","🔱","⭕","✅","☑️","✔️","❌","❎","➰","〰️","➿","🔴","🟠","🟡","🟢","🔵","🟣","🟤","⚫","⚪","🟥","🟧","🟨","🟩","🟦","🟪","🟫","⬛","⬜","◼️","◻️","◾","◽","🔶","🔷","🔸","🔹","🔺","🔻","💠","🔘","🔳","🔲","🏧","🚮","🚰","♿","🚹","🚺","🚻","🚼","🚾","🛂","🛃","🛄","🛅","⚠️","🚸","⛔","🚫","🚳","🚭","🚯","🚱","📵","🔞","☢️","☣️","💹","〽️","✳️","✴️","❇️","🈯","🈳","🈴","🈵","🈶","🈷️","🈸","🈹","🈺","🉐","🉑","🈲","🈻","㊗️","㊙️","🆚","💮","🉠","🉡","🉤","🉥","🆎","🆑","🆒","🆓","🆔","🆕","🆖","🆗","🆘","🆙","🆚","🈁","🈂️","🆚","🅰️","🅱️","🅾️","🅿️","🆎","🆚","🈳","🈴","🈵","🈶","🈷️","🈸","🈹","🈺","🉐","🉑","🉈","🉉","🉊","🉋","🉌","🉍","🉎","🉏","🉐"],
+    "Flags": ["🏳️","🏴","🏁","🚩","🎌","🏴‍☠️","🇺🇳","🇦🇫","🇦🇱","🇩🇿","🇦🇩","🇦🇴","🇦🇬","🇦🇷","🇦🇲","🇦🇺","🇦🇹","🇦🇿","🇧🇸","🇧🇭","🇧🇩","🇧🇧","🇧🇾","🇧🇪","🇧🇿","🇧🇯","🇧🇹","🇧🇴","🇧🇦","🇧🇼","🇧🇷","🇧🇳","🇧🇬","🇧🇫","🇧🇮","🇰🇭","🇨🇲","🇨🇦","🇨🇻","🇨🇫","🇹🇩","🇨🇱","🇨🇳","🇨🇴","🇰🇲","🇨🇬","🇨🇩","🇨🇷","🇭🇷","🇨🇺","🇨🇾","🇨🇿","🇩🇰","🇩🇯","🇩🇲","🇩🇴","🇪🇨","🇪🇬","🇸🇻","🇬🇶","🇪🇷","🇪🇪","🇪🇹","🇫🇯","🇫🇮","🇫🇷","🇬🇦","🇬🇲","🇬🇪","🇩🇪","🇬🇭","🇬🇷","🇬🇩","🇬🇹","🇬🇳","🇬🇼","🇬🇾","🇭🇹","🇭🇳","🇭🇺","🇮🇸","🇮🇳","🇮🇩","🇮🇷","🇮🇶","🇮🇪","🇮🇱","🇮🇹","🇯🇲","🇯🇵","🇯🇴","🇰🇿","🇰🇪","🇰🇮","🇰🇵","🇰🇷","🇽🇰","🇰🇼","🇰🇬","🇱🇦","🇱🇻","🇱🇧","🇱🇸","🇱🇷","🇱🇾","🇱🇮","🇱🇹","🇱🇺","🇲🇬","🇲🇼","🇲🇾","🇲🇻","🇲🇱","🇲🇹","🇲🇭","🇲🇷","🇲🇺","🇲🇽","🇫🇲","🇲🇩","🇲🇨","🇲🇳","🇲🇪","🇲🇦","🇲🇿","🇲🇲","🇳🇦","🇳🇷","🇳🇵","🇳🇱","🇳🇿","🇳🇮","🇳🇪","🇳🇬","🇳🇴","🇴🇲","🇵🇰","🇵🇼","🇵🇸","🇵🇦","🇵🇬","🇵🇾","🇵🇪","🇵🇭","🇵🇱","🇵🇹","🇶🇦","🇷🇴","🇷🇺","🇷🇼","🇰🇳","🇱🇨","🇻🇨","🇼🇸","🇸🇲","🇸🇹","🇸🇦","🇸🇳","🇷🇸","🇸🇨","🇸🇱","🇸🇬","🇸🇰","🇸🇮","🇸🇧","🇸🇴","🇿🇦","🇸🇸","🇪🇸","🇱🇰","🇸🇩","🇸🇷","🇸🇪","🇨🇭","🇸🇾","🇹🇼","🇹🇯","🇹🇿","🇹🇭","🇹🇱","🇹🇬","🇹🇴","🇹🇹","🇹🇳","🇹🇷","🇹🇲","🇹🇻","🇺🇬","🇺🇦","🇦🇪","🇬🇧","🇺🇸","🇺🇾","🇺🇿","🇻🇺","🇻🇦","🇻🇪","🇻🇳","🇾🇪","🇿🇲","🇿🇼"]
+  };
+
+  // ─── GIF & Sticker Library ────────────────────────────────────────
+  // Reaction GIFs (hosted on Giphy CDN — free, no API key needed for embeds)
+  const GIF_LIBRARY = [
+    { id: 'g1', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXZocHB6czJmbjB5azRoeDhsdjRtMXBnYmd2MnMwYmgzbmF1YjY4aSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlNaQ6gWfllqwDO/giphy.gif', name: 'Dancing' },
+    { id: 'g2', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaDI5ZnJ6azFrbXozNXB0eXZ3eXRudml4a3k3Y3l1Y3dscWtrczJkdyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oEduQ2rYb6GtPOWk0/giphy.gif', name: 'Celebration' },
+    { id: 'g3', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcGtkYWhjNmU5dG10OHJhazR5N3c4Y2Rzbmc5YjVoNW12M3FzNTN5diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26u4lOMA8BwodbbLG/giphy.gif', name: 'Love' },
+    { id: 'g4', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZzV0dHB3czUycHZ2ajlnNTJ1Yjd4MTBvcmR0dGNzcG04czJqZmFteiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKSha7HbhXj6mRa/giphy.gif', name: 'Party' },
+    { id: 'g5', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExazhnazdzM3h3ZjBqNmh3eDE0Mmt0eGlta2U3ZXpuajAwbnI0anQ5cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oEjI6SIIHBdRxXI40/giphy.gif', name: 'Wave' },
+    { id: 'g6', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNWNmbmh3eHM3cDdhdDdjeTdsMGZqY255bDJ0dHd5dThodnRsdHkzNiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o85xGocYD8uV5K90U/giphy.gif', name: 'LOL' },
+    { id: 'g7', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeDM4aXBhNWIzd3U1MTRibGZxZmJ1M3MyYWxuaTQ3OGZiY2pjczk1byZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26gs1dK2P7EzuXW2Y/giphy.gif', name: 'Cool' },
+    { id: 'g8', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOTN3eDdoNHE0M2E3Z3UzdjFvenl3YmdjaDd0OGV1OGYyNmNqc2dlbCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3og0INyCmHlNylks9e/giphy.gif', name: 'OMG' },
+    { id: 'g9', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExazNpMGM5eXlsMTJucjMwc3N4aTdnYXMxbG91YmxidWxmdWVzM3g1biZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7MZ5eEl0MxQ2A/giphy.gif', name: 'Bye' },
+    { id: 'g10', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZXlyYjdncjd3bHIwMDNvamZmdmh6dzE2cHc4bXBrNTBmbXF6bTg4MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1nq5mP2nHlMGI/giphy.gif', name: 'Sleepy' },
+    { id: 'g11', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHdlYzEzZHlsNWg5dzkzOGllM2FzZ21pb2kzMzI0dmI2bG84Y2ZiMCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o85xnoYEBk0b7vE4w/giphy.gif', name: 'Happy Dance' },
+    { id: 'g12', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXo3dHBrZm1pcHhsc3VyMmVqYngxMGh4Mmp2Y3Q3MXRtYXJiOHlvaCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/8t8jrF6YQbSqQ/giphy.gif', name: 'Clap' },
+    { id: 'g13', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMnBxYThrajlyeDNpYWh5eHExeDF4czM5NG1pajdndTZ1N3l0N3N4cCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6Zt6U0U0Y0Y0Y0Y0/giphy.gif', name: 'Sending Love' },
+    { id: 'g14', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjluejd4MzBzOHQzeDJ3ZHVyOGtrNnZrcjk5Z2NkOGVhaGJoazV0YyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6Zt481isNV1y7Aqk/giphy.gif', name: 'Mind Blown' },
+    { id: 'g15', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMTlzcnNzaXUxZXg4emc2bHMzOHM3OGVvOXQybnpzeGMzajBvMDh3aCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26gJzVWvMMGMi0xHO/giphy.gif', name: 'Fire' },
+  ];
+
+  // Sticker Library
+  const STICKER_LIBRARY = [
+    { id: 's1', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNjgzdHZ2cDUzcXdlb2k2bXBlY3FoOGF1enZhenVvd3E5bmtuM3F4NSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/jWcyMSGqMBhJG/giphy.gif', name: 'Love Sticker' },
+    { id: 's2', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNmdhcWhscmwzY3l6enZkN2RmNTFvZ241YzFzZWt1MnN1YzFjanpodyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/dSetNZ0M3OYq0/giphy.gif', name: 'Cute' },
+    { id: 's3', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdG81N3pzMWhlZjNkOG1lNTdkdG5wcmFheG0yZWtrNGJ4YmlzYzdtZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlUK7B2GMdKZKla/giphy.gif', name: 'Kiss' },
+    { id: 's4', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaHhpcGhvazAzbG54NTR1dDRlazNkcWF1NXJxZnA5dm1kYjd2YWMzZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKM6snABh6iIMvS/giphy.gif', name: 'Hug' },
+    { id: 's5', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNzdxaWM0bG02YnN0MTE2cG13ZXRidDRxbzdicGJ4b3M1d2F4a3h3dSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKz5qWX8Pc6d6M0/giphy.gif', name: 'Happy' },
+    { id: 's6', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMXF5ZjdkejRtZXB3MDY2MnBmcnd3cnRieHg1NTRmNjNuYTRrNzBscSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3oEjI6SIIHBdRxXI40/giphy.gif', name: 'Wave' },
+    { id: 's7', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGloNDdvcHQ1YXB5MmtleDd2OXo4djR4dTdjcW81bjV1eW90MDNhaiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/13aJ2Im0F3XYqA/giphy.gif', name: 'Sad' },
+    { id: 's8', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExMHgxcmM3bG41bXNhemY3dHRjd2xmMjhoY3ZhYTl2YmhyNjl6cjI3bCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/26FPo47jFGHLTNDMc/giphy.gif', name: 'Angry' },
+    { id: 's9', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdTBrOTE3YWFiaXF3bm8xcXVyYzQ2NnBneDZmcTVjMnRqajN4bXdiayZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l0HlRuVN4l2dR8NBe/giphy.gif', name: 'Thumbs Up' },
+    { id: 's10', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGhvY2U4ODNkdXphazZrOHh1b2JtdHk3ZTd6bmNsZ3E3cHRscHJlZyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o85xnxCcCjC1p6t6/giphy.gif', name: 'Party' },
+    { id: 's11', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdGc5YnlpaHhjaHk2OTZ0N3IzajA5aXRkYmtpMDIzbTE4ZDRsZmd3MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o6Zt6U0U0Y0Y0Y0Y0/giphy.gif', name: 'Love' },
+    { id: 's12', url: 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZ296NWN1cGtoNTF0cDI3ODR6MGVyMndmcHN4aTNoMzVvYmxnejl1dCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/3o7TKM6snABh6iIMvS/giphy.gif', name: 'Cuddle' },
+  ];
+
+  socket.on("send_message", ({ toUserId, text, type, mediaUrl, mediaType }) => {
+    if (!socket.userId) return;
+    if (!text && !mediaUrl) return;
     const key = chatKey(socket.userId, toUserId);
     if (!db.chats.has(key)) db.chats.set(key, []);
 
@@ -1308,7 +1358,10 @@ io.on("connection", (socket) => {
       id: uuidv4(),
       senderId: socket.userId,
       receiverId: toUserId,
-      text,
+      text: text || '',
+      type: type || 'text', // text, emoji, gif, sticker
+      mediaUrl: mediaUrl || null,
+      mediaType: mediaType || null, // gif, sticker
       time: new Date().toISOString(),
       read: false,
     };
@@ -1415,6 +1468,19 @@ io.on("connection", (socket) => {
       io.emit("user_online", { userId: socket.userId, online: false });
     }
   });
+});
+
+// ─── API: Emoji / GIF / Sticker Library ────────────────────────────────────────
+app.get("/api/emoji", (req, res) => {
+  res.json({ success: true, data: EMOJI_DATA });
+});
+
+app.get("/api/gifs", (req, res) => {
+  res.json({ success: true, data: GIF_LIBRARY });
+});
+
+app.get("/api/stickers", (req, res) => {
+  res.json({ success: true, data: STICKER_LIBRARY });
 });
 
 // ─── API: Power Bots ──────────────────────────────────────────────────────────

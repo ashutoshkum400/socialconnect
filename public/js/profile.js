@@ -1039,6 +1039,14 @@ async function uploadAvatar(file) {
     const profileAvatar = document.getElementById('profileAvatar');
     if (profileAvatar) profileAvatar.src = base64;
 
+    // Update create-post avatar on profile page
+    const cpAvatar = document.getElementById('createPostAvatar');
+    if (cpAvatar) cpAvatar.src = base64;
+
+    // Update my-story avatar if present
+    const myStoryAvatar = document.getElementById('myStoryAvatar');
+    if (myStoryAvatar) myStoryAvatar.src = base64;
+
     // Update edit-modal preview if it is open
     const editPreview = document.getElementById('editAvatarPreview');
     if (editPreview) editPreview.src = base64;
@@ -1046,7 +1054,7 @@ async function uploadAvatar(file) {
     // Keep profileUser in sync so saveProfile() doesn't overwrite with stale data
     if (profileUser) profileUser.avatar = base64;
 
-    // Also sync nav avatar if user is on their own profile
+    // Sync nav & sidebar avatars across the app
     SC.initNavbar();
 
     SC.showSuccess('Profile photo updated!');
