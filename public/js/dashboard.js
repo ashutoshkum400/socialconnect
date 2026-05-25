@@ -1527,13 +1527,14 @@ async function loadStickerLibrary() {
 }
 
 function toggleMediaPicker(userId, pickerType) {
+  if (pickerType === 'emoji') {
+    openEmojiModal(userId);
+    return;
+  }
   const existing = document.querySelector(`[data-chat-picker="${userId}"]`);
   if (existing) {
-    if (existing.dataset.pickerType === pickerType) {
-      existing.remove();
-      return;
-    }
     existing.remove();
+    if (existing.dataset.pickerType === pickerType) return;
   }
   const picker = document.createElement('div');
   picker.className = 'chat-media-picker';
@@ -1541,9 +1542,7 @@ function toggleMediaPicker(userId, pickerType) {
   picker.setAttribute('data-picker-type', pickerType);
   picker.style.pointerEvents = 'all';
 
-  if (pickerType === 'emoji') {
-    renderEmojiPicker(picker, userId);
-  } else if (pickerType === 'gif') {
+  if (pickerType === 'gif') {
     renderGifPicker(picker, userId);
   } else if (pickerType === 'sticker') {
     renderStickerPicker(picker, userId);
@@ -1555,47 +1554,89 @@ function toggleMediaPicker(userId, pickerType) {
   }
 }
 
-function renderEmojiPicker(picker, userId) {
+function openEmojiModal(userId) {
+  const existing = document.getElementById('emojiModal');
+  if (existing) existing.remove();
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay emoji-modal-overlay';
+  overlay.id = 'emojiModal';
+  overlay.style.zIndex = '10000';
+
+  const modal = document.createElement('div');
+  modal.className = 'modal emoji-modal';
+
+  renderEmojiPicker(modal, userId);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.remove();
+  });
+}
+
+function renderEmojiPicker(container, userId) {
   const cats = emojiData ? Object.keys(emojiData) : [];
   let activeCat = cats[0] || 'Smileys';
 
   const header = document.createElement('div');
-  header.className = 'chat-media-picker__tabs';
-  header.innerHTML = cats.map(c => `
-    <button class="chat-media-picker__tab${c === activeCat ? ' active' : ''}" data-cat="${c}">${c}</button>
+  header.className = 'emoji-modal__header';
+  header.innerHTML = `
+    <div class="emoji-modal__title">Choose an emoji</div>
+    <button class="emoji-modal__close" aria-label="Close emoji picker">&times;</button>
+  `;
+  header.querySelector('.emoji-modal__close').addEventListener('click', () => {
+    const overlay = document.getElementById('emojiModal');
+    if (overlay) overlay.remove();
+  });
+
+  const tabs = document.createElement('div');
+  tabs.className = 'emoji-modal__tabs';
+  tabs.innerHTML = cats.map(c => `
+    <button class="emoji-modal__tab${c === activeCat ? ' active' : ''}" data-cat="${c}">${c}</button>
   `).join('');
 
   const body = document.createElement('div');
-  body.className = 'chat-media-picker__body';
+  body.className = 'emoji-modal__body';
 
   function renderCategory(cat) {
     const emojis = (emojiData && emojiData[cat]) || [];
-    body.innerHTML = `<div class="chat-media-picker__grid">${emojis.map(e => `
-      <button class="chat-media-picker__emoji" data-emoji="${e}">${e}</button>
-    `).join('')}</div>`;
-    body.querySelectorAll('.chat-media-picker__emoji').forEach(btn => {
+    body.innerHTML = `<div class="emoji-modal__grid">${emojis.map(e => {
+      if (typeof e === 'object' && e.url) {
+        return `<button class="emoji-modal__emoji" data-type="animated" data-url="${e.url}" data-name="${escapeHtml(e.name || '')}" title="${escapeHtml(e.name || '')}">
+          <img src="${e.url}" alt="${escapeHtml(e.name || '')}" loading="lazy">
+        </button>`;
+      }
+      return `<button class="emoji-modal__emoji" data-type="static" data-char="${e}">${e}</button>`;
+    }).join('')}</div>`;
+
+    body.querySelectorAll('.emoji-modal__emoji').forEach(btn => {
       btn.addEventListener('click', () => {
-        const input = document.getElementById(`chatInput_${userId}`);
-        if (input) {
-          input.value += btn.dataset.emoji;
-          input.focus();
+        if (btn.dataset.type === 'animated') {
+          sendMediaMessage(userId, 'emoji', btn.dataset.url, btn.dataset.name);
+        } else {
+          sendMediaMessage(userId, 'emoji', null, btn.dataset.char);
         }
+        const overlay = document.getElementById('emojiModal');
+        if (overlay) overlay.remove();
       });
     });
   }
 
   renderCategory(activeCat);
 
-  header.addEventListener('click', (e) => {
-    const tab = e.target.closest('.chat-media-picker__tab');
+  tabs.addEventListener('click', (e) => {
+    const tab = e.target.closest('.emoji-modal__tab');
     if (!tab) return;
-    header.querySelectorAll('.chat-media-picker__tab').forEach(t => t.classList.remove('active'));
+    tabs.querySelectorAll('.emoji-modal__tab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     renderCategory(tab.dataset.cat);
   });
 
-  picker.appendChild(header);
-  picker.appendChild(body);
+  container.appendChild(header);
+  container.appendChild(tabs);
+  container.appendChild(body);
 }
 
 function renderGifPicker(picker, userId) {
@@ -1958,7 +1999,7 @@ function renderChatMessage(msg) {
   } else if (type === 'emoji' && msg.mediaUrl) {
     content = `
       <div class="chat-media-bubble chat-media-bubble--emoji">
-        <span style="font-size:48px;">${msg.text || ''}</span>
+        <img src="${msg.mediaUrl}" alt="${escapeHtml(msg.text || 'Emoji')}" class="chat-media-bubble__emoji-gif" loading="lazy">
       </div>
     `;
   } else {

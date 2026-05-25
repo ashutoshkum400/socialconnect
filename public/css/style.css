@@ -1931,8 +1931,8 @@ p {
   position: fixed;
   bottom: 0;
   right: calc(var(--space-lg) + 64px);
-  width: 320px;
-  height: 450px;
+  width: 280px;
+  height: 380px;
   background: var(--card-bg);
   border-radius: var(--radius) var(--radius) 0 0;
   box-shadow: var(--shadow-xl);
@@ -2296,6 +2296,139 @@ p {
 
 .chat-media-picker__media--sticker {
   background: var(--bg);
+}
+
+/* Emoji modal */
+.emoji-modal-overlay {
+  z-index: 10000 !important;
+  backdrop-filter: blur(6px);
+}
+
+.emoji-modal {
+  max-width: 480px !important;
+  max-height: 70vh !important;
+  width: 90vw !important;
+  border-radius: var(--radius) !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.emoji-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.emoji-modal__title {
+  font-weight: 600;
+  font-size: var(--font-size-base);
+  color: var(--text);
+}
+
+.emoji-modal__close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  border-radius: var(--radius-xs);
+  transition: color var(--transition), background var(--transition);
+}
+
+.emoji-modal__close:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.emoji-modal__tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px;
+  overflow-x: auto;
+  flex-shrink: 0;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.emoji-modal__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.emoji-modal__tab {
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 600;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+  flex-shrink: 0;
+}
+
+.emoji-modal__tab.active {
+  background: var(--primary);
+  color: white;
+}
+
+.emoji-modal__tab:hover:not(.active) {
+  background: var(--bg);
+}
+
+.emoji-modal__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  min-height: 200px;
+}
+
+.emoji-modal__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.emoji-modal__emoji {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition);
+  padding: 0;
+}
+
+.emoji-modal__emoji:hover {
+  background: var(--bg);
+  transform: scale(1.25);
+}
+
+.emoji-modal__emoji img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Animated emoji in chat bubble */
+.chat-media-bubble__emoji-gif {
+  width: 80px;
+  max-width: 100%;
+  border-radius: 8px;
+  display: block;
 }
 
 /* Media message bubbles */
