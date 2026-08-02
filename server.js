@@ -24,7 +24,13 @@ const ADMIN_SECRET = process.env.ADMIN_SECRET || "Admin@2024";
 const DATA_FILE = path.join(__dirname, "data.json");
 
 // ─── Google OAuth (Sign in with Gmail) ───────────────────────────────────────
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || null;
+// The Google Client ID is PUBLIC by design — Google Identity Services requires
+// it to be embedded in browser-side code. It is safe to keep a hardcoded
+// default so Gmail sign-in works on Render even if the env var is not set.
+// You can still override it via the GOOGLE_CLIENT_ID env var.
+const GOOGLE_CLIENT_ID =
+  process.env.GOOGLE_CLIENT_ID ||
+  "965817059764-nqnm69ngsr3i1h3mdqqmi2160d4n1m3u.apps.googleusercontent.com";
 const GOOGLE_TOKENINFO_URL = "https://oauth2.googleapis.com/tokeninfo";
 
 /**
