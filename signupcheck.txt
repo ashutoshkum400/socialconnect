@@ -1,0 +1,6 @@
+{
+  "authCss": true,
+  "styleCss": true,
+  "authPage": true,
+  "authCard": true
+}
