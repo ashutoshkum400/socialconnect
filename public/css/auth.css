@@ -1,0 +1,499 @@
+/* ==========================================================================
+   SocialConnect — Auth Pages Premium Redesign (Login & Signup)
+   Loaded ONLY on public/index.html and public/signup.html
+   ========================================================================== */
+
+/* ── Animated Mesh-Gradient Background ─────────────────────────────── */
+.auth-page {
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 255, 255, 0.14) 0%, transparent 30%),
+    radial-gradient(circle at 85% 25%, rgba(255, 255, 255, 0.12) 0%, transparent 32%),
+    radial-gradient(circle at 30% 85%, rgba(255, 255, 255, 0.1) 0%, transparent 28%),
+    radial-gradient(circle at 75% 80%, rgba(255, 255, 255, 0.12) 0%, transparent 30%),
+    linear-gradient(135deg, #6a3de8 0%, #1877f2 40%, #e4405f 100%);
+  background-size: 220% 220%;
+  animation: authGradientShift 18s ease-in-out infinite;
+
+  /* Allow scrolling when content (e.g. the tall signup form) exceeds the
+     viewport height — works with mouse wheel and touch swipe on mobile */
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  align-items: safe center;
+  padding-top: var(--space-lg);
+  padding-bottom: var(--space-xl);
+  height: auto;
+  min-height: 100vh;
+}
+
+/* On small screens keep the card a little further from the edges so the
+   whole form is reachable by scrolling. */
+@media (max-width: 520px) {
+  .auth-page {
+    align-items: flex-start;
+    padding-top: 28px;
+    padding-bottom: 64px;
+  }
+}
+
+@keyframes authGradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  25%      { background-position: 50% 0%; }
+  50%      { background-position: 100% 50%; }
+  75%      { background-position: 50% 100%; }
+}
+
+/* ── Colorful blurred orbs (uses existing .blob divs) ──────────────── */
+.blob {
+  filter: blur(70px);
+  opacity: 0.55;
+  will-change: transform;
+}
+.blob--1 {
+  background: radial-gradient(circle at 30% 30%, #ff6b9d, #e4405f 65%, transparent);
+}
+.blob--2 {
+  background: radial-gradient(circle at 70% 30%, #9d7bff, #6a3de8 65%, transparent);
+}
+.blob--3 {
+  background: radial-gradient(circle at 50% 50%, #4cc9f0, #1877f2 65%, transparent);
+}
+
+/* ── Glassmorphism Card ────────────────────────────────────────────── */
+.auth-card {
+  max-width: 470px;
+  background: rgba(255, 255, 255, 0.92);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  border-radius: 26px;
+  box-shadow:
+    0 30px 70px rgba(20, 25, 80, 0.35),
+    0 8px 24px rgba(20, 25, 80, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  padding: 44px 36px 36px;
+  animation: authCardIn 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+body[data-page="signup"] .auth-card {
+  max-width: 540px;
+}
+
+@keyframes authCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(34px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Logo ──────────────────────────────────────────────────────────── */
+.auth-card__logo {
+  margin-bottom: 22px;
+}
+.auth-card__logo-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 19px;
+  background: linear-gradient(135deg, #6a3de8 0%, #1877f2 55%, #e4405f 100%);
+  box-shadow: 0 12px 28px rgba(106, 61, 232, 0.4), 0 0 0 5px rgba(255, 255, 255, 0.25);
+  font-size: 1.7rem;
+  animation: logoFloat 3.5s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-7px) rotate(-3deg); }
+}
+
+/* Compact logo (signup top) */
+.auth-card__logo--compact {
+  margin-bottom: 16px;
+}
+.auth-card__logo--compact .auth-card__logo-icon {
+  width: 54px;
+  height: 54px;
+  font-size: 1.4rem;
+  border-radius: 16px;
+}
+.auth-card__logo--compact .auth-card__logo-name {
+  font-size: 1.35rem;
+}
+
+.auth-card__logo-name {
+  font-size: 1.7rem;
+  letter-spacing: -0.02em;
+}
+
+/* ── Tagline & Welcome ─────────────────────────────────────────────── */
+.auth-tagline {
+  background: linear-gradient(135deg, #6a3de8, #1877f2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  margin-top: -10px;
+  margin-bottom: 22px;
+}
+
+.auth-card__welcome {
+  font-size: 1.55rem;
+  font-weight: 800;
+  text-align: center;
+  margin: -6px 0 24px;
+  background: linear-gradient(135deg, #1c1c30, #4a3f78);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  letter-spacing: -0.01em;
+}
+
+body[data-page="signup"] .auth-card__welcome {
+  margin: -8px 0 26px;
+}
+
+/* ── Labels ────────────────────────────────────────────────────────── */
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4a4f63;
+  margin-bottom: 7px;
+  letter-spacing: 0.01em;
+}
+
+/* ── Inputs: soft filled style ─────────────────────────────────────── */
+.form-input,
+.form-select,
+.form-textarea {
+  height: 49px;
+  background: #f3f5fb;
+  border: 2px solid transparent;
+  border-radius: 13px;
+  color: #1c1c30;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.form-textarea {
+  min-height: 96px;
+  padding: 12px 16px;
+  border-radius: 14px;
+}
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: #9aa0b8;
+}
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  background: #ffffff;
+  border-color: #6a3de8;
+  box-shadow: 0 0 0 4px rgba(106, 61, 232, 0.14);
+}
+
+.form-input.error,
+.form-select.error,
+.form-textarea.error {
+  border-color: #e53935;
+  background: #fff5f5;
+  box-shadow: none;
+}
+
+/* Input icons */
+.form-input-wrap .form-input-icon {
+  color: #9aa0b8;
+  transition: color 0.25s ease, transform 0.25s ease;
+}
+.form-input-wrap:focus-within .form-input-icon {
+  color: #6a3de8;
+  transform: scale(1.08);
+}
+.form-input-wrap .form-input {
+  padding-left: 44px;
+}
+
+/* Password toggle */
+.form-input-suffix.pw-toggle {
+  color: #9aa0b8;
+}
+.form-input-suffix.pw-toggle:hover {
+  color: #6a3de8;
+}
+
+/* Select caret */
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236a3de8' d='M1.41 0L6 4.58 10.59 0 12 1.41l-6 6-6-6z'/%3E%3C/svg%3E");
+}
+
+/* ── Buttons: gradient + shine sweep ───────────────────────────────── */
+.btn--primary {
+  position: relative;
+  overflow: hidden;
+  height: 50px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #6a3de8 0%, #1877f2 60%, #1c7df0 100%);
+  border: none;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  box-shadow: 0 10px 24px rgba(24, 119, 242, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+.btn--primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+  transform: skewX(-20deg);
+  animation: btnShine 3.2s ease-in-out infinite;
+}
+@keyframes btnShine {
+  0%   { left: -120%; }
+  55%  { left: 120%; }
+  100% { left: 120%; }
+}
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(24, 119, 242, 0.45);
+  filter: brightness(1.04);
+}
+.btn--primary:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn--outline-secondary {
+  height: 46px;
+  border-radius: 13px;
+  border: 2px solid #e2e6f2;
+  color: #4a4f63;
+  font-weight: 700;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.btn--outline-secondary:hover {
+  border-color: #6a3de8;
+  background: #f6f2ff;
+  color: #6a3de8;
+}
+
+/* ── Step Indicators ───────────────────────────────────────────────── */
+.auth-steps__circle {
+  width: 36px;
+  height: 36px;
+  background: #ffffff;
+  border: 2px solid #dfe3f0;
+  box-shadow: 0 4px 10px rgba(30, 40, 90, 0.08);
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #9aa0b8;
+}
+.auth-steps__step.active .auth-steps__circle {
+  border-color: #6a3de8;
+  background: linear-gradient(135deg, #6a3de8, #1877f2);
+  box-shadow: 0 6px 16px rgba(106, 61, 232, 0.4);
+}
+.auth-steps__step.completed .auth-steps__circle {
+  border-color: #22c55e;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.35);
+}
+.auth-steps__step + .auth-steps__step::before {
+  width: 44px;
+  height: 3px;
+  background: #e4e8f4;
+  border-radius: 3px;
+  top: 17px;
+}
+.auth-steps__step.completed + .auth-steps__step::before {
+  background: linear-gradient(90deg, #22c55e, #6a3de8);
+}
+.auth-steps__step.active .auth-steps__label {
+  color: #6a3de8;
+  font-weight: 800;
+}
+
+/* ── Step Titles ───────────────────────────────────────────────────── */
+.step-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #6a3de8, #1877f2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+.step-sub {
+  color: #8a90a8;
+  font-size: 0.9rem;
+}
+
+/* ── Interest Tags ─────────────────────────────────────────────────── */
+.tag--interactive {
+  background: #f3f5fb;
+  color: #4a4f63;
+  border: 1.5px solid transparent;
+  font-weight: 600;
+  padding: 7px 14px;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+.tag--interactive:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 14px rgba(106, 61, 232, 0.18);
+}
+.tag--selected {
+  background: linear-gradient(135deg, #6a3de8, #e4405f) !important;
+  color: #ffffff !important;
+  border-color: transparent !important;
+  box-shadow: 0 6px 16px rgba(228, 64, 95, 0.35);
+}
+
+/* ── Google Sign-In ────────────────────────────────────────────────── */
+.google-signin-block {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0 0;
+}
+.google-signin-block iframe {
+  border-radius: 12px !important;
+  overflow: hidden;
+  box-shadow: 0 4px 14px rgba(30, 40, 90, 0.1);
+}
+.google-signin-note {
+  text-align: center;
+  font-size: var(--font-size-sm);
+  color: #8a90a8;
+  background: #f6f7fc;
+  border: 1px dashed #dfe3f0;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin-top: 14px;
+}
+
+/* ── Divider ───────────────────────────────────────────────────────── */
+.auth-divider {
+  color: #9aa0b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin: 22px 0;
+}
+.auth-divider::before,
+.auth-divider::after {
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #dde2f2, transparent);
+}
+
+/* ── Forgot Password ───────────────────────────────────────────────── */
+.forgot-row a {
+  background: linear-gradient(135deg, #6a3de8, #1877f2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.forgot-row a:hover {
+  text-decoration: underline;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────── */
+.auth-card__footer {
+  font-size: 0.9rem;
+  color: #8a90a8;
+}
+.auth-card__footer a {
+  background: linear-gradient(135deg, #6a3de8, #e4405f);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 800;
+  transition: opacity 0.2s ease;
+}
+.auth-card__footer a:hover {
+  opacity: 0.8;
+}
+
+/* ── Social Proof ──────────────────────────────────────────────────── */
+.auth-social-proof {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #7a8194;
+  margin-top: 16px;
+  text-align: center;
+}
+
+/* ── Error banner ──────────────────────────────────────────────────── */
+.error-msg {
+  border-radius: 13px;
+  background: rgba(229, 57, 53, 0.08);
+  border: 1.5px solid rgba(229, 57, 53, 0.35);
+  color: #d32f2f;
+  font-weight: 600;
+  padding: 11px 14px;
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.12);
+}
+
+/* ── Password strength ─────────────────────────────────────────────── */
+.pw-strength__track {
+  background: #e8ebf6;
+  height: 5px;
+}
+.pw-strength__fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+/* ── Form hint ─────────────────────────────────────────────────────── */
+.form-hint {
+  color: #9aa0b8;
+  font-size: 0.75rem;
+}
+
+/* ── Interest counter row ──────────────────────────────────────────── */
+.interest-count-label {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #1c1c30;
+}
+.interest-count-hint {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .auth-card {
+    padding: 32px 20px 28px;
+    border-radius: 22px;
+  }
+  .auth-card__welcome {
+    font-size: 1.35rem;
+  }
+  .btn--primary {
+    height: 48px;
+  }
+  .form-input,
+  .form-select,
+  .form-textarea {
+    height: 47px;
+  }
+  .form-textarea {
+    min-height: 88px;
+  }
+}
+

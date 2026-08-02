@@ -6,6 +6,7 @@
         <title>Create Account — SocialConnect</title>
         <link rel="stylesheet" href="/css/style.css" />
         <link rel="stylesheet" href="/css/responsive.css" />
+        <link rel="stylesheet" href="/css/auth.css" />
         <style>
             /* ── Wider card for multi-step form ──────────────────────── */
             .auth-card {
@@ -178,6 +179,13 @@
         <div class="blob blob--3"></div>
 
         <div class="auth-card">
+            <!-- ── Compact logo + welcome ───────────────────────────── -->
+            <div class="auth-card__logo auth-card__logo--compact">
+                <div class="auth-card__logo-icon">💜</div>
+                <div class="auth-card__logo-name">SocialConnect</div>
+            </div>
+            <h1 class="auth-card__welcome">Join the community 🚀</h1>
+
             <!-- ── Global error banner ───────────────────────────────── -->
             <div id="signupError" class="error-msg" role="alert">
                 <svg
@@ -782,6 +790,9 @@
             <!-- ── Footer link ───────────────────────────────────────── -->
             <div class="auth-card__footer">
                 Already have an account? <a href="/index.html">Log In</a>
+            </div>
+            <div class="auth-social-proof">
+                🔒 Free forever · <strong>1M+</strong> members · 190+ countries
             </div>
         </div>
         <!-- /.auth-card -->
