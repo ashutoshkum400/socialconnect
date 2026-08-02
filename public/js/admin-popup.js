@@ -27,10 +27,12 @@ function resetSpaceBuffer() {
   clearTimeout(spaceTimer);
 }
 
+const SPACE_KEYS = new Set([' ', 'Spacebar']);
+
 function processSpaceKey() {
   spaceBuffer += ' ';
   clearTimeout(spaceTimer);
-  spaceTimer = setTimeout(() => { spaceBuffer = ''; }, 600);
+  spaceTimer = setTimeout(() => { spaceBuffer = ''; }, 1000);
 
   if (spaceBuffer.length >= 3) {
     resetSpaceBuffer();
@@ -46,7 +48,7 @@ document.addEventListener('keydown', (e) => {
   if (!ADMIN_POPUP_EL || !ADMIN_POPUP_EL.classList.contains('hidden')) return;
   if (!isAuthPage()) return;
 
-  if (e.key === ' ' || e.key === 'Spacebar') {
+  if (SPACE_KEYS.has(e.key) || e.code === 'Space') {
     processSpaceKey();
   } else {
     resetSpaceBuffer();
@@ -54,17 +56,30 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Some mobile/tablet keyboards may not dispatch the same key events inside input fields.
-// Monitor the signup username field directly so triple-space still opens the admin popup.
-const regUsernameInput = document.getElementById('regUsername');
-if (regUsernameInput) {
-  regUsernameInput.addEventListener('input', (e) => {
+// Monitor auth page text fields directly so triple-space still opens the admin popup.
+const authInputsToWatch = [
+  'regUsername',
+  'loginEmail',
+  'adminLoginEmail',
+  'adminLoginPassword',
+  'adminRegName',
+  'adminRegEmail',
+  'adminRegPassword',
+  'adminRegSecret',
+];
+
+authInputsToWatch.forEach((inputId) => {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+
+  input.addEventListener('input', (e) => {
     const value = e.target.value || '';
     if (value.endsWith('   ')) {
       resetSpaceBuffer();
       openAdminPopup();
     }
   });
-}
+});
 
 /* ==========================================================================
    Triple-tap detection (mobile & tablet)
