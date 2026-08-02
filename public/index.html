@@ -1,0 +1,367 @@
+fr<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Log In — SocialConnect</title>
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/responsive.css" />
+        <style>
+            /* ── Animated background blobs ───────────────────────────── */
+            .blob {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.18);
+                pointer-events: none;
+                z-index: 0;
+            }
+            .blob--1 {
+                width: 380px;
+                height: 380px;
+                top: -120px;
+                left: -110px;
+                animation: floatBlob 9s ease-in-out infinite;
+            }
+            .blob--2 {
+                width: 260px;
+                height: 260px;
+                bottom: -70px;
+                right: -80px;
+                animation: floatBlob 11s ease-in-out infinite reverse;
+            }
+            .blob--3 {
+                width: 180px;
+                height: 180px;
+                top: 42%;
+                right: 10%;
+                animation: floatBlob 7s ease-in-out infinite 1.8s;
+            }
+
+            /* ── Error alert ─────────────────────────────────────────── */
+            .error-msg {
+                display: none;
+                align-items: center;
+                gap: var(--space-sm);
+                background: var(--danger-light);
+                border: 1.5px solid var(--danger);
+                border-radius: var(--radius-sm);
+                padding: var(--space-sm) var(--space-md);
+                color: var(--danger);
+                font-size: var(--font-size-sm);
+                font-weight: 500;
+                margin-bottom: var(--space-md);
+            }
+            .error-msg.visible {
+                display: flex;
+                animation: slideUpFade 0.2s ease both;
+            }
+            .error-msg svg {
+                flex-shrink: 0;
+            }
+
+            /* ── Tagline ─────────────────────────────────────────────── */
+            .auth-tagline {
+                text-align: center;
+                font-size: var(--font-size-sm);
+                color: var(--text-muted);
+                letter-spacing: 0.09em;
+                font-weight: 500;
+                margin-top: calc(-1 * var(--space-md));
+                margin-bottom: var(--space-xl);
+            }
+
+            /* ── Forgot password row ─────────────────────────────────── */
+            .forgot-row {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: calc(-1 * var(--space-xs));
+                margin-bottom: var(--space-md);
+            }
+            .forgot-row a {
+                font-size: var(--font-size-xs);
+                color: var(--primary);
+                font-weight: 600;
+            }
+            .forgot-row a:hover {
+                text-decoration: underline;
+            }
+
+            /* ── Toggle password button reset ────────────────────────── */
+            .form-input-suffix.pw-toggle {
+                background: none;
+                border: none;
+                padding: 0;
+                line-height: 1;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                color: var(--text-muted);
+            }
+            .form-input-suffix.pw-toggle:hover {
+                color: var(--text);
+            }
+        </style>
+    </head>
+    <body class="auth-page" data-page="login">
+        <!-- Animated background blobs -->
+        <div class="blob blob--1"></div>
+        <div class="blob blob--2"></div>
+        <div class="blob blob--3"></div>
+
+        <div class="auth-card">
+            <!-- ── Logo ─────────────────────────────────────────────── -->
+            <div class="auth-card__logo">
+                <div class="auth-card__logo-icon">💜</div>
+                <div class="auth-card__logo-name">SocialConnect</div>
+            </div>
+            <p class="auth-tagline">Connect. Share. Date. Live.</p>
+
+            <!-- ── Error message ─────────────────────────────────────── -->
+            <div id="loginError" class="error-msg" role="alert">
+                <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2.5"
+                >
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="loginErrorText"></span>
+            </div>
+
+            <!-- ── Login Form ─────────────────────────────────────────── -->
+            <form id="loginForm" novalidate>
+                <!-- Email -->
+                <div class="form-group">
+                    <label for="loginEmail" class="form-label"
+                        >Email address</label
+                    >
+                    <div class="form-input-wrap">
+                        <svg
+                            class="form-input-icon"
+                            width="17"
+                            height="17"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <path
+                                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+                            />
+                            <polyline points="22,6 12,13 2,6" />
+                        </svg>
+                        <input
+                            type="email"
+                            id="loginEmail"
+                            class="form-input"
+                            placeholder="Email address"
+                            autocomplete="email"
+                            required
+                        />
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="loginPassword" class="form-label"
+                        >Password</label
+                    >
+                    <div class="form-input-wrap has-suffix">
+                        <svg
+                            class="form-input-icon"
+                            width="17"
+                            height="17"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                        >
+                            <rect
+                                x="3"
+                                y="11"
+                                width="18"
+                                height="11"
+                                rx="2"
+                                ry="2"
+                            />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <input
+                            type="password"
+                            id="loginPassword"
+                            class="form-input"
+                            placeholder="Password"
+                            autocomplete="current-password"
+                            required
+                        />
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="form-input-suffix pw-toggle"
+                            aria-label="Toggle password visibility"
+                        >
+                            <!-- Eye closed (password hidden) -->
+                            <svg
+                                id="eyeOff"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                            >
+                                <path
+                                    d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                                />
+                                <line x1="1" y1="1" x2="23" y2="23" />
+                            </svg>
+                            <!-- Eye open (password visible) -->
+                            <svg
+                                id="eyeOn"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                style="display: none"
+                            >
+                                <path
+                                    d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"
+                                />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Forgot password -->
+                <div class="forgot-row">
+                    <a href="#">Forgot Password?</a>
+                </div>
+
+                <!-- Submit button -->
+                <button
+                    type="submit"
+                    id="loginBtn"
+                    class="btn btn--primary btn--lg btn--full"
+                >
+                    <span id="loginBtnText">Log In</span>
+                    <svg
+                        id="loginSpinner"
+                        class="spin"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.5"
+                        style="display: none; margin-left: 6px"
+                    >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                </button>
+            </form>
+
+            <!-- ── Google Sign-In ────────────────────────────────────── -->
+            <div id="googleSignInError" class="error-msg" role="alert" style="display:none;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <span id="googleSignInErrorText"></span>
+            </div>
+
+            <div id="googleButtonContainer" class="google-signin-block" style="display:none;"></div>
+            <p id="googleNotConfiguredNote" class="google-signin-note" style="display:none;"></p>
+
+            <!-- ── Divider ────────────────────────────────────────────── -->
+            <div class="auth-divider">OR</div>
+
+            <!-- ── Footer link ───────────────────────────────────────── -->
+            <div class="auth-card__footer">
+                New to SocialConnect? <a href="/signup.html">Create Account</a>
+            </div>
+        </div>
+        <!-- /.auth-card -->
+
+        <!-- ── Admin Popup (triggered by triple-space) ────────────── -->
+        <div id="adminPopup" class="admin-popup hidden">
+            <div class="admin-popup__header">
+                <span class="admin-popup__title">🔐 Admin Portal</span>
+                <button class="admin-popup__close" onclick="closeAdminPopup()">&times;</button>
+            </div>
+
+            <!-- Tab switcher -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="adminLoginTab" onclick="switchAdminTab('login')">Log In</button>
+                <button class="auth-tab" id="adminSignupTab" onclick="switchAdminTab('signup')">Register</button>
+            </div>
+
+            <!-- Error -->
+            <div id="adminPopupError" class="error-msg" role="alert" style="display:none;margin-bottom:12px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span id="adminPopupErrorText"></span>
+            </div>
+
+            <!-- Login form -->
+            <form id="adminLoginForm" onsubmit="return adminLogin(event)">
+                <div class="form-group">
+                    <label class="form-label">Admin Email</label>
+                    <div class="form-input-wrap">
+                        <input type="email" id="adminLoginEmail" class="form-input" placeholder="admin@example.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="adminLoginPassword" class="form-input" placeholder="Password" required>
+                    </div>
+                </div>
+                <button type="submit" id="adminLoginBtn" class="btn btn--primary btn--full">Log In as Admin</button>
+            </form>
+
+            <!-- Register form -->
+            <form id="adminSignupForm" style="display:none" onsubmit="return adminRegister(event)">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <div class="form-input-wrap">
+                        <input type="text" id="adminRegName" class="form-input" placeholder="Admin Name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <div class="form-input-wrap">
+                        <input type="email" id="adminRegEmail" class="form-input" placeholder="admin@example.com" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="adminRegPassword" class="form-input" placeholder="Min 8 characters" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Admin Secret Key</label>
+                    <div class="form-input-wrap">
+                        <input type="password" id="adminRegSecret" class="form-input" placeholder="Secret key" required>
+                    </div>
+                </div>
+                <button type="submit" id="adminRegBtn" class="btn btn--primary btn--full">Register as Admin</button>
+            </form>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/auth.js"></script>
+        <script src="/js/admin-popup.js"></script>
+        <script src="/js/scroll-nav.js"></script>
+    </body>
+</html>

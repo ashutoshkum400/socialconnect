@@ -1,0 +1,2772 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000" />
+  <title>Reels ✦</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --primary: #ff2a55;
+      --primary-dark: #d91e44;
+      --primary-glow: rgba(255,42,85,0.35);
+      --bg: #000;
+      --text: #fff;
+      --text-sec: rgba(255,255,255,0.65);
+      --text-muted: rgba(255,255,255,0.35);
+      --card-bg: rgba(255,255,255,0.06);
+      --overlay-grad: linear-gradient(180deg, transparent 45%, rgba(0,0,0,0.75) 100%);
+      --top-grad: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%);
+      --radius: 14px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* ─── Top Bar ─── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+      height: 52px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 14px;
+      background: var(--top-grad);
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-back {
+      width: 36px; height: 36px; border: none; background: rgba(255,255,255,0.08);
+      border-radius: 50%; color: #fff; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; backdrop-filter: blur(6px);
+    }
+    .topbar-back:active { background: rgba(255,255,255,0.16); }
+    .topbar-logo { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; }
+    .topbar-logo em { font-style: normal; color: var(--primary); }
+    .topbar-right { display: flex; gap: 6px; }
+    .topbar-btn {
+      width: 36px; height: 36px; border: none; background: rgba(255,255,255,0.08);
+      border-radius: 50%; color: #fff; font-size: 16px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; backdrop-filter: blur(6px);
+    }
+    .topbar-btn:active { background: rgba(255,255,255,0.16); }
+
+    /* ─── Tabs ─── */
+    .tabs {
+      position: fixed; top: 52px; left: 0; right: 0; z-index: 19;
+      height: 40px; display: flex; align-items: center;
+      justify-content: center; gap: 3px; padding: 0 10px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.45), transparent);
+    }
+    .tab {
+      padding: 5px 14px; border: none; background: rgba(255,255,255,0.04);
+      color: var(--text-muted); font-size: 12px; font-weight: 700;
+      border-radius: 16px; cursor: pointer; transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab.active {
+      background: rgba(255,42,85,0.15); color: var(--primary);
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+    .tab:active { transform: scale(0.95); }
+
+    /* ─── Persistent Search ─── */
+    .persistent-search {
+      position: fixed;
+      top: 92px;
+      left: 0;
+      right: 0;
+      z-index: 18;
+      padding: 6px 12px 4px;
+      background: linear-gradient(180deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.6) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    .persistent-search.open {
+      max-height: 380px;
+    }
+    .persistent-search .search-inner {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 0 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: border-color 0.2s;
+    }
+    .persistent-search .search-inner:focus-within { border-color: var(--primary); }
+    .persistent-search .search-inner input {
+      flex: 1;
+      height: 36px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+    }
+    .persistent-search .search-inner input::placeholder { color: var(--text-muted); }
+    .persistent-search .search-inner .search-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .persistent-search .search-inner .search-actions button {
+      padding: 5px 12px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .persistent-search .search-inner .search-actions button:active { transform: scale(0.92); }
+    .persistent-search .search-inner .filter-toggle {
+      padding: 5px 8px;
+      background: rgba(255,255,255,0.06);
+      color: var(--text-sec);
+      font-size: 13px;
+      border-radius: 7px;
+    }
+    .persistent-search .search-inner .filter-toggle.active { background: rgba(255,42,85,0.15); color: var(--primary); }
+
+    /* ─── Search Chips ─── */
+    .persistent-search .search-chips {
+      display: flex;
+      gap: 5px;
+      padding: 6px 0 2px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .persistent-search .search-chips::-webkit-scrollbar { display: none; }
+    .persistent-search .search-chip {
+      flex-shrink: 0;
+      padding: 4px 12px;
+      border: none;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-sec);
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .persistent-search .search-chip:active { transform: scale(0.95); background: rgba(255,42,85,0.15); color: var(--primary); }
+    .persistent-search .search-chip.used { background: rgba(255,42,85,0.12); color: var(--primary); }
+
+    /* ─── Active Filter Pills ─── */
+    .persistent-search .search-pills {
+      display: flex;
+      gap: 5px;
+      padding: 2px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .persistent-search .search-pills::-webkit-scrollbar { display: none; }
+    .persistent-search .search-pill {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      background: rgba(255,42,85,0.1);
+      color: var(--primary);
+      font-size: 9px;
+      font-weight: 600;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+    .persistent-search .search-pill .pill-close {
+      cursor: pointer;
+      font-size: 11px;
+      line-height: 1;
+      opacity: 0.6;
+      transition: opacity 0.15s;
+    }
+    .persistent-search .search-pill .pill-close:hover { opacity: 1; }
+
+    /* ─── Advanced Filters Panel ─── */
+    .persistent-search .search-filters {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .persistent-search .search-filters.open { max-height: 260px; }
+    .persistent-search .search-filters-inner {
+      padding: 6px 0 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .persistent-search .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .persistent-search .filter-label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      flex-shrink: 0;
+      min-width: 54px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .persistent-search .filter-options {
+      display: flex;
+      gap: 3px;
+      flex-wrap: wrap;
+    }
+    .persistent-search .filter-opt {
+      padding: 3px 10px;
+      border: 1px solid rgba(255,255,255,0.06);
+      background: transparent;
+      color: var(--text-sec);
+      font-size: 10px;
+      font-weight: 600;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .persistent-search .filter-opt:active { transform: scale(0.95); }
+    .persistent-search .filter-opt.active {
+      background: rgba(255,42,85,0.12);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* ─── Search results count ─── */
+    .search-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0 6px;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+    .search-meta .clear-search {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 2px 8px;
+    }
+
+    /* ─── Feed ─── */
+    .feed {
+      position: fixed; inset: 0; z-index: 1;
+      overflow-y: scroll; scroll-snap-type: y mandatory;
+      scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+    }
+    .feed::-webkit-scrollbar { display: none; }
+
+    /* ─── Reel Card ─── */
+    .reel {
+      position: relative; width: 100%; height: 100vh; height: 100dvh;
+      scroll-snap-align: start; scroll-snap-stop: always;
+      overflow: hidden; background: #000; flex-shrink: 0;
+    }
+    .reel-iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: none; pointer-events: none;
+    }
+    .reel-overlay {
+      position: absolute; inset: 0; z-index: 2;
+      background: var(--overlay-grad);
+      pointer-events: none;
+    }
+
+    /* ─── Bottom Info ─── */
+    .reel-bottom {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 3;
+      padding: 16px 14px calc(20px + var(--safe-bottom));
+    }
+    .reel-channel {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px; pointer-events: auto;
+    }
+    .reel-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      object-fit: cover; border: 2px solid rgba(255,255,255,0.25);
+      flex-shrink: 0; background: #333; cursor: pointer;
+    }
+    .reel-channel-name {
+      font-size: 14px; font-weight: 700; color: #fff;
+      text-decoration: none; cursor: pointer;
+    }
+    .reel-sub-btn {
+      margin-left: auto; flex-shrink: 0;
+      padding: 5px 16px; border: 1px solid var(--primary);
+      background: transparent; color: var(--primary);
+      font-size: 11px; font-weight: 700; border-radius: 20px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .reel-sub-btn:active { transform: scale(0.95); }
+    .reel-sub-btn.subscribed {
+      background: var(--primary); color: #fff; opacity: 0.65;
+    }
+    .reel-caption {
+      font-size: 14px; line-height: 1.4; margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+      color: var(--text); pointer-events: auto; cursor: pointer;
+    }
+    .reel-caption.expanded { -webkit-line-clamp: unset; }
+    .reel-audio {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: var(--text-sec); margin-top: 4px;
+    }
+    .reel-audio svg { flex-shrink: 0; width: 14px; height: 14px; fill: currentColor; }
+    .reel-tags {
+      display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;
+    }
+    .reel-tag {
+      font-size: 11px; color: var(--primary); opacity: 0.8;
+      font-weight: 500; cursor: pointer;
+    }
+
+    /* ─── Right Side Actions ─── */
+    .reel-actions {
+      position: absolute; right: 10px; bottom: 150px; z-index: 3;
+      display: flex; flex-direction: column; align-items: center;
+      gap: 16px; pointer-events: none;
+    }
+    .reel-actions > * { pointer-events: auto; }
+    .reel-action {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 2px; background: none; border: none; color: #fff;
+      cursor: pointer; padding: 0; transition: transform 0.15s;
+      position: relative;
+    }
+    .reel-action:active { transform: scale(0.82); }
+    .reel-action svg {
+      width: 26px; height: 26px;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+    }
+    .reel-action span {
+      font-size: 10px; font-weight: 600;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    .reel-action.liked svg { color: var(--primary); fill: currentColor; }
+    .reel-action.saved svg { color: #ffd700; fill: currentColor; }
+    .reel-action.reposted svg { color: #2ed573; fill: currentColor; }
+
+    /* ─── Like Animation ─── */
+    .like-hearts {
+      position: absolute; inset: 0; pointer-events: none; z-index: 10;
+    }
+    .like-heart-fly {
+      position: absolute; top: 10%; left: 50%;
+      font-size: 80px; transform: translateX(-50%) scale(0);
+      opacity: 0; animation: heartFly 0.7s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes heartFly {
+      0% { transform: translateX(-50%) scale(0); opacity: 1; }
+      40% { transform: translateX(-50%) scale(1.3); opacity: 1; }
+      100% { transform: translateX(-50%) translateY(-80px) scale(1); opacity: 0; }
+    }
+
+    /* ─── Mute Button ─── */
+    .reel-mute {
+      position: absolute; top: 60px; right: 12px; z-index: 3;
+      width: 36px; height: 36px; border: none;
+      background: rgba(0,0,0,0.45); border-radius: 50%;
+      color: #fff; cursor: pointer; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(6px); transition: background 0.15s;
+    }
+    .reel-mute:active { background: rgba(0,0,0,0.6); }
+
+    /* ─── Progress Bar ─── */
+    .reel-progress {
+      position: absolute; bottom: 0; left: 0; right: 0; z-index: 4;
+      height: 3px; background: rgba(255,255,255,0.1);
+    }
+    .reel-progress-bar {
+      height: 100%; background: var(--primary); width: 0%;
+      transition: width 0.3s linear;
+    }
+
+    /* ─── Global Like Button (double-tap video) ─── */
+    .reel-double-tap {
+      position: absolute; inset: 0; z-index: 2; cursor: pointer;
+    }
+
+    /* ─── Comments Modal ─── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 50;
+      background: rgba(0,0,0,0.5); display: none;
+      align-items: flex-end; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-panel {
+      position: relative; width: 100%; max-width: 420px;
+      background: #16162a; border-radius: 20px 20px 0 0;
+      display: flex; flex-direction: column; max-height: 70vh;
+      animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .modal-title { font-size: 15px; font-weight: 700; }
+    .modal-close {
+      width: 32px; height: 32px; border: none; background: none;
+      color: var(--text); font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-body {
+      flex: 1; overflow-y: auto; padding: 12px 16px; min-height: 100px;
+    }
+    .modal-body::-webkit-scrollbar { width: 4px; }
+    .modal-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+    .modal-footer {
+      display: flex; gap: 10px; padding: 12px 16px;
+      border-top: 1px solid rgba(255,255,255,0.06); flex-shrink: 0;
+    }
+    .comment-input {
+      flex: 1; height: 40px; padding: 0 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+      color: var(--text); font-size: 13px; font-family: inherit;
+      outline: none;
+    }
+    .comment-input:focus { border-color: var(--primary); }
+    .comment-input::placeholder { color: var(--text-sec); opacity: 0.5; }
+    .comment-send {
+      flex: none; padding: 0 20px; height: 40px;
+      border: none; background: var(--primary); color: #fff;
+      font-size: 13px; font-weight: 600; border-radius: 10px; cursor: pointer;
+    }
+    .comment-send:active { transform: scale(0.95); }
+
+    .comment-item {
+      display: flex; gap: 10px; padding: 10px 0;
+    }
+    .comment-item + .comment-item { border-top: 1px solid rgba(255,255,255,0.03); }
+    .comment-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      object-fit: cover; flex-shrink: 0; background: #333;
+    }
+    .comment-body { flex: 1; min-width: 0; }
+    .comment-name { font-size: 12px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+    .comment-text { font-size: 13px; color: var(--text-sec); line-height: 1.4; word-wrap: break-word; }
+    .comment-time { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ─── Share Sheet ─── */
+    .share-sheet {
+      position: fixed; inset: 0; z-index: 40; display: none;
+      align-items: flex-end; justify-content: center;
+    }
+    .share-sheet.open { display: flex; }
+    .share-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.5);
+    }
+    .share-panel {
+      position: relative; width: 100%; max-width: 420px;
+      background: #16162a; border-radius: 20px 20px 0 0;
+      padding: 20px; animation: slideUp 0.3s cubic-bezier(0.16,1,0.3,1);
+    }
+    .share-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .share-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 12px; margin-bottom: 16px;
+    }
+    .share-opt {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 6px; padding: 12px 6px; border: none; background: rgba(255,255,255,0.04);
+      border-radius: 12px; color: var(--text); cursor: pointer;
+      transition: background 0.15s; font-size: 11px;
+    }
+    .share-opt:active { background: rgba(255,255,255,0.1); }
+    .share-opt-icon {
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+    }
+    .share-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; background: rgba(255,255,255,0.04);
+      border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);
+    }
+    .share-link input {
+      flex: 1; background: none; border: none; color: var(--text);
+      font-size: 12px; outline: none; font-family: inherit;
+    }
+    .share-copy {
+      padding: 6px 14px; border: none; background: var(--primary);
+      color: #fff; font-size: 11px; font-weight: 700;
+      border-radius: 8px; cursor: pointer;
+    }
+    .share-copy:active { transform: scale(0.95); }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; z-index: 60;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(0,0,0,0.88); backdrop-filter: blur(12px);
+      color: #fff; padding: 10px 24px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; opacity: 0;
+      transition: all 0.3s; pointer-events: none; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ─── Spinner ─── */
+    .loader {
+      position: fixed; inset: 0; z-index: 5; display: flex;
+      align-items: center; justify-content: center; background: var(--bg);
+    }
+    .loader.hide { display: none; }
+    .spinner {
+      width: 28px; height: 28px; border: 2.5px solid rgba(255,255,255,0.04);
+      border-top-color: var(--primary); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ─── Empty / Error ─── */
+    .empty-state {
+      position: fixed; inset: 0; z-index: 5; display: flex;
+      flex-direction: column; align-items: center;
+      justify-content: center; gap: 10px; color: var(--text-muted);
+      padding: 40px; text-align: center;
+    }
+    .empty-state .icon { font-size: 52px; }
+    .empty-state .title { font-size: 18px; font-weight: 700; color: #fff; }
+    .empty-state .sub { font-size: 13px; opacity: 0.5; }
+    .empty-state button {
+      margin-top: 8px; padding: 10px 28px; border: none;
+      background: var(--primary); color: #fff; font-size: 13px;
+      font-weight: 700; border-radius: 10px; cursor: pointer;
+    }
+
+    /* ─── Settings Panel ─── */
+    .settings-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 70; display: none; animation: fadeIn 0.2s ease;
+    }
+    .settings-overlay.open { display: block; }
+
+    .settings-panel {
+      position: fixed; top: 0; right: -420px;
+      width: 400px; max-width: 92vw; height: 100vh;
+      background: #111; border-left: 1px solid rgba(255,255,255,0.08);
+      z-index: 71; display: flex; flex-direction: column;
+      transition: right 0.35s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: -10px 0 50px rgba(0,0,0,0.3);
+    }
+    .settings-panel.open { right: 0; }
+    .settings-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+    }
+    .settings-title {
+      font-size: 18px; font-weight: 700;
+      background: linear-gradient(135deg,var(--primary),var(--primary-dark));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .settings-close {
+      width: 32px; height: 32px; border: none; background: none;
+      color: var(--text); font-size: 20px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .settings-body { flex: 1; overflow-y: auto; padding: 8px 0; }
+    .settings-body::-webkit-scrollbar { width: 4px; }
+    .settings-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+    .settings-group { padding: 8px 20px 16px; }
+    .settings-group + .settings-group { border-top: 1px solid rgba(255,255,255,0.06); margin-top: 4px; }
+    .settings-group-title {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.08em; color: var(--text-sec); margin-bottom: 12px;
+    }
+    .settings-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; gap: 12px;
+    }
+    .settings-label { font-size: 13px; color: var(--text); font-weight: 500; flex-shrink: 0; }
+    .settings-label-sub { font-size: 11px; color: var(--text-sec); display: inline; margin-left: 4px; }
+    .settings-options { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+    .settings-opt {
+      padding: 5px 12px; border: 1px solid rgba(255,255,255,0.1);
+      background: transparent; color: var(--text-sec); border-radius: 8px;
+      font-size: 12px; cursor: pointer; transition: all 0.15s ease; font-weight: 500;
+    }
+    .settings-opt:hover { border-color: rgba(255,255,255,0.2); color: var(--text); background: rgba(255,255,255,0.04); }
+    .settings-opt.active {
+      border-color: var(--primary); background: rgba(255,42,85,0.12);
+      color: var(--primary); box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .settings-themes { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+    .settings-theme-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 10px 6px; border: 2px solid rgba(255,255,255,0.08);
+      background: transparent; border-radius: 12px; cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .settings-theme-btn:hover { border-color: rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); }
+    .settings-theme-btn.active {
+      border-color: var(--primary); box-shadow: 0 0 16px var(--primary-glow);
+      background: rgba(255,42,85,0.06);
+    }
+    .settings-theme-swatch {
+      width: 32px; height: 32px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.1); flex-shrink: 0;
+    }
+    .settings-theme-name { font-size: 10px; color: var(--text-sec); font-weight: 500; text-align: center; }
+    .settings-theme-btn.active .settings-theme-name { color: var(--primary); }
+
+    .settings-slider {
+      flex: 1; max-width: 140px; height: 4px; border-radius: 2px;
+      -webkit-appearance: none; appearance: none; accent-color: var(--primary);
+      background: rgba(255,255,255,0.1); outline: none;
+    }
+    .settings-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 16px; height: 16px;
+      border-radius: 50%; background: var(--primary);
+      cursor: pointer; box-shadow: 0 0 8px var(--primary-glow);
+    }
+
+    .settings-toggle { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+    .settings-toggle input { opacity: 0; width: 0; height: 0; }
+    .settings-toggle-slider {
+      position: absolute; cursor: pointer; inset: 0;
+      background: rgba(255,255,255,0.12); border-radius: 24px;
+      transition: all 0.25s ease;
+    }
+    .settings-toggle-slider::before {
+      content: ''; position: absolute; left: 3px; bottom: 3px;
+      width: 18px; height: 18px; background: #fff; border-radius: 50%;
+      transition: transform 0.25s ease;
+    }
+    .settings-toggle input:checked + .settings-toggle-slider { background: var(--primary); }
+    .settings-toggle input:checked + .settings-toggle-slider::before { transform: translateX(18px); }
+
+    .settings-reset-btn {
+      width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.1);
+      background: transparent; color: var(--text-sec); border-radius: 10px;
+      font-size: 13px; cursor: pointer; transition: all 0.15s;
+      font-weight: 600;
+    }
+    .settings-reset-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(255,42,85,0.06); }
+
+    /* ─── Theme CSS Variables Overrides ─── */
+    [data-theme="light"] {
+      --bg: #f5f5fa; --text: #1a1a2e; --text-sec: rgba(0,0,0,0.5);
+      --text-muted: rgba(0,0,0,0.3); --card-bg: rgba(0,0,0,0.03);
+      --primary: #e91e63; --primary-dark: #c2185b;
+      --primary-glow: rgba(233,30,99,0.2);
+      --overlay-grad: linear-gradient(180deg, transparent 45%, rgba(255,255,255,0.8) 100%);
+      --top-grad: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 100%);
+    }
+    [data-theme="light"] .settings-panel { background: #fff; }
+    [data-theme="light"] .settings-opt { border-color: rgba(0,0,0,0.1); }
+    [data-theme="light"] .settings-toggle-slider { background: rgba(0,0,0,0.12); }
+    [data-theme="light"] .topbar-back, [data-theme="light"] .topbar-btn { color: #1a1a2e; }
+
+    [data-theme="purple"] {
+      --bg: #120822; --text: #f3e5f5; --text-sec: rgba(243,229,245,0.5);
+      --text-muted: rgba(243,229,245,0.3); --card-bg: rgba(156,39,176,0.06);
+      --primary: #ce93d8; --primary-dark: #ab47bc;
+      --primary-glow: rgba(206,147,216,0.3);
+      --overlay-grad: linear-gradient(180deg, transparent 45%, rgba(18,8,34,0.8) 100%);
+    }
+
+    [data-theme="ocean"] {
+      --bg: #001220; --text: #e1f5fe; --text-sec: rgba(225,245,254,0.5);
+      --text-muted: rgba(225,245,254,0.3); --card-bg: rgba(3,169,244,0.05);
+      --primary: #29b6f6; --primary-dark: #0288d1;
+      --primary-glow: rgba(41,182,246,0.3);
+      --overlay-grad: linear-gradient(180deg, transparent 45%, rgba(0,18,32,0.8) 100%);
+    }
+
+    [data-theme="midnight"] {
+      --bg: #050510; --text: #c8c8ff; --text-sec: rgba(200,200,255,0.4);
+      --text-muted: rgba(200,200,255,0.25); --card-bg: rgba(100,100,255,0.04);
+      --primary: #7c7cff; --primary-dark: #5858e6;
+      --primary-glow: rgba(124,124,255,0.25);
+      --overlay-grad: linear-gradient(180deg, transparent 45%, rgba(5,5,16,0.8) 100%);
+    }
+
+    /* ─── Animation Speed ─── */
+    [data-anim="off"] * { animation-duration: 0s !important; transition-duration: 0s !important; }
+    [data-anim="slow"] * { animation-duration: 1.8s !important; }
+    [data-anim="fast"] * { animation-duration: 0.4s !important; }
+
+    /* ─── Card Effects ─── */
+    [data-card="glow"] .reel { box-shadow: inset 0 0 60px var(--primary-glow); }
+    [data-card="border"] .reel { border: 2px solid var(--primary); }
+    [data-card="subtle"] .reel-overlay { opacity: 0.6; }
+
+    /* ─── Grid Layout ─── */
+    [data-layout="grid"] .feed {
+      position: relative; top: 92px; display: grid;
+      grid-template-columns: repeat(3, 1fr); gap: 6px;
+      padding: 8px; overflow-y: auto; scroll-snap-type: none;
+      height: calc(100% - 92px);
+    }
+    [data-layout="grid"] .feed .reel {
+      position: relative; width: 100%; height: auto; aspect-ratio: 9/16;
+      scroll-snap-align: none; border-radius: 10px; overflow: hidden;
+      flex-shrink: 1; min-height: 0;
+    }
+    [data-layout="grid"] .feed .reel-overlay { background: linear-gradient(transparent 50%, rgba(0,0,0,0.8) 100%); }
+    [data-layout="grid"] .feed .reel-bottom,
+    [data-layout="grid"] .feed .reel-actions,
+    [data-layout="grid"] .feed .reel-mute,
+    [data-layout="grid"] .feed .reel-channel .reel-sub-btn { display: none; }
+    [data-layout="grid"] .feed .reel-channel { margin-bottom: 0; }
+    [data-layout="grid"] .feed .reel-channel .reel-avatar { width: 24px; height: 24px; border-width: 1px; }
+    [data-layout="grid"] .feed .reel-channel-name { font-size: 10px; }
+    @media (min-width: 768px) {
+      [data-layout="grid"] .feed { grid-template-columns: repeat(4,1fr); }
+    }
+    @media (max-width: 500px) {
+      [data-layout="grid"] .feed { grid-template-columns: repeat(2,1fr); }
+    }
+
+    /* ─── Background Effects ─── */
+    .bg-effect-layer {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    }
+    .bg-particles {
+      position: absolute; inset: 0; overflow: hidden;
+    }
+    .bg-particle {
+      position: absolute; width: 3px; height: 3px;
+      background: var(--primary); border-radius: 50%;
+      animation: particleFloat 6s infinite ease-in-out;
+      opacity: 0.3;
+    }
+    .bg-particle:nth-child(2n) { width: 4px; height: 4px; animation-duration: 8s; }
+    .bg-particle:nth-child(3n) { width: 2px; height: 2px; animation-duration: 5s; }
+    @keyframes particleFloat {
+      0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+      25% { transform: translateY(-30px) translateX(10px); opacity: 0.5; }
+      50% { transform: translateY(-60px) translateX(-5px); opacity: 0.8; }
+      75% { transform: translateY(-30px) translateX(15px); opacity: 0.4; }
+    }
+    .bg-stars-container {
+      position: absolute; inset: 0; overflow: hidden;
+    }
+    .bg-star {
+      position: absolute; background: white; border-radius: 50%;
+      animation: starTwinkle 3s infinite ease-in-out;
+    }
+    @keyframes starTwinkle {
+      0%, 100% { opacity: 0.2; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .bg-gradient-container {
+      position: absolute; inset: 0; overflow: hidden;
+    }
+    .bg-gradient-container::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(255,42,85,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 50%, rgba(255,107,53,0.08) 0%, transparent 60%);
+      animation: gradShift 8s ease-in-out infinite alternate;
+    }
+    @keyframes gradShift {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.1) rotate(3deg); }
+    }
+    .bg-custom-image {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center; background-repeat: no-repeat;
+    }
+    .bg-custom-image.dimmed::after {
+      content: ''; position: absolute; inset: 0;
+      background: rgba(0,0,0,0.3); pointer-events: none;
+    }
+
+    /* ─── Fade In ─── */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ─── Controls bar for reels (bottom overlay controls) ─── */
+    .reel-controls {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      z-index: 5; padding: 8px 14px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.6));
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0; transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .reel:hover .reel-controls,
+    .reel-controls.visible { opacity: 1; pointer-events: auto; }
+    .reel-controls-btn {
+      width: 30px; height: 30px; border: none; background: rgba(255,255,255,0.1);
+      border-radius: 50%; color: #fff; cursor: pointer; font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s; flex-shrink: 0;
+    }
+    .reel-controls-btn:active { background: rgba(255,255,255,0.2); }
+    .reel-controls-progress {
+      flex: 1; height: 3px; -webkit-appearance: none; appearance: none;
+      background: rgba(255,255,255,0.15); border-radius: 2px; outline: none;
+    }
+    .reel-controls-progress::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 12px; height: 12px;
+      border-radius: 50%; background: var(--primary); cursor: pointer;
+    }
+    .reel-speed-badge {
+      position: absolute; top: 60px; right: 52px; z-index: 3;
+      background: rgba(0,0,0,0.5); color: #fff; font-size: 10px;
+      font-weight: 700; padding: 2px 6px; border-radius: 4px;
+      backdrop-filter: blur(4px); display: none;
+    }
+
+    /* ─── Volume Popup ─── */
+    .vol-btn {
+      font-size: 14px !important;
+      padding: 5px 10px !important;
+    }
+    .vol-popup {
+      position: fixed;
+      top: 92px;
+      right: 10px;
+      z-index: 25;
+      background: rgba(20,20,40,0.95);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px;
+      padding: 16px 18px;
+      min-width: 220px;
+      display: none;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+      animation: volSlideIn 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    .vol-popup.open { display: block; }
+    @keyframes volSlideIn {
+      from { opacity: 0; transform: translateY(-8px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .vol-popup-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .vol-popup-header span:first-child {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .vol-popup-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--primary);
+      min-width: 36px;
+      text-align: right;
+    }
+    .vol-popup-slider {
+      width: 100%;
+      height: 5px;
+      -webkit-appearance: none;
+      appearance: none;
+      accent-color: var(--primary);
+      background: rgba(255,255,255,0.1);
+      border-radius: 3px;
+      outline: none;
+      margin-bottom: 10px;
+    }
+    .vol-popup-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+    .vol-popup-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .vol-popup-mute-btn {
+      padding: 5px 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      font-size: 11px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .vol-popup-mute-btn:active { transform: scale(0.95); }
+    .vol-popup-mute-btn.muted {
+      background: rgba(255,42,85,0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .vol-popup-hint {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* ─── Responsive for settings ─── */
+    @media (max-width: 768px) {
+      .settings-panel { width: 100vw; max-width: 100vw; right: -100vw; border-left: none; }
+      .settings-panel.open { right: 0; }
+      .settings-themes { grid-template-columns: repeat(3,1fr); gap: 6px; }
+      .settings-theme-btn { padding: 8px 4px; }
+      .settings-theme-swatch { width: 28px; height: 28px; }
+    }
+
+    /* ─── Responsive ─── */
+    @media (min-width: 768px) {
+      .reel { max-width: 420px; margin: 0 auto; }
+      .feed { display: flex; flex-direction: column; align-items: center; background: #000; }
+    }
+    @media (max-width: 400px) {
+      .reel-actions { right: 6px; gap: 12px; }
+      .reel-action svg { width: 22px; height: 22px; }
+      .reel-action span { font-size: 9px; }
+      .share-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ Top Bar ═══ -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="topbar-back" onclick="ReelsApp.goBack()" aria-label="Back">←</button>
+      <span class="topbar-logo">Reels<em>✦</em></span>
+    </div>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="ReelsApp.toggleSearch()" aria-label="Search">🔍</button>
+      <button class="topbar-btn" onclick="ReelsApp.toggleSettings()" aria-label="Settings" id="settingsBtn">⚙️</button>
+      <button class="topbar-btn" onclick="ReelsApp.refresh()" aria-label="Refresh">🔄</button>
+    </div>
+  </div>
+
+  <!-- ═══ Tabs ═══ -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-tab="for-you" onclick="ReelsApp.switchTab('for-you')">For You</button>
+    <button class="tab" data-tab="trending" onclick="ReelsApp.switchTab('trending')">Trending</button>
+    <button class="tab" data-tab="following" onclick="ReelsApp.switchTab('following')">Following</button>            <button class="tab" data-tab="explore" onclick="ReelsApp.switchTab('explore')">Explore</button>
+            <button class="tab vol-btn" onclick="ReelsApp.toggleVolumePopup()" id="volTabBtn" title="System Volume">🔊</button>
+          </div>
+
+  <!-- ═══ Volume Popup ═══ -->
+  <div class="vol-popup" id="volPopup">
+    <div class="vol-popup-header">
+      <span>🔊 System Volume</span>
+      <span class="vol-popup-label" id="volPopupLabel">70%</span>
+    </div>
+    <input type="range" min="1" max="100" value="70" class="vol-popup-slider" id="volPopupSlider"
+      oninput="ReelsApp.setSystemVolume(this.value)">
+    <div class="vol-popup-actions">
+      <button class="vol-popup-mute-btn" onclick="ReelsApp.toggleSystemMute()" id="volPopupMuteBtn">🔇 Mute</button>
+      <span class="vol-popup-hint">Controls Windows system volume</span>
+    </div>
+  </div>
+
+  <!-- ═══ Persistent Search ═══ -->
+  <div class="persistent-search" id="persistentSearch">
+    <div class="search-inner">
+      <input id="searchInput" placeholder="Search reels, topics..." onkeydown="if(event.key==='Enter')ReelsApp.doSearch()" />
+      <div class="search-actions">
+        <button class="filter-toggle" id="filterToggle" onclick="ReelsApp.toggleFilters()" title="Advanced Filters">⚙</button>
+        <button onclick="ReelsApp.doSearch()">Search</button>
+      </div>
+    </div>
+
+    <!-- Quick Search Chips -->
+    <div class="search-chips">
+      <button class="search-chip" onclick="ReelsApp.searchChip('music')">🎵 Music</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('gaming')">🎮 Gaming</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('sports')">⚽ Sports</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('comedy')">😂 Comedy</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('dance')">💃 Dance</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('cooking')">🍳 Cooking</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('travel')">✈️ Travel</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('fitness')">💪 Fitness</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('pets')">🐾 Pets</button>
+      <button class="search-chip" onclick="ReelsApp.searchChip('tutorial')">📚 Tutorial</button>
+    </div>
+
+    <!-- Active Filter Pills -->
+    <div class="search-pills" id="searchPills"></div>
+
+    <!-- Advanced Filters Panel -->
+    <div class="search-filters" id="searchFilters">
+      <div class="search-filters-inner">
+        <!-- Sort By -->
+        <div class="filter-row">
+          <span class="filter-label">Sort by</span>
+          <div class="filter-options" data-filter="order">
+            <button class="filter-opt active" data-value="relevance" onclick="ReelsApp.setFilter('order','relevance',this)">Relevance</button>
+            <button class="filter-opt" data-value="date" onclick="ReelsApp.setFilter('order','date',this)">Date</button>
+            <button class="filter-opt" data-value="viewCount" onclick="ReelsApp.setFilter('order','viewCount',this)">Views</button>
+            <button class="filter-opt" data-value="rating" onclick="ReelsApp.setFilter('order','rating',this)">Rating</button>
+          </div>
+        </div>
+        <!-- Upload Date -->
+        <div class="filter-row">
+          <span class="filter-label">Uploaded</span>
+          <div class="filter-options" data-filter="publishedAfter">
+            <button class="filter-opt active" data-value="any" onclick="ReelsApp.setFilter('publishedAfter','any',this)">Any</button>
+            <button class="filter-opt" data-value="hour" onclick="ReelsApp.setFilter('publishedAfter','hour',this)">Last hour</button>
+            <button class="filter-opt" data-value="today" onclick="ReelsApp.setFilter('publishedAfter','today',this)">Today</button>
+            <button class="filter-opt" data-value="week" onclick="ReelsApp.setFilter('publishedAfter','week',this)">This week</button>
+            <button class="filter-opt" data-value="month" onclick="ReelsApp.setFilter('publishedAfter','month',this)">This month</button>
+            <button class="filter-opt" data-value="year" onclick="ReelsApp.setFilter('publishedAfter','year',this)">This year</button>
+          </div>
+        </div>
+        <!-- Duration -->
+        <div class="filter-row">
+          <span class="filter-label">Duration</span>
+          <div class="filter-options" data-filter="videoDuration">
+            <button class="filter-opt active" data-value="short" onclick="ReelsApp.setFilter('videoDuration','short',this)">Short</button>
+            <button class="filter-opt" data-value="medium" onclick="ReelsApp.setFilter('videoDuration','medium',this)">Medium</button>
+            <button class="filter-opt" data-value="long" onclick="ReelsApp.setFilter('videoDuration','long',this)">Long</button>
+            <button class="filter-opt" data-value="any" onclick="ReelsApp.setFilter('videoDuration','any',this)">Any</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Feed ═══ -->
+  <div class="feed" id="feed">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+
+  <!-- ═══ Toast ═══ -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ═══ Comments Modal ═══ -->
+  <div class="modal-overlay" id="commentsModal">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <span class="modal-title">💬 Comments</span>
+        <button class="modal-close" onclick="ReelsApp.closeComments()">✕</button>
+      </div>
+      <div class="modal-body" id="commentsBody">
+        <div style="padding:40px;text-align:center;color:var(--text-muted);font-size:14px;">Loading...</div>
+      </div>
+      <div class="modal-footer">
+        <input class="comment-input" id="commentInput" placeholder="Add a comment..." onkeydown="if(event.key==='Enter')ReelsApp.postComment()" />
+        <button class="comment-send" onclick="ReelsApp.postComment()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Settings Panel ═══ -->
+  <div class="settings-overlay" id="settingsOverlay" onclick="ReelsApp.toggleSettings()"></div>
+  <div class="settings-panel" id="settingsPanel">
+    <div class="settings-header">
+      <span class="settings-title">✦ Settings</span>
+      <button class="settings-close" onclick="ReelsApp.toggleSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+
+      <!-- ── Theme ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">🎨 Theme</div>
+        <div class="settings-themes">
+          <button class="settings-theme-btn active" data-theme="dark" onclick="ReelsApp.setPref('theme','dark')">
+            <span class="settings-theme-swatch" style="background:linear-gradient(135deg,#000,#ff2a55)"></span>
+            <span class="settings-theme-name">Dark</span>
+          </button>
+          <button class="settings-theme-btn" data-theme="light" onclick="ReelsApp.setPref('theme','light')">
+            <span class="settings-theme-swatch" style="background:linear-gradient(135deg,#f5f5fa,#e91e63)"></span>
+            <span class="settings-theme-name">Light</span>
+          </button>
+          <button class="settings-theme-btn" data-theme="purple" onclick="ReelsApp.setPref('theme','purple')">
+            <span class="settings-theme-swatch" style="background:linear-gradient(135deg,#120822,#ce93d8)"></span>
+            <span class="settings-theme-name">Purple</span>
+          </button>
+          <button class="settings-theme-btn" data-theme="ocean" onclick="ReelsApp.setPref('theme','ocean')">
+            <span class="settings-theme-swatch" style="background:linear-gradient(135deg,#001220,#29b6f6)"></span>
+            <span class="settings-theme-name">Ocean</span>
+          </button>
+          <button class="settings-theme-btn" data-theme="midnight" onclick="ReelsApp.setPref('theme','midnight')">
+            <span class="settings-theme-swatch" style="background:linear-gradient(135deg,#050510,#7c7cff)"></span>
+            <span class="settings-theme-name">Midnight</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Background Effect ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">✨ Background Effect</div>
+        <div class="settings-row">
+          <span class="settings-label">Effect</span>
+          <div class="settings-options">
+            <button class="settings-opt active" data-key="bgEffect" data-val="particles" onclick="ReelsApp.setPref('bgEffect','particles')">Particles</button>
+            <button class="settings-opt" data-key="bgEffect" data-val="stars" onclick="ReelsApp.setPref('bgEffect','stars')">Stars</button>
+            <button class="settings-opt" data-key="bgEffect" data-val="gradient" onclick="ReelsApp.setPref('bgEffect','gradient')">Gradient</button>
+            <button class="settings-opt" data-key="bgEffect" data-val="none" onclick="ReelsApp.setPref('bgEffect','none')">None</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Custom Background Image ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">🖼️ Custom Background</div>
+        <div class="settings-row">
+          <span class="settings-label">Image</span>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="file" accept="image/*" id="bgImageInput" style="display:none" onchange="ReelsApp.handleBgImageUpload(this)">
+            <button class="settings-opt" onclick="document.getElementById('bgImageInput').click()" style="cursor:pointer;">📁 Choose</button>
+            <button class="settings-opt" id="clearBgBtn" onclick="ReelsApp.removeBgImage()" style="cursor:pointer;color:#ff4444;display:none;">✕ Clear</button>
+          </div>
+        </div>
+        <div class="settings-row" id="dimRow" style="display:none;">
+          <span class="settings-label">Dim <span class="settings-label-sub" id="dimLabel">30%</span></span>
+          <input type="range" min="0" max="0.7" step="0.05" value="0.3" class="settings-slider" id="dimSlider" oninput="ReelsApp.setBgImageDim(this.value)">
+        </div>
+      </div>
+
+      <!-- ── Animation ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">⚡ Animation Speed</div>
+        <div class="settings-row">
+          <span class="settings-label">Speed</span>
+          <div class="settings-options">
+            <button class="settings-opt" data-key="animSpeed" data-val="off" onclick="ReelsApp.setPref('animSpeed','off')">Off</button>
+            <button class="settings-opt" data-key="animSpeed" data-val="slow" onclick="ReelsApp.setPref('animSpeed','slow')">Slow</button>
+            <button class="settings-opt active" data-key="animSpeed" data-val="normal" onclick="ReelsApp.setPref('animSpeed','normal')">Normal</button>
+            <button class="settings-opt" data-key="animSpeed" data-val="fast" onclick="ReelsApp.setPref('animSpeed','fast')">Fast</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Card Effect ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">🖌️ Card Style</div>
+        <div class="settings-row">
+          <span class="settings-label">Effect</span>
+          <div class="settings-options">
+            <button class="settings-opt active" data-key="cardEffect" data-val="none" onclick="ReelsApp.setPref('cardEffect','none')">None</button>
+            <button class="settings-opt" data-key="cardEffect" data-val="glow" onclick="ReelsApp.setPref('cardEffect','glow')">Glow</button>
+            <button class="settings-opt" data-key="cardEffect" data-val="border" onclick="ReelsApp.setPref('cardEffect','border')">Border</button>
+            <button class="settings-opt" data-key="cardEffect" data-val="subtle" onclick="ReelsApp.setPref('cardEffect','subtle')">Subtle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Density / Layout ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">📐 Layout Density</div>
+        <div class="settings-row">
+          <span class="settings-label">Mode</span>
+          <div class="settings-options">
+            <button class="settings-opt active" data-key="layoutMode" data-val="snap" onclick="ReelsApp.setPref('layoutMode','snap')">Snap</button>
+            <button class="settings-opt" data-key="layoutMode" data-val="grid" onclick="ReelsApp.setPref('layoutMode','grid')">Grid</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Volume ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">🔊 Volume Control</div>
+        <div class="settings-row">
+          <span class="settings-label">Volume</span>
+          <input type="range" min="0" max="1" step="0.01" value="0.7" class="settings-slider" id="volumeSlider" oninput="ReelsApp.setVolume(this.value)">
+          <span class="settings-label-sub" id="volumeLabel" style="min-width:32px;text-align:right;">70%</span>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Mute</span>
+          <label class="settings-toggle">
+            <input type="checkbox" id="muteToggle" checked onchange="ReelsApp.toggleMute()">
+            <span class="settings-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── Playback Speed ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">⏱️ Playback Speed</div>
+        <div class="settings-row">
+          <span class="settings-label">Speed</span>
+          <div class="settings-options">
+            <button class="settings-opt" data-key="playbackSpeed" data-val="0.25" onclick="ReelsApp.setPref('playbackSpeed','0.25')">0.25x</button>
+            <button class="settings-opt" data-key="playbackSpeed" data-val="0.5" onclick="ReelsApp.setPref('playbackSpeed','0.5')">0.5x</button>
+            <button class="settings-opt active" data-key="playbackSpeed" data-val="1" onclick="ReelsApp.setPref('playbackSpeed','1')">1x</button>
+            <button class="settings-opt" data-key="playbackSpeed" data-val="1.5" onclick="ReelsApp.setPref('playbackSpeed','1.5')">1.5x</button>
+            <button class="settings-opt" data-key="playbackSpeed" data-val="2" onclick="ReelsApp.setPref('playbackSpeed','2')">2x</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Behavior ── -->
+      <div class="settings-group">
+        <div class="settings-group-title">🧠 Behavior</div>
+        <div class="settings-row">
+          <span class="settings-label">Auto-play</span>
+          <label class="settings-toggle">
+            <input type="checkbox" id="autoplayToggle" checked onchange="ReelsApp.setPref('autoplay',this.checked)">
+            <span class="settings-toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Loop</span>
+          <label class="settings-toggle">
+            <input type="checkbox" id="loopToggle" checked onchange="ReelsApp.setPref('loop',this.checked)">
+            <span class="settings-toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Muted by default</span>
+          <label class="settings-toggle">
+            <input type="checkbox" id="mutedDefaultToggle" checked onchange="ReelsApp.setPref('mutedDefault',this.checked);ReelsApp.toggleMute()">
+            <span class="settings-toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Show captions</span>
+          <label class="settings-toggle">
+            <input type="checkbox" id="showCaptionsToggle" checked onchange="ReelsApp.setPref('showCaptions',this.checked)">
+            <span class="settings-toggle-slider"></span>
+          </label>
+        </div>
+        <div class="settings-row">
+          <span class="settings-label">Auto-hide controls</span>
+          <label class="settings-toggle">
+            <input type="checkbox" id="autoHideToggle" checked onchange="ReelsApp.setPref('autoHide',this.checked)">
+            <span class="settings-toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── Reset ── -->
+      <div style="padding:16px 20px;border-top:1px solid rgba(255,255,255,0.06);">
+        <button class="settings-reset-btn" onclick="ReelsApp.resetPrefs()">↻ Reset All Settings</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ Share Sheet ═══ -->
+  <div class="share-sheet" id="shareSheet">
+    <div class="share-overlay" onclick="ReelsApp.closeShare()"></div>
+    <div class="share-panel">
+      <div class="share-title">📤 Share to...</div>
+      <div class="share-grid">
+        <button class="share-opt" onclick="ReelsApp.shareTo('messenger')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#1877f2,#0e5fc1);">💬</span>
+          Messenger
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('email')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#ea4335,#c5221f);">✉️</span>
+          Email
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('reddit')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#ff4500,#e03e00);">🤖</span>
+          Reddit
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('copy')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#7c7cff,#5858e6);">🔗</span>
+          Copy Link
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('twitter')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#1da1f2,#0d8bdb);">🐦</span>
+          Twitter
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('whatsapp')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#25d366,#1da851);">📱</span>
+          WhatsApp
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('telegram')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#0088cc,#006699);">✈️</span>
+          Telegram
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('sms')">
+          <span class="share-opt-icon" style="background:linear-gradient(135deg,#25d366,#1da851);">💬</span>
+          SMS
+        </button>
+        <button class="share-opt" onclick="ReelsApp.shareTo('more')">
+          <span class="share-opt-icon" style="background:rgba(255,255,255,0.08);">⋯</span>
+          More
+        </button>
+      </div>
+      <div class="share-link">
+        <input id="shareLinkInput" readonly value="" onclick="this.select()" />
+        <button class="share-copy" onclick="ReelsApp.copyShareLink()">Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  ReelsApp — Full YouTube Reels Experience
+    // ═══════════════════════════════════════════════════════════════
+    const ReelsApp = (() => {
+      // ─── Settings / Prefs ────────────────────────────────────────
+      const PREFS_KEY = 'rl_video_prefs';
+      const DEFAULT_PREFS = {
+        theme: 'dark',
+        bgEffect: 'none',
+        bgImage: '',
+        bgImageDim: 0.3,
+        animSpeed: 'normal',
+        cardEffect: 'none',
+        layoutMode: 'snap',
+        playbackSpeed: '1',
+        volume: 0.7,
+        autoplay: true,
+        loop: true,
+        mutedDefault: true,
+        showCaptions: true,
+        autoHide: true
+      };
+      let prefs = { ...DEFAULT_PREFS };
+
+      // ─── Config (RapidAPI youtube-v31) ─────────────────────────
+      const RAPIDAPI_HOST = 'youtube-search-and-download.p.rapidapi.com';
+      const RAPIDAPI_KEY = '947721bbd0msha6d9f8d8a2f3dddp14f041jsn9c217d3f77e1';
+      const PER_PAGE = 15;
+      // Each tab fires multiple Hindi/Indian themed queries in parallel, dedupes & shuffles
+      const TAB_TARGET = 40;   // Videos per tab
+      const SEARCH_TARGET = 50; // Videos per search
+      const QUERIES = {
+        'for-you': ['hindi love', 'hindi comedy', 'bollywood dance', 'hindi music video'],
+        'trending': ['naruto hindi', 'scifi hindi', 'anime hindi', 'hindi party'],
+        'following': ['hindi romance', 'funny video', 'hindi dance', 'hindi sad songs'],
+        'explore': ['nostalgia hindi', 'fantasy world', 'retro bollywood', 'old hindi songs']
+      };
+      // Fallback queries used when search returns fewer than SEARCH_TARGET
+      const SEARCH_FALLBACKS = ['hindi viral', 'hindi comedy', 'bollywood love', 'hindi music video'];
+      // All fallback queries for refresh/random mix
+      const ALL_QUERIES = ['hindi love', 'hindi comedy', 'bollywood dance', 'hindi music video',
+        'naruto hindi', 'scifi hindi', 'anime hindi', 'hindi party',
+        'hindi romance', 'funny video', 'hindi dance', 'hindi sad songs',
+        'nostalgia hindi', 'fantasy world', 'retro bollywood', 'old hindi songs',
+        'hindi hits', 'comedy clips', 'science fiction', 'bollywood old'];
+
+      // ─── State ─────────────────────────────────────────────────
+      let videos = [];
+      let nextPageToken = null;
+      let currentTab = 'for-you';
+      let isLoading = false;
+      let searchQuery = '';
+      let isMuted = true;
+      let hasInteracted = false;
+      let settingsOpen = false;
+      let bgEffectEl = null;
+      let currentIndex = 0;
+      let toastTimer = null;
+      let commentVideoId = null;
+      let shareVideoId = null;
+      let likedVideos = new Set();
+      let subscribedChannels = new Set();
+      let repostedVideos = new Set();
+      let localComments = {}; // videoId -> comment[]
+
+      // ─── Filter State ────────────────────────────────────────────
+      let filtersOpen = false;
+      let activeFilters = {
+        order: 'relevance',
+        publishedAfter: 'any',
+        videoDuration: 'short'
+      };
+      const FILTER_LABELS = {
+        order: { relevance: 'Relevance', date: 'Date', viewCount: 'Views', rating: 'Rating' },
+        publishedAfter: { any: 'Any time', hour: 'Last hour', today: 'Today', week: 'This week', month: 'This month', year: 'This year' },
+        videoDuration: { short: 'Short', medium: 'Medium', long: 'Long', any: 'Any' }
+      };
+      const SEARCH_CHIPS = [
+        'music','gaming','sports','comedy','dance','cooking','travel','fitness','pets','tutorial'
+      ];
+
+      // ─── DOM Refs ──────────────────────────────────────────────
+      const feed = document.getElementById('feed');
+      const toast = document.getElementById('toast');
+      const persistentSearch = document.getElementById('persistentSearch');
+      const searchInput = document.getElementById('searchInput');
+      const commentsModal = document.getElementById('commentsModal');
+      const commentsBody = document.getElementById('commentsBody');
+      const commentInput = document.getElementById('commentInput');
+      const shareSheet = document.getElementById('shareSheet');
+      const shareLinkInput = document.getElementById('shareLinkInput');
+
+      // ─── Toast ─────────────────────────────────────────────────
+      function showToast(msg) {
+        clearTimeout(toastTimer);
+        toast.textContent = msg;
+        toast.classList.add('show');
+        toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+      }
+
+      // ─── Safe encodeURIComponent ─────────────────────────────
+      // encodeURIComponent throws "URI malformed" on strings with lone surrogates
+      // (which can come from API data). This wrapper catches that error gracefully.
+      function safeEnc(str) {
+        try {
+          return encodeURIComponent(str);
+        } catch (e) {
+          console.warn('[ReelsApp] safeEnc: malformed string, encoding sanitized version', e);
+          try {
+            // Strip lone surrogates and retry
+            return encodeURIComponent(String(str).replace(/[\uD800-\uDFFF]/g, ''));
+          } catch (e2) {
+            console.warn('[ReelsApp] safeEnc: fallback also failed, using char-by-char encode', e2);
+            // Ultimate fallback: encode each character individually so nothing can throw
+            var s = String(str);
+            var result = '';
+            for (var i = 0; i < s.length; i++) {
+              try {
+                result += encodeURIComponent(s[i]);
+              } catch (e3) {
+                // Replace lone surrogates with the Unicode replacement character
+                result += '%EF%BF%BD';
+              }
+            }
+            return result;
+          }
+        }
+      }
+
+      // ─── Helpers ───────────────────────────────────────────────
+      function escapeHtml(s) {
+        if (!s) return '';
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+      }
+
+      function formatCount(n) {
+        if (!n && n !== 0) return '0';
+        n = Number(n);
+        if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+        if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+        return String(n);
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        // This API returns relative text like '2 days ago' — return as-is
+        if (!dateStr.includes('T') && !dateStr.includes('-')) {
+          return dateStr;
+        }
+        const diff = Date.now() - new Date(dateStr).getTime();
+        const mins = Math.floor(diff / 60000);
+        if (mins < 1) return 'just now';
+        if (mins < 60) return mins + 'm ago';
+        const hours = Math.floor(diff / 3600000);
+        if (hours < 24) return hours + 'h ago';
+        const days = Math.floor(diff / 86400000);
+        if (days < 7) return days + 'd ago';
+        return new Date(dateStr).toLocaleDateString();
+      }
+
+      function getDefaultAvatar(name) {
+        const colors = ['ff2a55','ff6b35','ffd700','2ed573','1e90ff','a29bfe','fd79a8','00cec9'];
+        const c = colors[name ? name.charCodeAt(0) % colors.length : 0];
+        return `data:image/svg+xml,${safeEnc(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="#${c}" width="100" height="100"/><text x="50" y="58" text-anchor="middle" fill="white" font-size="40" font-weight="700" font-family="sans-serif">${(name || '?')[0].toUpperCase()}</text></svg>`)}`;
+      }
+
+      // ─── Update Filter Pills UI ───────────────────────────────────
+      function updateFilterPills() {
+        const container = document.getElementById('searchPills');
+        if (!container) return;
+        const pills = [];
+        if (activeFilters.order && activeFilters.order !== 'relevance') {
+          pills.push({ key: 'order', label: FILTER_LABELS.order[activeFilters.order] });
+        }
+        if (activeFilters.publishedAfter && activeFilters.publishedAfter !== 'any') {
+          pills.push({ key: 'publishedAfter', label: FILTER_LABELS.publishedAfter[activeFilters.publishedAfter] });
+        }
+        if (activeFilters.videoDuration && activeFilters.videoDuration !== 'short') {
+          pills.push({ key: 'videoDuration', label: FILTER_LABELS.videoDuration[activeFilters.videoDuration] });
+        }
+        if (!pills.length) {
+          container.innerHTML = '';
+          return;
+        }
+        container.innerHTML = pills.map(p => `
+          <span class="search-pill">
+            ${p.label}
+            <span class="pill-close" onclick="ReelsApp.resetFilter('${p.key}')">✕</span>
+          </span>
+        `).join('') +
+        '<button class="clear-search" onclick="ReelsApp.clearFilters()">Clear</button>';
+      }
+
+      // ─── Helper: parse view count from text like "9,507 views" ─────
+      function parseViewCount(text) {
+        if (!text) return '0';
+        const cleaned = text.replace(/,/g, '');
+        const match = cleaned.match(/(\d+)/);
+        return match ? match[1] : '0';
+      }
+
+      // ─── Shuffle array (Fisher–Yates) ────────────────────────────
+      function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      }
+
+      // ─── Map API item to video object ─────────────────────────────
+      function itemToVideo(item) {
+        const v = item.video;
+        if (!v || !v.videoId) return null;
+        const thumb = v.thumbnails?.[0]?.url || '';
+        return {
+          id: v.videoId,
+          title: v.title || 'Untitled',
+          channelTitle: v.channelName || 'Unknown',
+          channelId: v.channelId || '',
+          avatar: thumb || getDefaultAvatar(v.channelName || 'C'),
+          views: parseViewCount(v.viewCountText),
+          likes: '0',
+          comments: '0',
+          description: v.description || '',
+          publishedAt: v.publishedTimeText || '',
+          channelSubs: 0,
+        };
+      }
+
+      // ─── Fetch one query and return mapped videos ─────────────────
+      async function fetchQuery(queryStr) {
+        const headers = {
+          'x-rapidapi-host': RAPIDAPI_HOST,
+          'x-rapidapi-key': RAPIDAPI_KEY
+        };
+        try {
+          const url = `https://${RAPIDAPI_HOST}/search?query=${safeEnc(queryStr)}&maxResults=${PER_PAGE}`;
+          const r = await fetch(url, { headers });
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          const d = await r.json();
+          const items = d.contents || [];
+          return items.map(itemToVideo).filter(Boolean);
+        } catch (e) {
+          console.warn('Query "' + queryStr + '" failed:', e.message);
+          return [];
+        }
+      }
+
+      // ─── Track which queries we've used already ──────────────────
+      let usedQueries = new Set();
+
+      // ─── RapidAPI Multi-Query Fetch ──────────────────────────────
+      async function fetchVideos(reset) {
+        if (isLoading) return;
+        isLoading = true;
+
+        try {
+          let queriesToFetch = [];
+
+          if (searchQuery) {
+            // Search mode: fire search query + fallbacks to reach SEARCH_TARGET
+            if (reset) {
+              queriesToFetch = [searchQuery, ...SEARCH_FALLBACKS];
+              usedQueries = new Set();
+            } else {
+              // On scroll, pick 2 new random queries from the pool
+              const available = ALL_QUERIES.filter(q => !usedQueries.has(q));
+              if (available.length === 0) {
+                usedQueries.clear();
+                queriesToFetch = shuffleArray([...ALL_QUERIES]).slice(0, 2);
+              } else {
+                queriesToFetch = shuffleArray([...available]).slice(0, 2);
+              }
+              queriesToFetch.forEach(q => usedQueries.add(q));
+            }
+          } else if (reset) {
+            // Tab mode, initial load: fire all queries for this tab
+            const tabQueries = QUERIES[currentTab] || ['viral shorts'];
+            queriesToFetch = tabQueries;
+            tabQueries.forEach(q => usedQueries.add(q));
+          } else {
+            // Tab mode, scroll: fire 2 new random queries from the pool
+            const available = ALL_QUERIES.filter(q => !usedQueries.has(q));
+            if (available.length === 0) {
+              // All queries used — reset tracking and reuse
+              usedQueries.clear();
+              const tabQueries = QUERIES[currentTab] || ['viral shorts'];
+              tabQueries.forEach(q => usedQueries.add(q));
+              queriesToFetch = ALL_QUERIES.filter(q => !usedQueries.has(q)).slice(0, 2);
+            } else {
+              queriesToFetch = shuffleArray([...available]).slice(0, 2);
+            }
+            queriesToFetch.forEach(q => usedQueries.add(q));
+          }
+
+          // Fire all queries in parallel
+          const results = await Promise.all(queriesToFetch.map(fetchQuery));
+          const newVideos = results.flat();
+
+          if (reset) videos = [];
+
+          // Deduplicate
+          const existing = new Set(videos.map(v => v.id));
+          for (const vid of newVideos) {
+            if (!existing.has(vid.id)) {
+              videos.push(vid);
+              existing.add(vid.id);
+            }
+          }
+
+          // Shuffle
+          shuffleArray(videos);
+
+          // Cap at target count
+          const target = searchQuery ? SEARCH_TARGET : TAB_TARGET;
+          if (videos.length > target) {
+            videos = videos.slice(0, target);
+          }
+
+          nextPageToken = null; // We use multi-query instead of pagination
+          render();
+        } catch (e) {
+          console.error(e);
+          if (!videos.length) {
+            feed.innerHTML = `
+              <div class="empty-state">
+                <div class="icon">⚠️</div>
+                <div class="title">Oops!</div>
+                <div class="sub">${e.message}</div>
+                <button onclick="ReelsApp.refresh()">Try Again</button>
+              </div>`;
+          } else {
+            showToast(e.message);
+          }
+        } finally {
+          isLoading = false;
+        }
+      }
+
+      // ─── Render ────────────────────────────────────────────────
+      function render() {
+        document.querySelector('.loader')?.classList.add('hide');
+        if (!videos.length) {
+          feed.innerHTML = `
+            <div class="empty-state">
+              <div class="icon">🎬</div>
+              <div class="title">No Reels Found</div>
+              <div class="sub">Try a different search or tab</div>
+              <button onclick="ReelsApp.refresh()">Refresh</button>
+            </div>`;
+          return;
+        }
+
+        const existing = new Set();
+        feed.querySelectorAll('.reel').forEach(el => existing.add(el.dataset.id));
+
+        let html = '';
+        for (let i = 0; i < videos.length; i++) {
+          if (existing.has(videos[i].id)) continue;
+          const v = videos[i];
+          const isLiked = likedVideos.has(v.id);
+          const isSubbed = subscribedChannels.has(v.channelId);
+          const isReposted = repostedVideos.has(v.id);
+          const commentCount = localComments[v.id]?.length || parseInt(v.comments) || 0;
+
+          const likeSvg = isLiked
+            ? `<svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`
+            : `<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>`;
+
+          const repostSvg = isReposted
+            ? `<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`
+            : `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>`;
+
+          const subBtnClass = isSubbed ? 'reel-sub-btn subscribed' : 'reel-sub-btn';
+          const subText = isSubbed ? 'Following' : 'Follow';
+          const isFirstReel = existing.size === 0 && i === 0;
+          const autoplay = isFirstReel ? '1' : '0';
+
+          html += `
+            <div class="reel" data-id="${v.id}" data-index="${i}">
+              <iframe class="reel-iframe"
+                src="https://www.youtube.com/embed/${v.id}?autoplay=${autoplay}&loop=1&playlist=${v.id}&controls=0&modestbranding=1&rel=0&iv_load_policy=3&disablekb=1&enablejsapi=1&mute=${isMuted ? 1 : 0}"
+                loading="lazy" allow="autoplay; encrypted-media"
+                title="${escapeHtml(v.title)}">
+              </iframe>
+              <div class="reel-overlay"></div>
+              <div class="reel-double-tap" ondblclick="event.stopPropagation();ReelsApp.toggleLike('${v.id}', true)"></div>
+
+              <!-- Right Actions -->
+              <div class="reel-actions">
+                <button class="reel-action ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation();ReelsApp.toggleLike('${v.id}')" aria-label="Like">
+                  ${likeSvg}
+                  <span>${formatCount(isLiked ? parseInt(v.likes) + 1 : v.likes)}</span>
+                </button>
+                <button class="reel-action" onclick="event.stopPropagation();ReelsApp.openComments('${v.id}', '${escapeHtml(v.channelTitle)}')" aria-label="Comment">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                  <span>${formatCount(commentCount)}</span>
+                </button>
+                <button class="reel-action ${isReposted ? 'reposted' : ''}" onclick="event.stopPropagation();ReelsApp.toggleRepost('${v.id}')" aria-label="Repost">
+                  ${repostSvg}
+                  <span>${isReposted ? 'Reposted' : 'Repost'}</span>
+                </button>
+                <button class="reel-action" onclick="event.stopPropagation();ReelsApp.shareVideo('${v.id}')" aria-label="Share">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                  <span>Share</span>
+                </button>
+                <button class="reel-action" onclick="event.stopPropagation();ReelsApp.openVideo('${v.id}')" aria-label="Open on YouTube">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+                  <span>Link</span>
+                </button>
+                <button class="reel-action" onclick="event.stopPropagation();ReelsApp.copyVideoLink('${v.id}')" aria-label="Tag">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                  <span>Tag</span>
+                </button>
+              </div>
+
+              <!-- Bottom Info -->
+              <div class="reel-bottom">
+                <div class="reel-channel">
+                  <img class="reel-avatar" src="${v.avatar || getDefaultAvatar(v.channelTitle)}" onerror="this.src='${getDefaultAvatar(v.channelTitle)}'" alt="" />
+                  <span class="reel-channel-name" onclick="event.stopPropagation();ReelsApp.openChannel('${v.channelId}')">${escapeHtml(v.channelTitle)}</span>
+                  <button class="${subBtnClass}" onclick="event.stopPropagation();ReelsApp.toggleSubscribe('${v.channelId}', this)">${subText}</button>
+                </div>
+                <div class="reel-caption" onclick="event.stopPropagation();this.classList.toggle('expanded')">${escapeHtml(v.title)}</div>
+                <div class="reel-audio">
+                  <svg viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></svg>
+                  Original Sound · ${escapeHtml(v.channelTitle)}
+                </div>
+                <div class="reel-tags">
+                  <span class="reel-tag">#shorts</span>
+                  <span class="reel-tag">#${escapeHtml(v.channelTitle.replace(/\s+/g,'').toLowerCase())}</span>
+                </div>
+              </div>
+
+
+            </div>`;
+        }
+
+        if (html) {
+          feed.insertAdjacentHTML('beforeend', html);
+          // Setup auto-play on scroll
+          setupAutoPlay();
+        }
+      }
+
+      // ─── Auto Play ─────────────────────────────────────────────
+      let playbackObserver = null;
+
+      function setupAutoPlay() {
+        if (playbackObserver) playbackObserver.disconnect();
+
+        playbackObserver = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            const reel = entry.target;
+            const iframe = reel.querySelector('.reel-iframe');
+            const isVisible = entry.isIntersecting && entry.intersectionRatio > 0.5;
+
+            if (isVisible) {
+              currentIndex = parseInt(reel.dataset.index) || 0;
+              // Play this video via YouTube JS API
+              // Send BOTH mute state + playVideo together so player is guaranteed to get both
+              if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage(JSON.stringify({
+                  event: 'command',
+                  func: isMuted ? 'mute' : 'unMute',
+                  args: ''
+                }), '*');
+                iframe.contentWindow.postMessage(JSON.stringify({
+                  event: 'command',
+                  func: 'playVideo',
+                  args: ''
+                }), '*');
+              }
+              // Load more when near the end
+              if (currentIndex >= videos.length - 2) fetchVideos();
+            } else if (iframe && iframe.contentWindow) {
+              // Pause off-screen videos to prevent audio overlap
+              iframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: 'pauseVideo',
+                args: ''
+              }), '*');
+            }
+          });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.reel').forEach(el => playbackObserver.observe(el));
+      }
+
+      // ─── Tab Switching ─────────────────────────────────────────
+      function switchTab(tab) {
+        currentTab = tab;
+        searchQuery = '';
+        searchInput.value = '';
+        nextPageToken = null;
+        videos = [];
+        document.querySelectorAll('.tab').forEach(el =>
+          el.classList.toggle('active', el.dataset.tab === tab));
+        persistentSearch.classList.remove('open');
+        if (filtersOpen) toggleFilters();
+        // Reset filters silently (no toast)
+        activeFilters = {
+          order: 'relevance',
+          publishedAfter: 'any',
+          videoDuration: 'short'
+        };
+        document.querySelectorAll('.filter-options').forEach(group => {
+          group.querySelectorAll('.filter-opt').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === activeFilters[group.dataset.filter]);
+          });
+        });
+        updateFilterPills();
+        // Reset chip highlights
+        document.querySelectorAll('.search-chip').forEach(el => el.classList.remove('used'));
+        feed.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+        fetchVideos(true);
+      }
+
+      // ─── Search ────────────────────────────────────────────────
+      function toggleSearch() {
+        const isOpen = persistentSearch.classList.toggle('open');
+        if (isOpen) {
+          setTimeout(() => {
+            searchInput.focus();
+            searchInput.select();
+          }, 400);
+          updateFilterPills();
+        } else {
+          // Close filters too when hiding search
+          if (filtersOpen) toggleFilters();
+        }
+      }
+
+      function doSearch() {
+        const q = searchInput.value.trim();
+        if (!q) return;
+        searchQuery = q;
+        nextPageToken = null;
+        videos = [];
+        feed.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+        persistentSearch.classList.remove('open');
+        if (filtersOpen) toggleFilters();
+        // Also highlight active chips
+        document.querySelectorAll('.search-chip').forEach(el => {
+          el.classList.toggle('used', el.textContent.toLowerCase().includes(q.toLowerCase()));
+        });
+        fetchVideos(true);
+      }
+
+      // ─── Search Chip Click ───────────────────────────────────────
+      function searchChip(term) {
+        searchInput.value = term;
+        searchQuery = term;
+        nextPageToken = null;
+        videos = [];
+        feed.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+        persistentSearch.classList.remove('open');
+        if (filtersOpen) toggleFilters();
+        // Highlight this chip
+        document.querySelectorAll('.search-chip').forEach(el => {
+          el.classList.toggle('used', el.textContent.toLowerCase().includes(term));
+        });
+        fetchVideos(true);
+      }
+
+      // ─── Advanced Filters ────────────────────────────────────────
+      function toggleFilters() {
+        filtersOpen = !filtersOpen;
+        document.getElementById('filterToggle').classList.toggle('active', filtersOpen);
+        document.getElementById('searchFilters').classList.toggle('open', filtersOpen);
+      }
+
+      function setFilter(key, value, btn) {
+        activeFilters[key] = value;
+        // Update button states
+        const group = btn.closest('.filter-options');
+        if (group) {
+          group.querySelectorAll('.filter-opt').forEach(el => el.classList.remove('active'));
+        }
+        btn.classList.add('active');
+        updateFilterPills();
+        // If search is active, re-fetch
+        if (searchQuery) {
+          // Don't auto-refetch here, let user click search again or we'll do it gently
+        }
+      }
+
+      function resetFilter(key) {
+        // Reset to default value
+        if (key === 'order') activeFilters[key] = 'relevance';
+        else if (key === 'publishedAfter') activeFilters[key] = 'any';
+        else if (key === 'videoDuration') activeFilters[key] = 'short';
+        // Update UI buttons
+        const groups = document.querySelectorAll(`.filter-options[data-filter="${key}"]`);
+        groups.forEach(group => {
+          group.querySelectorAll('.filter-opt').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === activeFilters[key]);
+          });
+        });
+        updateFilterPills();
+      }
+
+      function clearFilters() {
+        activeFilters = {
+          order: 'relevance',
+          publishedAfter: 'any',
+          videoDuration: 'short'
+        };
+        // Reset all filter buttons
+        document.querySelectorAll('.filter-options').forEach(group => {
+          group.querySelectorAll('.filter-opt').forEach(el => {
+            el.classList.toggle('active', el.dataset.value === activeFilters[group.dataset.filter]);
+          });
+        });
+        updateFilterPills();
+        showToast('Filters cleared');
+      }
+
+      // ─── Like ──────────────────────────────────────────────────
+      function toggleLike(id, isDoubleTap) {
+        const v = videos.find(x => x.id === id);
+        if (!v) return;
+
+        if (likedVideos.has(id)) {
+          likedVideos.delete(id);
+          v.likes = String(Math.max(0, parseInt(v.likes) - 1));
+        } else {
+          likedVideos.add(id);
+          v.likes = String(parseInt(v.likes) + 1);
+          if (isDoubleTap) {
+            // Show heart animation
+            const reel = document.querySelector(`.reel[data-id="${id}"]`);
+            if (reel) {
+              const hearts = document.createElement('div');
+              hearts.className = 'like-hearts';
+              hearts.innerHTML = '<span class="like-heart-fly">❤️</span>';
+              reel.appendChild(hearts);
+              setTimeout(() => hearts.remove(), 800);
+            }
+          }
+          showToast('Liked ✓');
+        }
+        // Update the UI
+        const reelEl = document.querySelector(`.reel[data-id="${id}"]`);
+        if (reelEl) {
+          const likeBtn = reelEl.querySelector('.reel-action:first-child');
+          if (likeBtn) {
+            likeBtn.classList.toggle('liked', likedVideos.has(id));
+            const svg = likeBtn.querySelector('svg');
+            if (svg) {
+              if (likedVideos.has(id)) {
+                svg.setAttribute('fill', 'currentColor');
+                svg.querySelector('path')?.setAttribute('d', 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z');
+              } else {
+                svg.setAttribute('fill', 'none');
+                svg.querySelector('path')?.setAttribute('d', 'M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z');
+              }
+            }
+            const span = likeBtn.querySelector('span');
+            if (span) span.textContent = formatCount(v.likes);
+          }
+        }
+      }
+
+      // ─── Subscribe ─────────────────────────────────────────────
+      function toggleSubscribe(channelId, btn) {
+        if (!channelId) {
+          showToast('Channel info not available');
+          return;
+        }
+        if (subscribedChannels.has(channelId)) {
+          subscribedChannels.delete(channelId);
+          btn.textContent = 'Follow';
+          btn.classList.remove('subscribed');
+          showToast('Unfollowed');
+        } else {
+          subscribedChannels.add(channelId);
+          btn.textContent = 'Following';
+          btn.classList.add('subscribed');
+          showToast('Following ✓');
+        }
+      }
+
+      // ─── Comment ───────────────────────────────────────────────
+      function openComments(videoId, channelName) {
+        commentVideoId = videoId;
+        if (!localComments[videoId]) localComments[videoId] = [];
+        renderComments(videoId);
+        commentsModal.classList.add('open');
+        commentInput.value = '';
+        setTimeout(() => commentInput.focus(), 350);
+      }
+
+      function closeComments() {
+        commentVideoId = null;
+        commentsModal.classList.remove('open');
+      }
+
+      function renderComments(videoId) {
+        const cmts = localComments[videoId] || [];
+        if (!cmts.length) {
+          commentsBody.innerHTML = `
+            <div style="padding:48px;text-align:center;color:var(--text-muted);">
+              <div style="font-size:32px;margin-bottom:8px;">💬</div>
+              <div style="font-size:14px;font-weight:600;color:var(--text-sec);">No comments yet</div>
+              <div style="font-size:12px;margin-top:4px;">Be the first to comment!</div>
+            </div>`;
+          return;
+        }
+        commentsBody.innerHTML = cmts.map(c => `
+          <div class="comment-item">
+            <img class="comment-avatar" src="${getDefaultAvatar(c.name)}" onerror="this.src='${getDefaultAvatar(c.name)}'" alt="" />
+            <div class="comment-body">
+              <div class="comment-name">${escapeHtml(c.name)}</div>
+              <div class="comment-text">${escapeHtml(c.text)}</div>
+              <div class="comment-time">${timeAgo(c.time)}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function postComment() {
+        const text = commentInput.value.trim();
+        if (!text || !commentVideoId) return;
+        if (!localComments[commentVideoId]) localComments[commentVideoId] = [];
+
+        localComments[commentVideoId].push({
+          id: Date.now().toString(),
+          name: 'You',
+          text: text,
+          time: new Date().toISOString(),
+        });
+
+        renderComments(commentVideoId);
+        commentInput.value = '';
+        showToast('Comment posted ✓');
+
+        // Update comment count
+        const v = videos.find(x => x.id === commentVideoId);
+        if (v) {
+          v.comments = String((localComments[commentVideoId]?.length || 0));
+          const reel = document.querySelector(`.reel[data-id="${commentVideoId}"]`);
+          if (reel) {
+            const commentAction = reel.querySelectorAll('.reel-action')[1];
+            if (commentAction) {
+              const span = commentAction.querySelector('span');
+              if (span) span.textContent = formatCount(v.comments);
+            }
+          }
+        }
+      }
+
+      // ─── Repost ────────────────────────────────────────────────
+      function toggleRepost(id) {
+        const v = videos.find(x => x.id === id);
+        if (!v) return;
+
+        if (repostedVideos.has(id)) {
+          repostedVideos.delete(id);
+          showToast('Repost removed');
+        } else {
+          repostedVideos.add(id);
+          showToast('Reposted to feed ✓');
+        }
+        // Update UI
+        const reel = document.querySelector(`.reel[data-id="${id}"]`);
+        if (reel) {
+          const btns = reel.querySelectorAll('.reel-action');
+          if (btns[2]) {
+            btns[2].classList.toggle('reposted', repostedVideos.has(id));
+            const span = btns[2].querySelector('span');
+            if (span) span.textContent = repostedVideos.has(id) ? 'Reposted' : 'Repost';
+            const svg = btns[2].querySelector('svg');
+            if (svg) {
+              svg.setAttribute('fill', repostedVideos.has(id) ? 'currentColor' : 'none');
+              svg.querySelector('path')?.setAttribute('d',
+                repostedVideos.has(id)
+                  ? 'M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z'
+                  : 'M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z');
+            }
+          }
+        }
+      }
+
+      // ─── Share ─────────────────────────────────────────────────
+      function shareVideo(id) {
+        shareVideoId = id;
+        const shareUrl = `https://youtu.be/${id}`;
+        shareLinkInput.value = shareUrl;
+        shareSheet.classList.add('open');
+      }
+
+      function closeShare() {
+        shareVideoId = null;
+        shareSheet.classList.remove('open');
+      }
+
+      function copyShareLink() {
+        shareLinkInput.select();
+        navigator.clipboard?.writeText(shareLinkInput.value).catch(() => {});
+        showToast('Link copied ✓');
+      }
+
+      function shareTo(dest) {
+        const url = shareLinkInput.value;
+        if (!url) return;
+
+        const text = `Check out this reel! ${url}`;
+        switch (dest) {
+          case 'copy':
+            navigator.clipboard?.writeText(url).catch(() => {});
+            showToast('Link copied ✓');
+            break;
+          case 'twitter':
+            window.open(`https://twitter.com/intent/tweet?text=${safeEnc(text)}`, '_blank', 'noopener');
+            break;
+          case 'whatsapp':
+            window.open(`https://wa.me/?text=${safeEnc(text)}`, '_blank', 'noopener');
+            break;
+          case 'telegram':
+            window.open(`https://t.me/share/url?url=${safeEnc(url)}&text=${safeEnc('Check out this reel!')}`, '_blank', 'noopener');
+            break;
+          case 'messenger':
+            window.open(`fb-messenger://share?link=${safeEnc(url)}`, '_blank', 'noopener');
+            navigator.clipboard?.writeText(url).catch(() => {});
+            break;
+          case 'email':
+            window.open(`mailto:?subject=${safeEnc('Check out this reel!')}&body=${safeEnc(text)}`, '_blank', 'noopener');
+            break;
+          case 'reddit':
+            window.open(`https://www.reddit.com/submit?url=${safeEnc(url)}&title=${safeEnc('Check out this reel!')}`, '_blank', 'noopener');
+            break;
+          case 'sms':
+            window.open(`sms:?body=${safeEnc(text)}`, '_blank', 'noopener');
+            break;
+          case 'more':
+            if (navigator.share) {
+              navigator.share({ title: 'Reels ✦', text: 'Check out this reel!', url }).catch(() => {});
+            } else {
+              showToast('Share not supported on this device');
+            }
+            break;
+          default:
+            showToast('Link copied ✓');
+            navigator.clipboard?.writeText(url).catch(() => {});
+        }
+        if (dest !== 'copy') showToast('Shared ✓');
+        closeShare();
+      }
+
+      // ─── Open Video / Link / Tag ───────────────────────────────
+      function openVideo(id) {
+        window.open(`https://youtu.be/${id}`, '_blank', 'noopener');
+      }
+
+      function copyVideoLink(id) {
+        const url = `https://youtu.be/${id}`;
+        navigator.clipboard?.writeText(url).catch(() => {});
+        showToast('Link copied! Share it with friends 🎬');
+      }
+
+      function openChannel(channelId) {
+        if (channelId) {
+          window.open(`https://youtube.com/channel/${channelId}`, '_blank', 'noopener');
+        }
+      }
+
+      // ─── Mute ───────────────────────────────────────────────────
+      function toggleMute() {
+        isMuted = !isMuted;
+        hasInteracted = true;
+        updateMuteUI();
+      }
+
+      function updateMuteUI() {
+        // Update button icons
+        const btns = document.querySelectorAll('.reel-mute');
+        btns.forEach(b => { b.textContent = isMuted ? '🔇' : '🔊'; });
+
+        // Try postMessage on all iframes
+        document.querySelectorAll('.reel-iframe').forEach(iframe => {
+          if (iframe.contentWindow) {
+            try {
+              iframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: isMuted ? 'mute' : 'unMute',
+                args: ''
+              }), '*');
+            } catch (e) {
+              console.warn('[ReelsApp] postMessage error:', e);
+            }
+          }
+        });
+
+        // Also reload the *visible* iframe's src to force mute change reliably
+        const visibleIframe = getVisibleIframe();
+        if (visibleIframe) {
+          try {
+            const newMute = isMuted ? '1' : '0';
+            if (!visibleIframe.src.includes('mute=' + newMute)) {
+              const newSrc = visibleIframe.src.replace(/mute=[01]/, 'mute=' + newMute);
+              visibleIframe.src = newSrc;
+            }
+          } catch (e) {
+            console.warn('[ReelsApp] updateMuteUI: failed to update iframe src', e);
+          }
+        }
+      }
+
+      function onFirstInteraction(e) {
+        if (hasInteracted) return;
+        // Don't auto-unmute if user clicked the mute button specifically
+        if (e && e.target && e.target.closest && e.target.closest('.reel-mute')) return;
+        hasInteracted = true;
+        isMuted = false;
+        // Update all mute buttons to show 🔊
+        const btns = document.querySelectorAll('.reel-mute');
+        btns.forEach(b => { b.textContent = '🔊'; });
+
+        // Send unMute to ALL iframes so off-screen reels also get unmuted
+        document.querySelectorAll('.reel-iframe').forEach(iframe => {
+          if (iframe.contentWindow) {
+            try {
+              iframe.contentWindow.postMessage(JSON.stringify({
+                event: 'command',
+                func: 'unMute',
+                args: ''
+              }), '*');
+            } catch (e) {
+              console.warn('[ReelsApp] onFirstInteraction postMessage error:', e);
+            }
+          }
+        });
+
+        // Also reload the visible iframe with mute=0 + autoplay=1 for guaranteed sound
+        const visibleIframe = getVisibleIframe();
+        if (visibleIframe) {
+          try {
+            const newSrc = visibleIframe.src.replace(/mute=[01]/, 'mute=0').replace(/autoplay=[01]/, 'autoplay=1');
+            visibleIframe.src = newSrc;
+          } catch (e) {
+            console.warn('[ReelsApp] onFirstInteraction: failed to update iframe src', e);
+          }
+        }
+      }
+
+      function getVisibleIframe() {
+        const reels = document.querySelectorAll('.reel');
+        let closest = null;
+        let closestDist = Infinity;
+        const viewHeight = window.innerHeight;
+        reels.forEach(el => {
+          const rect = el.getBoundingClientRect();
+          const dist = Math.abs(rect.top + rect.height / 2 - viewHeight / 2);
+          if (dist < closestDist) {
+            closestDist = dist;
+            closest = el;
+          }
+        });
+        return closest?.querySelector('.reel-iframe');
+      }
+
+      // ─── Utils ─────────────────────────────────────────────────
+      function refresh() {
+        nextPageToken = null;
+        videos = [];
+        feed.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+        fetchVideos(true);
+      }
+
+      function goBack() {
+        window.history.back();
+      }
+
+      // ─── Init ───────────────────────────────────────────────────
+      function init() {
+        loadPrefs();
+        applyPrefs();
+        fetchVideos(true);
+
+        // Infinite scroll + first-interaction detection
+        feed.addEventListener('scroll', () => {
+          onFirstInteraction();
+          if (feed.scrollTop + feed.clientHeight >= feed.scrollHeight - 1000) {
+            fetchVideos();
+          }
+        });
+
+        // First user interaction → auto-unmute (browser autoplay policy requires a gesture)
+        // Skip if the click is on the mute button itself (let button handle it)
+        // Not using { once: true } because the mute-button case may skip without consuming
+        document.addEventListener('click', onFirstInteraction);
+        document.addEventListener('touchstart', onFirstInteraction);
+        document.addEventListener('keydown', onFirstInteraction);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            closeComments();
+            closeShare();
+          }
+          // Arrow navigation between reels
+          if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            const reels = document.querySelectorAll('.reel');
+            if (!reels.length) return;
+            const scrollTop = feed.scrollTop;
+            const viewHeight = feed.clientHeight;
+            // Find the closest reel to the center of viewport
+            let closestIdx = -1;
+            let closestDist = Infinity;
+            reels.forEach((el, i) => {
+              const rect = el.getBoundingClientRect();
+              const dist = Math.abs(rect.top + rect.height / 2 - viewHeight / 2);
+              if (dist < closestDist) {
+                closestDist = dist;
+                closestIdx = i;
+              }
+            });
+            const targetIdx = closestIdx + (e.key === 'ArrowDown' ? 1 : -1);
+            if (targetIdx >= 0 && targetIdx < reels.length) {
+              reels[targetIdx].scrollIntoView({ behavior: 'smooth' });
+            }
+          }
+        });
+      }
+
+      // ─── Settings / Prefs ──────────────────────────────────────
+      function loadPrefs() {
+        try {
+          const saved = localStorage.getItem(PREFS_KEY);
+          if (saved) prefs = { ...DEFAULT_PREFS, ...JSON.parse(saved) };
+        } catch (e) {}
+      }
+
+      function savePrefs() {
+        try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch (e) {}
+      }
+
+      function applyPrefs() {
+        // Theme
+        document.documentElement.setAttribute('data-theme', prefs.theme);
+        // Animation speed
+        document.documentElement.setAttribute('data-anim', prefs.animSpeed);
+        // Card effect
+        document.documentElement.setAttribute('data-card', prefs.cardEffect);
+        // Layout
+        document.documentElement.setAttribute('data-layout', prefs.layoutMode);
+        // Playback speed
+        updatePlaybackSpeed();
+        // Volume
+        const volSlider = document.getElementById('volumeSlider');
+        if (volSlider) {
+          volSlider.value = prefs.volume;
+          const lbl = document.getElementById('volumeLabel');
+          if (lbl) lbl.textContent = Math.round(prefs.volume * 100) + '%';
+        }
+        // Mute
+        isMuted = prefs.mutedDefault;
+        const muteToggle = document.getElementById('muteToggle');
+        if (muteToggle) muteToggle.checked = isMuted;
+        const muteDefToggle = document.getElementById('mutedDefaultToggle');
+        if (muteDefToggle) muteDefToggle.checked = prefs.mutedDefault;
+        // Autoplay
+        const apToggle = document.getElementById('autoplayToggle');
+        if (apToggle) apToggle.checked = prefs.autoplay;
+        // Loop
+        const loopToggleEl = document.getElementById('loopToggle');
+        if (loopToggleEl) loopToggleEl.checked = prefs.loop;
+        // Show captions
+        const capToggle = document.getElementById('showCaptionsToggle');
+        if (capToggle) capToggle.checked = prefs.showCaptions;
+        captionsVisible = prefs.showCaptions;
+        // Auto-hide
+        const ahToggle = document.getElementById('autoHideToggle');
+        if (ahToggle) ahToggle.checked = prefs.autoHide;
+
+        applyBgEffect();
+        updateSettingsUI();
+        updateMuteUI();
+
+        // Update settings button indicator
+        const btn = document.getElementById('settingsBtn');
+        if (btn) {
+          const hasCustom = Object.keys(DEFAULT_PREFS).some(k => String(prefs[k]) !== String(DEFAULT_PREFS[k]));
+          btn.classList.toggle('has-pref', hasCustom);
+        }
+      }
+
+      function applyBgEffect() {
+        // Remove old bg effect
+        const oldBg = document.querySelector('.bg-effect-layer');
+        if (oldBg) oldBg.remove();
+
+        if (prefs.bgImage) {
+          const layer = document.createElement('div');
+          layer.className = 'bg-effect-layer';
+          const img = document.createElement('div');
+          img.className = 'bg-custom-image' + (parseFloat(prefs.bgImageDim) > 0 ? ' dimmed' : '');
+          img.style.backgroundImage = 'url(' + JSON.stringify(prefs.bgImage) + ')';
+          if (parseFloat(prefs.bgImageDim) > 0) {
+            img.style.setProperty('--bg-dim', prefs.bgImageDim);
+          }
+          layer.appendChild(img);
+          document.body.insertBefore(layer, document.body.firstChild);
+          return;
+        }
+
+        const effect = prefs.bgEffect;
+        if (effect === 'none') return;
+
+        const layer = document.createElement('div');
+        layer.className = 'bg-effect-layer';
+
+        if (effect === 'particles') {
+          const c = document.createElement('div');
+          c.className = 'bg-particles';
+          for (let i = 0; i < 30; i++) {
+            const p = document.createElement('div');
+            p.className = 'bg-particle';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 4 + 's';
+            c.appendChild(p);
+          }
+          layer.appendChild(c);
+        } else if (effect === 'stars') {
+          const c = document.createElement('div');
+          c.className = 'bg-stars-container';
+          for (let i = 0; i < 50; i++) {
+            const s = document.createElement('div');
+            s.className = 'bg-star';
+            s.style.left = Math.random() * 100 + '%';
+            s.style.top = Math.random() * 100 + '%';
+            s.style.width = s.style.height = (1 + Math.random() * 2) + 'px';
+            s.style.animationDelay = Math.random() * 4 + 's';
+            s.style.animationDuration = (2 + Math.random() * 4) + 's';
+            c.appendChild(s);
+          }
+          layer.appendChild(c);
+        } else if (effect === 'gradient') {
+          const c = document.createElement('div');
+          c.className = 'bg-gradient-container';
+          layer.appendChild(c);
+        }
+
+        document.body.insertBefore(layer, document.body.firstChild);
+      }
+
+      function toggleSettings() {
+        settingsOpen = !settingsOpen;
+        document.getElementById('settingsPanel')?.classList.toggle('open', settingsOpen);
+        document.getElementById('settingsOverlay')?.classList.toggle('open', settingsOpen);
+        if (settingsOpen) updateSettingsUI();
+      }
+
+      // ─── Volume Popup ────────────────────────────────────────────
+      var volPopupOpen = false;
+      var systemVolumeLevel = 70;
+      var isSystemMuted = false;
+
+      function toggleVolumePopup() {
+        volPopupOpen = !volPopupOpen;
+        var popup = document.getElementById('volPopup');
+        if (!popup) return;
+        popup.classList.toggle('open', volPopupOpen);
+        if (volPopupOpen) {
+          var slider = document.getElementById('volPopupSlider');
+          var label = document.getElementById('volPopupLabel');
+          if (slider) {
+            slider.value = systemVolumeLevel;
+            if (label) label.textContent = systemVolumeLevel + '%';
+          }
+          updateVolPopupMuteBtn();
+        }
+      }
+
+      function setSystemVolume(val) {
+        var level = parseInt(val);
+        if (isNaN(level) || level < 1 || level > 100) return;
+        systemVolumeLevel = level;
+        isSystemMuted = false;
+
+        var label = document.getElementById('volPopupLabel');
+        if (label) label.textContent = level + '%';
+        updateVolPopupMuteBtn();
+
+        // Sync settings panel volume slider (1-100 -> 0-1)
+        var volSlider = document.getElementById('volumeSlider');
+        if (volSlider) {
+          var normalized = level / 100;
+          volSlider.value = normalized;
+          var volLabel = document.getElementById('volumeLabel');
+          if (volLabel) volLabel.textContent = Math.round(normalized * 100) + '%';
+        }
+
+        // Unmute YouTube player if muted
+        if (hasInteracted && isMuted) {
+          isMuted = false;
+          updateMuteUI();
+        }
+
+        // Send to server to control Windows system volume
+        fetch('/api/system-volume', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ level: level })
+        }).catch(function(err) {
+          console.error('System volume control failed:', err);
+        });
+      }
+
+      function toggleSystemMute() {
+        isSystemMuted = !isSystemMuted;
+        updateVolPopupMuteBtn();
+
+        if (isSystemMuted) {
+          // Set volume to 1% (near-mute)
+          var slider = document.getElementById('volPopupSlider');
+          if (slider) {
+            slider.value = '1';
+            setSystemVolume(1);
+          }
+          // Also mute YouTube player
+          if (!isMuted) {
+            isMuted = true;
+            updateMuteUI();
+            var muteToggle = document.getElementById('muteToggle');
+            if (muteToggle) muteToggle.checked = true;
+          }
+        } else {
+          // Restore previous level
+          var slider = document.getElementById('volPopupSlider');
+          if (slider) {
+            slider.value = systemVolumeLevel;
+            setSystemVolume(systemVolumeLevel);
+          }
+        }
+      }
+
+      function updateVolPopupMuteBtn() {
+        var btn = document.getElementById('volPopupMuteBtn');
+        if (!btn) return;
+        if (isSystemMuted || systemVolumeLevel <= 5) {
+          btn.textContent = '🔊 Unmute';
+          btn.classList.add('muted');
+        } else {
+          btn.textContent = '🔇 Mute';
+          btn.classList.remove('muted');
+        }
+      }
+
+      function setPref(key, value) {
+        prefs[key] = value;
+        savePrefs();
+        applyPrefs();
+        // Special handling for certain prefs
+        if (key === 'layoutMode') {
+          // Reload feed layout
+          applyLayoutMode();
+        }
+        if (key === 'mutedDefault') {
+          isMuted = value;
+          const muteToggle = document.getElementById('muteToggle');
+          if (muteToggle) muteToggle.checked = isMuted;
+          updateMuteUI();
+        }
+        if (key === 'playbackSpeed') {
+          updatePlaybackSpeed();
+        }
+        if (key === 'showCaptions') {
+          captionsVisible = value;
+          document.querySelectorAll('.reel-caption').forEach(el => {
+            el.style.display = value ? '-webkit-box' : 'none';
+          });
+        }
+        if (key === 'autoHide') {
+          document.querySelectorAll('.reel-controls').forEach(el => {
+            el.classList.toggle('visible', !value);
+          });
+        }
+        updateSettingsUI();
+      }
+
+      function resetPrefs() {
+        prefs = { ...DEFAULT_PREFS };
+        savePrefs();
+        applyPrefs();
+        // Fix layout
+        applyLayoutMode();
+        showToast('Settings reset ✓');
+      }
+
+      function updateSettingsUI() {
+        // Update option buttons
+        document.querySelectorAll('.settings-opt').forEach(el => {
+          const key = el.dataset.key;
+          const val = el.dataset.val;
+          if (key && val !== undefined) {
+            el.classList.toggle('active', String(prefs[key]) === val);
+          }
+        });
+        // Update theme buttons
+        document.querySelectorAll('.settings-theme-btn').forEach(el => {
+          el.classList.toggle('active', prefs.theme === el.dataset.theme);
+        });
+        // Update bg image visibility
+        const clearBtn = document.getElementById('clearBgBtn');
+        const dimRow = document.getElementById('dimRow');
+        if (clearBtn) clearBtn.style.display = prefs.bgImage ? 'inline-block' : 'none';
+        if (dimRow) dimRow.style.display = prefs.bgImage ? 'flex' : 'none';
+        // Update dim slider
+        const dimSlider = document.getElementById('dimSlider');
+        const dimLabel = document.getElementById('dimLabel');
+        if (dimSlider) dimSlider.value = parseFloat(prefs.bgImageDim) || 0.3;
+        if (dimLabel) dimLabel.textContent = Math.round((parseFloat(prefs.bgImageDim) || 0.3) * 100) + '%';
+        // Update settings button indicator
+        const btn = document.getElementById('settingsBtn');
+        if (btn) {
+          const hasCustom = Object.keys(DEFAULT_PREFS).some(k => String(prefs[k]) !== String(DEFAULT_PREFS[k]));
+          btn.classList.toggle('has-pref', hasCustom);
+        }
+      }
+
+      function applyLayoutMode() {
+        // Re-render feed with new layout
+        const feedEl = document.getElementById('feed');
+        if (feedEl) {
+          feedEl.style.display = '';
+          feedEl.style.position = '';
+          feedEl.style.top = '';
+          feedEl.style.gridTemplateColumns = '';
+          feedEl.style.gap = '';
+          feedEl.style.padding = '';
+          feedEl.style.overflowY = '';
+          feedEl.style.scrollSnapType = '';
+          feedEl.style.height = '';
+        }
+        // Re-render the feed content to show/hide elements accordingly
+        render();
+        setupAutoPlay();
+      }
+
+      function handleBgImageUpload(input) {
+        const file = input?.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          prefs.bgImage = e.target.result;
+          prefs.bgImageDim = 0.3;
+          savePrefs();
+          applyPrefs();
+          showToast('Background image set ✓');
+        };
+        reader.readAsDataURL(file);
+        input.value = '';
+      }
+
+      function removeBgImage() {
+        prefs.bgImage = '';
+        savePrefs();
+        applyPrefs();
+        showToast('Background removed');
+      }
+
+      function setBgImageDim(val) {
+        prefs.bgImageDim = parseFloat(val);
+        savePrefs();
+        applyBgEffect();
+        const label = document.getElementById('dimLabel');
+        if (label) label.textContent = Math.round(val * 100) + '%';
+      }
+
+      function setVolume(val) {
+        prefs.volume = parseFloat(val);
+        savePrefs();
+        const label = document.getElementById('volumeLabel');
+        if (label) label.textContent = Math.round(val * 100) + '%';
+        // Update volume on visible iframes
+        // YouTube doesn't support volume control via postMessage, but we track it
+      }
+
+      function updatePlaybackSpeed() {
+        // Playback speed is applied per iframe via YouTube's API
+        const speed = parseFloat(prefs.playbackSpeed) || 1;
+        document.querySelectorAll('.reel-iframe').forEach(iframe => {
+          if (iframe.contentWindow) {
+            iframe.contentWindow.postMessage(JSON.stringify({
+              event: 'command',
+              func: 'setPlaybackRate',
+              args: [speed]
+            }), '*');
+          }
+        });
+        // Show speed badge
+        const badges = document.querySelectorAll('.reel-speed-badge');
+        if (speed !== 1) {
+          badges.forEach(b => { b.textContent = speed + 'x'; b.style.display = 'block'; });
+        } else {
+          badges.forEach(b => { b.style.display = 'none'; });
+        }
+      }
+
+      let captionsVisible = true;
+
+      // ─── Public API ─────────────────────────────────────────────
+      return {
+        init,
+        refresh,
+        goBack,
+        switchTab,
+        toggleSearch,
+        doSearch,
+        searchChip,
+        toggleFilters,
+        setFilter,
+        resetFilter,
+        clearFilters,
+        toggleLike,
+        toggleSubscribe,
+        toggleMute,
+        toggleRepost,
+        openComments,
+        closeComments,
+        postComment,
+        shareVideo,
+        closeShare,
+        copyShareLink,
+        shareTo,
+        openVideo,
+        copyVideoLink,
+        openChannel,
+        toggleSettings,
+        setPref,
+        resetPrefs,
+        handleBgImageUpload,
+        removeBgImage,
+        setBgImageDim,
+        setVolume,
+        toggleVolumePopup,
+        setSystemVolume,
+        toggleSystemMute,
+      };
+    })();
+
+    // ═══ Boot ═══
+    document.addEventListener('DOMContentLoaded', () => ReelsApp.init());
+  </script>
+</body>
+</html>

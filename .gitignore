@@ -1,0 +1,21 @@
+node_modules/
+.env
+*.log
+bik0/
+biko/
+power-bots/chunk_*.json
+backups/
+
+data.json
+data.json.tmp
+
+# Large binary/media files - downloaded content, not source
+*.zip
+*.crdownload
+*.mp4
+public/media/gifs/
+public/media/stickers/
+public/media/audio/
+public/media/chat-files/
+public/media/chat-bg/
+nul
