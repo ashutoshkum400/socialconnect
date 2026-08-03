@@ -195,7 +195,7 @@ async function sendMessage() {
   const history = chat.messages.map(m => ({ role: m.role, content: m.content }));
   const customKey = getCustomApiKey();
   try {
-    const res = await fetch('/api/ai/chat', {
+     const res = await fetch((window.API_BASE || '') + '/api/ai/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ message: text, history, apiKey: customKey || undefined })

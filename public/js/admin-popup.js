@@ -208,7 +208,7 @@ async function adminLogin(event) {
   btn.textContent = 'Logging in…';
 
   try {
-    const res = await fetch('/api/auth/login', {
+    const res = await fetch((window.API_BASE || '') + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -269,7 +269,7 @@ async function adminRegister(event) {
   btn.textContent = 'Registering…';
 
   try {
-    const res = await fetch('/api/auth/admin-register', {
+    const res = await fetch((window.API_BASE || '') + '/api/auth/admin-register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, password, adminSecret: secret }),

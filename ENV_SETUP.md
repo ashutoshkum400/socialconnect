@@ -8,7 +8,6 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/socialconnect
 JWT_SECRET=your-super-secret-jwt-key-here
 ADMIN_SECRET=Admin@2024
 NODE_ENV=development
-PORT=3000
 GOOGLE_CLIENT_ID=your-google-oauth-web-client-id.apps.googleusercontent.com
 ```
 
@@ -23,8 +22,9 @@ Add these exactly as they appear:
 | `JWT_SECRET` | (Leave blank - Render generates) | Security token |
 | `ADMIN_SECRET` | `Admin@2024` | Admin password |
 | `NODE_ENV` | `production` | Production environment |
-| `PORT` | `3000` | Server port |
 | `GOOGLE_CLIENT_ID` | Your Google OAuth Web Client ID | Enables "Sign in with Gmail" |
+
+**Important:** Do NOT set `PORT` manually — Render assigns it dynamically via `process.env.PORT`.
 
 ## Google Sign-In Setup (Sign in with Gmail)
 

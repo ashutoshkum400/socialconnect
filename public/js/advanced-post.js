@@ -797,7 +797,7 @@ showMentionSuggestions(query) {
             this.renderMentionSuggestions(allUsers);
         } else {
             // Fetch all users from API
-            fetch(`/api/users`, {
+            fetch(`${(window.API_BASE || '')}/api/users`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('sc_token')}` }
             })
             .then(r => r.json())
@@ -811,7 +811,7 @@ showMentionSuggestions(query) {
         }
     } else {
         // For longer queries, use search API
-        fetch(`/api/users?q=${encodeURIComponent(q)}`, {
+        fetch(`${(window.API_BASE || '')}/api/users?q=${encodeURIComponent(q)}`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('sc_token')}` }
         })
         .then(r => r.json())
@@ -1267,7 +1267,7 @@ renderMentionSuggestions(users) {
         }
       }, 300);
 
-      const response = await fetch('/api/posts/advanced', {
+      const response = await fetch((window.API_BASE || '') + '/api/posts/advanced', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

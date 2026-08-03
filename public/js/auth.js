@@ -93,7 +93,7 @@ async function handleGoogleCredential(credential) {
   if (btn) btn.disabled = true;
 
   try {
-    const res = await fetch('/api/auth/google', {
+    const res = await fetch((window.API_BASE || '') + '/api/auth/google', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ credential }),
@@ -138,7 +138,7 @@ async function initGoogleSignIn() {
   if (!container) return;
 
   try {
-    const res  = await fetch('/api/auth/config');
+    const res  = await fetch((window.API_BASE || '') + '/api/auth/config');
     const data = await res.json();
 
     if (!data || !data.googleEnabled || !data.googleClientId) {
@@ -262,7 +262,7 @@ if (page === 'login') {
     loginSpinner.style.display = '';
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch((window.API_BASE || '') + '/api/auth/login', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ email, password }),
@@ -659,7 +659,7 @@ if (page === 'signup') {
     hideError(signupError);
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch((window.API_BASE || '') + '/api/auth/register', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify(formData),

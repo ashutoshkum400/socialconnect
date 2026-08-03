@@ -5,7 +5,7 @@ const SC = {
   // =====================
   // CONSTANTS
   // =====================
-  API_BASE: '/api',
+   API_BASE: (window.API_BASE || '') + '/api',
   TOKEN_KEY: 'sc_token',
   USER_KEY: 'sc_user',
 

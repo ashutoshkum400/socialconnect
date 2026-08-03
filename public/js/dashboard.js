@@ -12,11 +12,11 @@ const currentUser = JSON.parse(localStorage.getItem('sc_user') || '{}');
 if (!token) window.location.href = '/index.html';
 
 // ─── Socket.IO ───────────────────────────────────────────────────────────────
-const socket = io();
+const socket = io(window.SOCKET_URL);
 socket.emit('authenticate', token);
 
 // ─── State ───────────────────────────────────────────────────────────────────
-const API = '/api';
+const API = (window.API_BASE || '') + '/api';
 const HEADERS = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
 
 let allUsers = [];             // cache from /api/users

@@ -11,7 +11,7 @@ function updateStatus(message) {
 
 async function requestApi(path, options = {}) {
   try {
-    const response = await fetch(path, options);
+    const response = await fetch((window.API_BASE || '') + path, options);
     const json = await response.json();
     updateStatus(JSON.stringify(json, null, 2));
   } catch (error) {

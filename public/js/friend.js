@@ -29,7 +29,7 @@ function escapeHtml(str) {
 async function apiFetch(path, options = {}) {
   const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
   try {
-    const res = await fetch('/api' + path, { ...options, headers: { ...headers, ...(options.headers || {}) } });
+    const res = await fetch((window.API_BASE || '') + '/api' + path, { ...options, headers: { ...headers, ...(options.headers || {}) } });
     if (res.status === 401) { SC.logout(); return null; }
     const data = await res.json().catch(() => null);
     return { ok: res.ok, status: res.status, data };

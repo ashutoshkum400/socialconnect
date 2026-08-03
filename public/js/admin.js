@@ -32,7 +32,7 @@ function api(path, opts = {}) {
   if (opts.body && typeof opts.body === 'string') {
     headers['Content-Type'] = 'application/json';
   }
-  return fetch(path, { ...opts, headers });
+   return fetch((window.API_BASE || '') + path, { ...opts, headers });
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ async function init() {
 // ─── Socket.IO ────────────────────────────────────────────────────────────────
 function initSocket() {
   try {
-    socket = io();
+     socket = io(window.SOCKET_URL);
 
     socket.emit('authenticate', token);
 

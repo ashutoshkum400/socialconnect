@@ -56,7 +56,7 @@ const ReelsApp = (() => {
     if (opts.body && typeof opts.body === 'string') {
       headers['Content-Type'] = 'application/json';
     }
-    const res = await fetch(path, { ...opts, headers });
+    const res = await fetch((window.API_BASE || '') + path, { ...opts, headers });
     if (res.status === 401 && path !== '/api/auth/login') {
       showToast('Session expired. Please login.');
       return null;
@@ -727,7 +727,7 @@ const ReelsApp = (() => {
       formData.append('video', file);
 
       const t = getToken();
-      const uploadRes = await fetch('/api/reels/upload', {
+      const uploadRes = await fetch((window.API_BASE || '') + '/api/reels/upload', {
         method: 'POST',
         headers: { 'Authorization': 'Bearer ' + t },
         body: formData,
@@ -910,7 +910,7 @@ const ReelsApp = (() => {
   // ─── Socket ────────────────────────────────────────────────────────────
   function initSocket() {
     try {
-      socket = io();
+       socket = io(window.SOCKET_URL);
       socket.emit('authenticate', getToken());
 
       socket.on('authenticated', () => {});

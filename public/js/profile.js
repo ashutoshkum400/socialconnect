@@ -85,7 +85,7 @@ function capitalize(str) {
 
 /** Thin fetch wrapper that attaches the Bearer token and throws on errors. */
 async function apiFetch(url, options = {}) {
-  const res = await fetch(url, {
+  const res = await fetch((window.API_BASE || '') + url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -213,7 +213,7 @@ async function init() {
 
   // Socket.IO – authenticate and listen for online/offline events
   try {
-    socket = io();
+     socket = io(window.SOCKET_URL);
     socket.emit('authenticate', token);
 
     socket.on('user_online', data => {
