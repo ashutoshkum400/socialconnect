@@ -1,0 +1,9 @@
+SCRIPTS/PUBLIC FILES CHECK
+MONGOOSE USED IN:
+NONE
+
+FIREBASE USED IN:
+NONE
+
+--- package.json deps that are unused/harmful ---
+deps: bcryptjs, cors, dotenv, express, firebase, jsonwebtoken, mongoose, multer, socket.io, uuid

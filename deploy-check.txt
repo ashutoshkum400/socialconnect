@@ -1,0 +1,9 @@
+
+--- Probe https://socialconnect-oh9q.onrender.com (redirect count: 0) ---
+ERROR: fetch failed | cause: UND_ERR_HEADERS_TIMEOUT
+
+
+--- Also checking the custom domain if configured ---
+
+--- Probe https://www.biko.work.gd/ (redirect count: 0) ---
+ERROR: fetch failed | cause: ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE
