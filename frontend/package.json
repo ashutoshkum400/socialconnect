@@ -1,0 +1,9 @@
+{
+  "name": "socialconnect-frontend",
+  "version": "1.0.0",
+  "description": "Placeholder frontend package. The real frontend is served by the Node backend from /public. This package exists so Render's default React build command does not fail.",
+  "private": true,
+  "scripts": {
+    "build": "echo \"Frontend build skipped - frontend is served from /public\""
+  }
+}
