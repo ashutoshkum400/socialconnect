@@ -18,4 +18,7 @@ public/media/stickers/
 public/media/audio/
 public/media/chat-files/
 public/media/chat-bg/
+
+# docs/ is a copy of public/ for GitHub Pages (branch-based deployment)
+docs/media/
 nul

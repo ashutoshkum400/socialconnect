@@ -19,7 +19,5 @@ services:
         value: "100"
       - key: POWER_BOT_CACHE_CHUNKS
         value: "2"
-      - key: PORT
-        value: 3000
       - key: GOOGLE_CLIENT_ID
         sync: false
