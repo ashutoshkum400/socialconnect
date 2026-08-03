@@ -2,24 +2,22 @@ services:
   - type: web
     name: socialconnect
     env: node
+    plan: free
     buildCommand: npm install
     startCommand: npm start
+    healthCheckPath: /api/control/ping
     envVars:
-      - key: MONGODB_URI
-        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: ADMIN_SECRET
         value: Admin@2024
       - key: NODE_ENV
         value: production
-      - key: NODE_OPTIONS
-        value: "--max-old-space-size=512"
       - key: POWER_BOT_COUNT
         value: "100"
       - key: POWER_BOT_CACHE_CHUNKS
         value: "2"
       - key: GOOGLE_CLIENT_ID
-        sync: false
+        value: "965817059764-nqnm69ngsr3i1h3mdqqmi2160d4n1m3u.apps.googleusercontent.com"
       - key: FORCE_DEPLOY
         value: "true"

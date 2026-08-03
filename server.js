@@ -2691,54 +2691,70 @@ app.use((req, res) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-seedData()
-  .then(() => seedBots(db, io))
-  .then(async (activeBots) => {
+async function startServer() {
+  try {
+    await seedData();
+    await seedBots(db, io);
+  } catch (err) {
+    // Never let a seeding error crash the app — serve anyway with whatever data we have.
+    console.error("⚠️ Data seeding failed (continuing anyway):", err);
+  }
+
+  try {
     await powerBotManager.initialize(db, io);
     dataManager.init(db, powerBotManager);
     saveDb();
     seedReelsIfEmpty();
     dataManager.createBackup();
-    server.listen(PORT, "0.0.0.0", () => {
-      console.log(`✅ Server started`);
-      console.log(`🚀 SocialConnect running on port ${PORT}`);
-      console.log(
-        `📁 Serving static files from: ${path.join(__dirname, "public")}`,
-      );
-    });
-    startBotActivity(db, io, activeBots);
-    powerBotManager.startActivityEngine(db, io, 45000);
+  } catch (err) {
+    console.error("⚠️ DataManager/PowerBot init failed (continuing anyway):", err);
+  }
 
-    setInterval(() => {
-      const onlineBefore = onlineUsers.size;
-      const powerBotIds = [];
-      for (let i = 0; i < 150; i++) {
-        const numId = 1 + Math.floor(Math.random() * 1000000);
-        const bid = `pbot_${String(numId).padStart(7, '0')}`;
-        if (!onlineUsers.has(bid)) {
-          powerBotIds.push(bid);
-          onlineUsers.set(bid, `pbot_sim_${bid}`);
-        }
-      }
-      if (powerBotIds.length > 0) {
-        powerBotIds.forEach(id => io.emit("user_online", { userId: id, online: true }));
-      }
-    }, 20000);
-
-    setInterval(() => {
-      const toRemove = [];
-      for (const [uid] of onlineUsers) {
-        if (uid.startsWith('pbot_') && Math.random() < 0.4) {
-          toRemove.push(uid);
-        }
-      }
-      toRemove.forEach(id => {
-        onlineUsers.delete(id);
-        io.emit("user_online", { userId: id, online: false });
-      });
-    }, 25000);
-  })
-  .catch((err) => {
-    console.error("❌ Failed to seed data:", err);
-    process.exit(1);
+  server.listen(PORT, "0.0.0.0", () => {
+    console.log(`✅ Server started`);
+    console.log(`🚀 SocialConnect running on port ${PORT}`);
+    console.log(
+      `📁 Serving static files from: ${path.join(__dirname, "public")}`,
+    );
   });
+
+  server.on("error", (err) => {
+    console.error("❌ Server error:", err.message);
+  });
+
+  // Activity engines are best-effort; never let a cycle crash the process.
+  const activeBots = [...db.users.values()].filter(u => u.isBot);
+  try { startBotActivity(db, io, activeBots); } catch (err) { console.error("⚠️ Bot activity failed to start:", err.message); }
+  try { powerBotManager.startActivityEngine(db, io, 45000); } catch (err) { console.error("⚠️ PowerBot engine failed to start:", err.message); }
+
+  setInterval(() => {
+    const onlineBefore = onlineUsers.size;
+    const powerBotIds = [];
+    for (let i = 0; i < 150; i++) {
+      const numId = 1 + Math.floor(Math.random() * 1000000);
+      const bid = `pbot_${String(numId).padStart(7, '0')}`;
+      if (!onlineUsers.has(bid)) {
+        powerBotIds.push(bid);
+        onlineUsers.set(bid, `pbot_sim_${bid}`);
+      }
+    }
+    if (powerBotIds.length > 0) {
+      powerBotIds.forEach(id => io.emit("user_online", { userId: id, online: true }));
+    }
+  }, 20000);
+
+  setInterval(() => {
+    const toRemove = [];
+    for (const [uid] of onlineUsers) {
+      if (uid.startsWith('pbot_') && Math.random() < 0.4) {
+        toRemove.push(uid);
+      }
+    }
+    toRemove.forEach(id => {
+      onlineUsers.delete(id);
+      io.emit("user_online", { userId: id, online: false });
+    });
+  }, 25000);
+}
+
+startServer();
