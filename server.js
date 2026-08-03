@@ -133,6 +133,18 @@ function loadDb() {
 app.use(cors());
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+
+// ─── Socket.IO Client (served locally, no CDN dependency) ──────────────────
+// The official CDN (cdn.socket.io) is frequently blocked or unreachable on
+// some networks, which left `io` undefined in the browser and broke the
+// dashboard (no data loaded). Serve the client bundle from our own node_modules.
+app.get("/socket.io/socket.io.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "node_modules", "socket.io", "client-dist", "socket.io.js"));
+});
+app.get("/socket.io/socket.io.min.js", (req, res) => {
+  res.sendFile(path.join(__dirname, "node_modules", "socket.io", "client-dist", "socket.io.min.js"));
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/yt-reels", (req, res) => { res.sendFile(path.join(__dirname, "video.html")); });
 

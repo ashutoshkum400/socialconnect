@@ -12,8 +12,12 @@ const currentUser = JSON.parse(localStorage.getItem('sc_user') || '{}');
 if (!token) window.location.href = '/index.html';
 
 // ─── Socket.IO ───────────────────────────────────────────────────────────────
-const socket = io(window.SOCKET_URL);
-socket.emit('authenticate', token);
+// Socket is best-effort: if the client library fails to load, use a safe
+// no-op object so the rest of the dashboard (feed, users, posts) still loads.
+const socket = (typeof io === 'function')
+  ? io(window.SOCKET_URL)
+  : { on() {}, emit() {}, off() {}, disconnect() {}, removeAllListeners() {} };
+if (typeof io === 'function') socket.emit('authenticate', token);
 
 // ─── State ───────────────────────────────────────────────────────────────────
 const API = (window.API_BASE || '') + '/api';
