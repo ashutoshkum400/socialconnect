@@ -2685,9 +2685,32 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
-// ─── SPA Catch-all ────────────────────────────────────────────────────────────
+// ─── Page routes (static HTML pages) ────────────────────────────────────────────
+const PAGE_ROUTES = new Map([
+  ["dashboard", "dashboard.html"],
+  ["profile", "profile.html"],
+  ["friend", "friend.html"],
+  ["admin", "admin.html"],
+  ["signup", "signup.html"],
+  ["index", "index.html"],
+  ["login", "index.html"],
+  ["ai", "ai.html"],
+  ["control", "control.html"],
+]);
+
+app.get(/^\/([a-zA-Z0-9_-]+)(?:\.html)?$/, (req, res, next) => {
+  const page = req.params[0];
+  if (!PAGE_ROUTES.has(page)) {
+    return next();
+  }
+
+  const htmlFile = PAGE_ROUTES.get(page);
+  return res.sendFile(path.join(__dirname, "public", htmlFile));
+});
+
+// ─── 404 fallback ──────────────────────────────────────────────────────────────
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
+  res.status(404).sendFile(path.join(__dirname, "public", "404.html"));
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
