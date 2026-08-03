@@ -21,3 +21,5 @@ services:
         value: "2"
       - key: GOOGLE_CLIENT_ID
         sync: false
+      - key: FORCE_DEPLOY
+        value: "true"
