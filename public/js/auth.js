@@ -189,22 +189,33 @@ async function initGoogleSignIn() {
 function renderGoogleButton(clientId) {
   const container = document.getElementById('googleButtonContainer');
   if (!container || typeof google === 'undefined' || !google.accounts) return;
-  container.innerHTML = ''; // avoid duplicate buttons
-  google.accounts.id.initialize({
-    client_id: clientId,
-    callback:  window.handleGoogleCredentialCallback,
-    auto_select: false,
-  });
-  google.accounts.id.renderButton(container, {
-    type:        'standard',
-    theme:       'outline',
-    size:        'large',
-    text:        'continue_with',
-    shape:       'pill',
-    logo_alignment: 'left',
-    width:        '100%',
-  });
-}
+  container.innerHTML = '';
+  try {
+    google.accounts.id.initialize({
+      client_id: clientId,
+      callback:  window.handleGoogleCredentialCallback,
+      auto_select: false,
+    });
+    google.accounts.id.renderButton(container, {
+      type:        'standard',
+      theme:       'outline',
+      size:        'large',
+      text:        'continue_with',
+      shape:       'pill',
+      logo_alignment: 'left',
+      width:        '100%',
+    });
+  } catch (err) {
+    container.style.display = 'none';
+    const note = document.getElementById('googleNotConfiguredNote');
+    if (note) {
+      note.style.display = 'block';
+      note.textContent = 'Google sign-in failed to initialize. Ensure "' +
+        window.location.origin + '" is added as an Authorized JavaScript origin\n' +
+        'in Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID.';
+    }
+    console.error('[auth] GSI renderButton error:', err);
+  }
 
 // Boot Google sign-in on login & signup pages
 if (page === 'login' || page === 'signup') {
