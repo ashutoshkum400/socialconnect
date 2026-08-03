@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Site Control Panel</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        min-height: 100vh;
+        background: #f4f7fb;
+        color: #1b1b1f;
+      }
+      .panel {
+        margin: auto;
+        width: min(100%, 520px);
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+        padding: 28px;
+      }
+      h1 {
+        margin: 0 0 16px;
+        font-size: 28px;
+        color: #0f172a;
+      }
+      p {
+        margin: 0 0 18px;
+        line-height: 1.6;
+        color: #475569;
+      }
+      .button-row {
+        display: grid;
+        gap: 12px;  
+        margin: 20px 0 24px;
+      }
+      .button-row button {
+        padding: 14px 18px;
+        background: #2563eb;
+        border: none;
+        border-radius: 12px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .button-row button.secondary {
+        background: #64748b;
+      }
+      .status-card {
+        padding: 18px;
+        background: #f8fafc;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+      }
+      .status-card pre {
+        margin: 0;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-family: inherit;
+      }
+      .note {
+        font-size: 14px;
+        color: #64748b;
+        margin-top: 12px;
+      }
+      a {
+        color: #2563eb;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <h1>Mobile Control Panel</h1>
+      <p>
+        Use this page from your phone to keep your site awake and check status.
+        Tap the buttons to ping the server or wake it manually.
+      </p>
+
+      <div class="button-row">
+        <button id="pingButton">Ping Server</button>
+        <button id="wakeButton" class="secondary">Send Wake Signal</button>
+        <button id="autoButton" class="secondary">Start Auto Keep-Alive</button>
+      </div>
+
+      <div class="status-card">
+        <strong>Status Output</strong>
+        <pre id="statusText">Press a button to begin.</pre>
+      </div>
+
+      <p class="note">
+        NOTE: Free Render services may still sleep after inactivity. This page helps
+        wake the app by sending regular pings from your phone while it is open.
+      </p>
+      <p class="note">
+        Use <a href="/control.html" target="_blank">this control page</a> on any device.
+      </p>
+    </div>
+
+    <script src="/js/config.js"></script>
+    <script src="/js/control.js"></script>
+  </body>
+</html>

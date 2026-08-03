@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>SocialConnect - Home</title>
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/responsive.css" />
+        <link rel="stylesheet" href="/css/advanced-post.css" />
+        <link rel="stylesheet" href="/css/advanced-attach.css" />
+    </head>
+    <body data-page="dashboard">
+        <!-- ═══════════════════════════════════════════════════════════
+       NAVIGATION BAR
+  ═══════════════════════════════════════════════════════════ -->
+        <nav class="navbar" role="navigation" aria-label="Main navigation">
+            <div class="navbar__inner">
+                <!-- Logo (visible on all sizes) -->
+                <a
+                    href="/dashboard.html"
+                    class="navbar__logo"
+                    aria-label="SocialConnect home"
+                >
+                    <span class="navbar__logo-icon" aria-hidden="true">💜</span>
+                    <span class="navbar__logo-text">SocialConnect</span>
+                </a>
+
+                <!-- Search (visible on all sizes) -->
+                <div class="search-section">
+                    <div class="navbar__search" role="search">
+                        <span class="navbar__search-icon" aria-hidden="true">
+                            <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2.5"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                            >
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </span>
+                        <input
+                            type="search"
+                            id="searchInput"
+                            class="navbar__search-input"
+                            placeholder="Search SocialConnect..."
+                            autocomplete="off"
+                            aria-label="Search users"
+                            aria-expanded="false"
+                            aria-controls="searchResults"
+                            aria-autocomplete="list"
+                        />
+                    </div>
+                    <!-- Search dropdown (outside .navbar__search so not hidden on mobile) -->
+                    <div
+                        id="searchResults"
+                        class="search-dropdown hidden"
+                        role="listbox"
+                        aria-label="Search results"
+                    ></div>
+                </div>
+
+                <!-- Center Nav — desktop: all items in one line with equal gaps -->
+                <nav class="navbar__nav" aria-label="Site sections">
+
+
+
+
+                    <a
+                        href="/dashboard.html"
+                        class="navbar__nav-link active"
+                        data-tooltip="Home"
+                        aria-label="Home"
+                        aria-current="page"
+                    >
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                        </svg>
+                    </a>
+
+                    <a
+                        href="/yt-reels"
+                        class="navbar__nav-link"
+                        data-tooltip="Reels"
+                        aria-label="Reels"
+                    >
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            <path d="M10 8H8v4H4v2h4v4h2v-4h4v-2h-4V8zm10 4h-2V6h-6V4h6c1.1 0 2 .9 2 2v6z"/>
+                        </svg>
+                    </a>
+                    <a
+                        href="#"
+                        class="navbar__nav-link"
+                        data-tooltip="Marketplace"
+                        aria-label="Marketplace"
+                    >
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12zm-7-7c-1.66 0-3-1.34-3-3H7c0 2.76 2.24 5 5 5s5-2.24 5-5h-2c0 1.66-1.34 3-3 3z"
+                            />
+                        </svg>
+                    </a>
+
+                    <!-- Notifications Button -->
+                    <button
+                        class="navbar__nav-link navbar__nav-link--icon"
+                        aria-label="Notifications"
+                        data-tooltip="Notifications"
+                        onclick="toggleNotifDropdown()"
+                        aria-haspopup="true"
+                        aria-expanded="false"
+                        id="notifBtn"
+                    >
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                        >
+                            <path
+                                d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+                            />
+                        </svg>
+                        <span
+                            id="notifBadge"
+                            class="navbar__badge navbar__badge--pulse hidden"
+                            aria-live="polite"
+                            >0</span
+                        >
+                    </button>
+
+                    <!-- Profile Avatar Dropdown -->
+                    <div class="navbar__nav-item dropdown" id="profileDropdownWrap">
+                        <button
+                            class="navbar__avatar"
+                            id="navAvatar"
+                            onclick="toggleProfileDropdown()"
+                            aria-haspopup="true"
+                            aria-expanded="false"
+                            aria-label="Your profile and settings"
+                            style="
+                                background-image: url(&quot;https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=256&quot;);
+                            "
+                        ></button>
+                        <div
+                            class="dropdown__menu hidden"
+                            id="profileDropdown"
+                            role="menu"
+                            aria-label="Profile options"
+                        >
+                            <div
+                                class="dropdown__item"
+                                role="menuitem"
+                                onclick="goToProfile()"
+                            >
+                                <span class="dropdown__icon">👤</span> Your
+                                Profile
+                            </div>
+                            <div
+                                class="dropdown__item"
+                                role="menuitem"
+                                onclick="
+                                    window.location.href = '/settings.html'
+                                "
+                            >
+                                <span class="dropdown__icon">⚙️</span> Settings
+                                &amp; Privacy
+                            </div>
+                            <div
+                                class="dropdown__item"
+                                role="menuitem"
+                                onclick="window.location.href = '/help.html'"
+                            >
+                                <span class="dropdown__icon">❓</span> Help
+                                &amp; Support
+                            </div>
+                            <div class="dropdown__divider"></div>
+                            <div
+                                class="dropdown__item dropdown__item--danger"
+                                role="menuitem"
+                                onclick="logout()"
+                            >
+                                <span class="dropdown__icon">🚪</span> Log Out
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- Notifications Dropdown (outside navbar__nav so it's not clipped) -->
+                <div
+                    id="notifDropdown"
+                    class="notifications-dropdown hidden"
+                    role="dialog"
+                    aria-label="Notifications"
+                >
+                    <div class="notifications-dropdown__header">
+                        <h3>Notifications</h3>
+                        <button
+                            class="notifications-dropdown__close"
+                            onclick="closeNotifDropdown()"
+                            aria-label="Close notifications"
+                        >&times;</button>
+                        <button
+                            class="notifications-dropdown__header-action"
+                            onclick="markAllNotifsRead()"
+                        >
+                            Mark all as read
+                        </button>
+                    </div>
+                    <div
+                        class="notifications-dropdown__tabs"
+                        role="tablist"
+                    >
+                        <button
+                            class="notifications-dropdown__tab active"
+                            role="tab"
+                            aria-selected="true"
+                            onclick="switchNotifTab(this, 'all')"
+                        >
+                            All
+                        </button>
+                        <button
+                            class="notifications-dropdown__tab"
+                            role="tab"
+                            aria-selected="false"
+                            onclick="switchNotifTab(this, 'unread')"
+                        >
+                            Unread
+                        </button>
+                    </div>
+                    <div
+                        class="notifications-dropdown__list"
+                        id="notifList"
+                        role="tabpanel"
+                    ></div>
+                </div>
+
+                <!-- Right Actions (visible on tablet, hidden on desktop) -->
+                <div class="navbar__actions hide-desktop-lg">
+                    <!-- Single Logout Button -->
+                    <button
+                        class="navbar__action-btn"
+                        aria-label="Logout"
+                        data-tooltip="Logout"
+                        onclick="logout()"
+                    >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+                        </svg>
+                    </button>
+                </div>
+                <!-- /.navbar__actions -->
+            </div>
+            <!-- /.navbar__inner -->
+        </nav>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       MAIN LAYOUT
+  ═══════════════════════════════════════════════════════════ -->
+        <main class="layout" id="mainLayout">
+            <div class="layout__inner">
+                <!-- ─── LEFT SIDEBAR ───────────────────────────────── -->
+                <aside class="layout__sidebar-left" aria-label="Left sidebar">
+                    <!-- Profile Card -->
+                    <div class="card widget-card" id="sidebarProfile">
+                        <!-- Skeleton placeholder while loading -->
+                        <div id="sidebarProfileSkeleton">
+                            <div
+                                class="skeleton skeleton--text"
+                                style="
+                                    height: 80px;
+                                    border-radius: var(--radius-sm)
+                                        var(--radius-sm) 0 0;
+                                    margin-bottom: 0;
+                                "
+                            ></div>
+                            <div
+                                style="
+                                    padding: 0 var(--space-md) var(--space-md);
+                                    margin-top: -28px;
+                                "
+                            >
+                                <div
+                                    class="skeleton skeleton--circle"
+                                    style="
+                                        width: 56px;
+                                        height: 56px;
+                                        border: 3px solid var(--card-bg);
+                                    "
+                                ></div>
+                                <div
+                                    class="skeleton skeleton--text"
+                                    style="
+                                        width: 60%;
+                                        margin-top: var(--space-sm);
+                                    "
+                                ></div>
+                                <div
+                                    class="skeleton skeleton--text-sm"
+                                    style="
+                                        width: 40%;
+                                        margin-top: var(--space-xs);
+                                    "
+                                ></div>
+                            </div>
+                        </div>
+                        <!-- Populated by JS -->
+                        <div id="sidebarProfileContent" class="hidden"></div>
+                    </div>
+
+                    <!-- Left Navigation Links -->
+                    <nav
+                        class="sidebar-nav card widget-card"
+                        aria-label="Sidebar navigation"
+                        style="padding: var(--space-sm) 0"
+                    >
+                        <a
+                            href="/dashboard.html"
+                            class="sidebar-nav__item active"
+                            aria-current="page"
+                        >
+                            <span class="sidebar-nav__icon">🏠</span> Home
+                        </a>
+                        <a
+                            href="/profile.html"
+                            class="sidebar-nav__item"
+                            id="sidebarProfileLink"
+                        >
+                            <span class="sidebar-nav__icon">👤</span> My Profile
+                        </a>
+                        <a
+                            href="/friend.html"
+                            class="sidebar-nav__item"
+                        >
+                            <span class="sidebar-nav__icon">👥</span> Friends
+                        </a>
+                        <a
+                            href="#"
+                            class="sidebar-nav__item"
+                            onclick="
+                                scrollToSuggestions();
+                                return false;
+                            "
+                        >
+                            <span class="sidebar-nav__icon">🔍</span> Discover
+                            People
+                        </a>
+                        <a
+                            href="#"
+                            class="sidebar-nav__item"
+                            onclick="
+                                toggleChatListPanel();
+                                return false;
+                            "
+                        >
+                            <span class="sidebar-nav__icon">💬</span> Messages
+                        </a>
+                        <a href="#" class="sidebar-nav__item">
+                            <span class="sidebar-nav__icon">🔖</span> Saved
+                            Posts
+                        </a>
+                        <a
+                            href="#"
+                            class="sidebar-nav__item"
+                            onclick="
+                                window.location.href = '/discover.html';
+                                return false;
+                            "
+                        >
+                            <span class="sidebar-nav__icon">💜</span> Discover
+                            &amp; Date
+                        </a>
+                    </nav>
+
+                    <!-- Friend Requests in Sidebar -->
+                    <div
+                        class="card widget-card"
+                        id="sidebarRequests"
+                        style="display: none"
+                    >
+                        <div class="widget-card__title">
+                            Friend Requests
+                            <a
+                                href="/friend.html"
+                                style="font-size: var(--font-size-sm)"
+                                >See All</a
+                            >
+                        </div>
+                        <div id="sidebarRequestsList"></div>
+                    </div>
+                </aside>
+                <!-- /.layout__sidebar-left -->
+
+                <!-- ─── CENTER FEED ─────────────────────────────────── -->
+                <section class="layout__feed" aria-label="News feed">
+                    <!-- Story Bar -->
+                    <div
+                        class="story-bar card"
+                        id="storyBar"
+                        aria-label="Stories"
+                    >
+                        <div class="story-bar__scroll" id="storyScroll">
+                            <!-- Populated by JS -->
+                            <div
+                                class="story-item"
+                                id="myStoryItem"
+                                onclick="alert('Stories coming soon! 🎉')"
+                                role="button"
+                                tabindex="0"
+                                aria-label="Create story"
+                            >
+                                <div class="story-item__circle">
+                                    <img
+                                        id="myStoryAvatar"
+                                        src="https://ui-avatars.com/api/?name=Me&background=1877f2&color=fff&size=60"
+                                        alt="Your story"
+                                        class="story-item__img"
+                                    />
+                                    <span
+                                        class="story-item__add"
+                                        aria-hidden="true"
+                                        >+</span
+                                    >
+                                </div>
+                                <span class="story-item__name">Your Story</span>
+                            </div>
+                            <!-- More stories populated by JS in #storyScroll -->
+                        </div>
+                    </div>
+
+                    <!-- Create Post Card -->
+                    <div
+                        class="create-post card"
+                        id="createPostCard"
+                        aria-label="Create a post"
+                    >
+                        <button class="create-post__minimize" onclick="toggleCreatePost()" aria-label="Minimize" title="Minimize">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="9 8 5 12 9 16"/></svg>
+                        </button>
+                        <div class="create-post__top">
+                            <img
+                                id="createPostAvatar"
+                                src="https://ui-avatars.com/api/?name=Me&background=1877f2&color=fff&size=40"
+                                alt="Your avatar"
+                                class="create-post__avatar"
+                                onclick="goToProfile()"
+                                style="cursor: pointer"
+                            />
+                            <button
+                                class="create-post__input"
+                                id="createPostTrigger"
+                                onclick="openAdvancedPostModal()"
+                                aria-label="What's on your mind?"
+                                aria-expanded="false"
+                                aria-controls="createPostExpanded"
+                            >
+                                <span id="createPostPlaceholder"
+                                    >What's on your mind?</span
+                                >
+                            </button>
+                        </div>
+
+
+                        <!-- Advanced Post Button -->
+                        <div style="padding: var(--space-sm) var(--space-md) var(--space-md);">
+                            <button id="advancedPostBtn" type="button" style="width:100%;padding:12px;background:linear-gradient(135deg,#5856d6,#7c6fcf);color:white;border:none;border-radius:8px;font-weight:600;font-size:14px;cursor:pointer;transition:all 0.3s ease;box-shadow:0 4px 12px rgba(88,86,214,0.3);">
+                                Share ! It
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="createPostFloatBtn" class="create-post__float-btn hidden" onclick="toggleCreatePost(); openAdvancedPostModal();" aria-label="Create post" title="Create post">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    </button>
+
+                    <!-- Feed Loading Skeletons -->
+                    <div
+                        id="feedSkeleton"
+                        aria-live="polite"
+                        aria-busy="true"
+                        aria-label="Loading posts"
+                    >
+                        <div class="skeleton-card card">
+                            <div class="skeleton-card__header">
+                                <div class="skeleton skeleton--circle"></div>
+                                <div
+                                    class="skeleton-card__content"
+                                    style="flex: 1"
+                                >
+                                    <div
+                                        class="skeleton skeleton--text"
+                                        style="width: 40%"
+                                    ></div>
+                                    <div
+                                        class="skeleton skeleton--text-sm"
+                                        style="width: 25%"
+                                    ></div>
+                                </div>
+                            </div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="width: 90%; margin-bottom: 6px"
+                            ></div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="width: 70%; margin-bottom: 6px"
+                            ></div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="width: 50%"
+                            ></div>
+                            <div class="skeleton-card__image"></div>
+                        </div>
+                        <div class="skeleton-card card">
+                            <div class="skeleton-card__header">
+                                <div class="skeleton skeleton--circle"></div>
+                                <div
+                                    class="skeleton-card__content"
+                                    style="flex: 1"
+                                >
+                                    <div
+                                        class="skeleton skeleton--text"
+                                        style="width: 50%"
+                                    ></div>
+                                    <div
+                                        class="skeleton skeleton--text-sm"
+                                        style="width: 30%"
+                                    ></div>
+                                </div>
+                            </div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="width: 80%; margin-bottom: 6px"
+                            ></div>
+                            <div
+                                class="skeleton skeleton--text"
+                                style="width: 60%"
+                            ></div>
+                        </div>
+                    </div>
+
+                    <!-- Feed Container -->
+                    <div
+                        id="feedContainer"
+                        aria-live="polite"
+                        aria-label="Posts feed"
+                    ></div>
+
+                    <!-- Empty feed state -->
+                    <div id="feedEmpty" class="empty-state card hidden">
+                        <div class="empty-state__icon">📰</div>
+                        <h3 class="empty-state__title">Your feed is empty</h3>
+                        <p class="empty-state__text">
+                            Follow people or add friends to see their posts
+                            here.
+                        </p>
+                        <button
+                            class="btn btn--primary mt-md"
+                            onclick="scrollToSuggestions()"
+                        >
+                            Discover People
+                        </button>
+                    </div>
+                </section>
+                <!-- /.layout__feed -->
+
+                <!-- ─── RIGHT SIDEBAR ───────────────────────────────── -->
+                <aside class="layout__sidebar-right" aria-label="Right sidebar">
+                    <!-- Online Friends -->
+                    <div class="card widget-card" id="onlineFriendsWidget">
+                        <div class="widget-card__title">
+                            Online Friends <span id="onlineFriendsCount" style="font-weight:400;color:var(--text-muted);font-size:var(--font-size-sm);"></span>
+                            <a
+                                href="#"
+                                onclick="
+                                    toggleChatListPanel();
+                                    return false;
+                                "
+                                style="font-size: var(--font-size-sm)"
+                                >See All</a
+                            >
+                        </div>
+                        <div id="onlineFriends">
+                            <div
+                                class="empty-state"
+                                style="padding: var(--space-md) 0"
+                            >
+                                <p
+                                    class="empty-state__text"
+                                    style="font-size: var(--font-size-sm)"
+                                >
+                                    No friends online right now
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- People You May Know (Suggestions) -->
+                    <div class="card widget-card" id="suggestionsWidget">
+                        <div class="widget-card__title">
+                            People You May Know
+                            <a
+                                href="#"
+                                onclick="
+                                    openSuggestionsModal();
+                                    return false;
+                                "
+                                style="font-size: var(--font-size-sm)"
+                                >See All</a
+                            >
+                        </div>
+                        <div id="suggestions">
+                            <!-- Skeleton -->
+                            <div id="suggestionsSkeleton">
+                                <div class="suggestion-item">
+                                    <div
+                                        class="skeleton skeleton--circle"
+                                        style="
+                                            width: 40px;
+                                            height: 40px;
+                                            flex-shrink: 0;
+                                        "
+                                    ></div>
+                                    <div
+                                        class="suggestion-item__info"
+                                        style="flex: 1"
+                                    >
+                                        <div
+                                            class="skeleton skeleton--text"
+                                            style="width: 60%"
+                                        ></div>
+                                        <div
+                                            class="skeleton skeleton--text-sm"
+                                            style="width: 40%"
+                                        ></div>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item">
+                                    <div
+                                        class="skeleton skeleton--circle"
+                                        style="
+                                            width: 40px;
+                                            height: 40px;
+                                            flex-shrink: 0;
+                                        "
+                                    ></div>
+                                    <div
+                                        class="suggestion-item__info"
+                                        style="flex: 1"
+                                    >
+                                        <div
+                                            class="skeleton skeleton--text"
+                                            style="width: 55%"
+                                        ></div>
+                                        <div
+                                            class="skeleton skeleton--text-sm"
+                                            style="width: 35%"
+                                        ></div>
+                                    </div>
+                                </div>
+                                <div class="suggestion-item">
+                                    <div
+                                        class="skeleton skeleton--circle"
+                                        style="
+                                            width: 40px;
+                                            height: 40px;
+                                            flex-shrink: 0;
+                                        "
+                                    ></div>
+                                    <div
+                                        class="suggestion-item__info"
+                                        style="flex: 1"
+                                    >
+                                        <div
+                                            class="skeleton skeleton--text"
+                                            style="width: 50%"
+                                        ></div>
+                                        <div
+                                            class="skeleton skeleton--text-sm"
+                                            style="width: 30%"
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Discover & Date -->
+                    <div class="card widget-card" id="discoverSection">
+                        <div class="widget-card__title">
+                            💜 Discover &amp; Date
+                            <a href="#" style="font-size: var(--font-size-sm)"
+                                >See All</a
+                            >
+                        </div>
+                        <div id="discoverList">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Sponsored / Footer links -->
+                    <div
+                        style="
+                            padding: var(--space-sm) var(--space-xs);
+                            font-size: var(--font-size-xs);
+                            color: var(--text-muted);
+                        "
+                    >
+                        <a
+                            href="#"
+                            style="color: var(--text-muted); margin-right: 6px"
+                            >Privacy</a
+                        >
+                        <a
+                            href="#"
+                            style="color: var(--text-muted); margin-right: 6px"
+                            >Terms</a
+                        >
+                        <a
+                            href="#"
+                            style="color: var(--text-muted); margin-right: 6px"
+                            >Advertising</a
+                        >
+                        <a
+                            href="#"
+                            style="color: var(--text-muted); margin-right: 6px"
+                            >About</a
+                        >
+                        <br /><span
+                            style="margin-top: 4px; display: inline-block"
+                            >SocialConnect &copy; 2025</span
+                        >
+                    </div>
+                </aside>
+                <!-- /.layout__sidebar-right -->
+            </div>
+            <!-- /.layout__inner -->
+        </main>
+
+
+
+        <!-- ═══════════════════════════════════════════════════════════
+       ALL USERS / SUGGESTIONS MODAL
+  ═══════════════════════════════════════════════════════════ -->
+        <div
+            id="allUsersModal"
+            class="modal-overlay hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="allUsersModalTitle"
+            onclick="handleModalOverlayClick(event, 'allUsersModal')"
+        >
+            <div class="modal modal--lg">
+                <div class="modal__header">
+                    <h2 class="modal__title" id="allUsersModalTitle">
+                        People You May Know
+                    </h2>
+                    <button
+                        class="modal__close"
+                        onclick="closeSuggestionsModal()"
+                        aria-label="Close"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div class="modal__body">
+                    <div style="margin-bottom:var(--space-md);">
+                        <input
+                            type="text"
+                            id="allUsersSearch"
+                            placeholder="Search people by name..."
+                            style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--input-bg);color:var(--text);"
+                        >
+                    </div>
+                    <div id="allUsersList" style="max-height:60vh;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:var(--space-sm);"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       POST DETAIL MODAL
+  ═══════════════════════════════════════════════════════════ -->
+        <div
+            id="postModal"
+            class="modal-overlay hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="postModalTitle"
+            onclick="handleModalOverlayClick(event, 'postModal')"
+        >
+            <div class="modal modal--lg">
+                <div class="modal__header">
+                    <h2 class="modal__title" id="postModalTitle">Post</h2>
+                    <button
+                        class="modal__close"
+                        onclick="closePostModal()"
+                        aria-label="Close"
+                    >
+                        &times;
+                    </button>
+                </div>
+                <div
+                    class="modal__body"
+                    id="postModalBody"
+                    style="max-height: 70vh; overflow-y: auto"
+                ></div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       MATCH POPUP — full overlay "Congratulations! It's A Match"
+  ═══════════════════════════════════════════════════════════ -->
+        <div
+            id="matchBanner"
+            class="match-popup-overlay hidden"
+            role="alert"
+            aria-live="assertive"
+        >
+            <div class="match-popup">
+                <!-- Floating hearts (animated by CSS) -->
+                <div class="match-popup__hearts" aria-hidden="true">
+                    <span>💜</span><span>❤️</span><span>💜</span><span>❤️</span><span>💜</span>
+                    <span>❤️</span><span>💜</span><span>❤️</span><span>💜</span><span>❤️</span>
+                </div>
+
+                <div class="match-popup__avatars">
+                    <img id="matchPopupMyAvatar" class="match-popup__avatar" src="" alt="You" />
+                    <span class="match-popup__heart-big">💜</span>
+                    <img id="matchPopupTheirAvatar" class="match-popup__avatar" src="" alt="Matched" />
+                </div>
+
+                <h2 class="match-popup__title">Congratulations!<br />It's A Match!</h2>
+                <p class="match-popup__sub" id="matchBannerSub">
+                    You and someone connected!
+                </p>
+
+                <div class="match-popup__actions">
+                    <button
+                        class="btn btn--secondary btn--lg"
+                        onclick="closeMatchBanner(); openChatFromMatch();"
+                    >
+                        💬 Send Message
+                    </button>
+                    <button
+                        class="btn btn--outline-secondary btn--lg"
+                        onclick="closeMatchBanner()"
+                    >
+                        Keep Swiping
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       CHAT SYSTEM
+  ═══════════════════════════════════════════════════════════ -->
+
+        <!-- Chat launcher button -->
+        <button
+            class="chat-launcher"
+            id="chatLauncher"
+            onclick="toggleChatListPanel()"
+            aria-label="Open messages"
+            aria-haspopup="true"
+        >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12zM7 9h10v2H7V9zm0 3h7v2H7v-2zm0-6h10v2H7V7z"
+                />
+            </svg>
+            <span
+                id="chatLauncherBadge"
+                class="chat-launcher__badge hidden"
+                aria-live="polite"
+                >0</span
+            >
+        </button>
+
+        <!-- Chat list panel -->
+        <div
+            class="chat-list-panel hidden"
+            id="chatListPanel"
+            role="complementary"
+            aria-label="Messages"
+        >
+            <div class="chat-list-panel__header">
+                <h3>Chats</h3>
+                <div style="display: flex; gap: 4px">
+                    <button
+                        class="chat-window__header-btn"
+                        onclick="toggleChatListPanel()"
+                        aria-label="Close chats"
+                    >
+                        ✕
+                    </button>
+                </div>
+            </div>
+            <div class="chat-list-panel__search">
+                <input
+                    type="search"
+                    id="chatSearchInput"
+                    placeholder="Search Messenger"
+                    autocomplete="off"
+                    aria-label="Search conversations"
+                    oninput="filterChatList(this.value)"
+                />
+            </div>
+            <div class="chat-list-panel__list" id="chatListItems" role="list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Chat windows container (up to 3 simultaneously) -->
+        <div
+            id="chatWindowsContainer"
+            style="
+                position: fixed;
+                bottom: 0;
+                right: 90px;
+                display: flex;
+                gap: 10px;
+                align-items: flex-end;
+                z-index: var(--z-fixed);
+                pointer-events: none;
+            "
+        ></div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       TOAST CONTAINER
+  ═══════════════════════════════════════════════════════════ -->
+        <div
+            class="toast-container"
+            id="toastContainer"
+            role="region"
+            aria-live="polite"
+            aria-label="Notifications"
+        ></div>
+
+        <!-- ═══════════════════════════════════════════════════════════
+       MOBILE BOTTOM NAV
+  ═══════════════════════════════════════════════════════════ -->
+        <nav class="mobile-nav" aria-label="Mobile navigation">
+            <a
+                href="/yt-reels"
+                class="mobile-nav__item"
+                aria-label="Reels"
+            >
+                <span class="mobile-nav__icon">
+                    <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                        <path d="M10 8H8v4H4v2h4v4h2v-4h4v-2h-4V8zm10 4h-2V6h-6V4h6c1.1 0 2 .9 2 2v6z"/>
+                    </svg>
+                </span>
+                <span class="mobile-nav__label">Reels</span>
+            </a>
+            <a
+                href="/ai.html"
+                class="mobile-nav__item"
+                aria-label="AI Chat"
+            >
+                <span class="mobile-nav__icon">
+                    <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                    </svg>
+                </span>
+                <span class="mobile-nav__label">AI</span>
+            </a>
+            <a
+                href="/friend.html"
+                class="mobile-nav__item"
+                aria-label="Add Friend"
+            >
+                <span class="mobile-nav__icon">
+                    <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path
+                            d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
+                        />
+                    </svg>
+                </span>
+                <span class="mobile-nav__label">Add Friend</span>
+                <span id="mobileFriendBadge" class="mobile-nav__badge hidden"
+                    >0</span
+                >
+            </a>
+            <a
+                href="#"
+                class="mobile-nav__item"
+                onclick="
+                    toggleNotifDropdown();
+                    return false;
+                "
+                aria-label="Notifications"
+            >
+                <span class="mobile-nav__icon">
+                    <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path
+                            d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"
+                        />
+                    </svg>
+                </span>
+                <span class="mobile-nav__label">Notifications</span>
+                <span id="mobileNotifBadge" class="mobile-nav__badge hidden"
+                    >0</span
+                >
+            </a>
+            <a
+                href="/profile.html"
+                class="mobile-nav__item"
+                aria-label="Profile"
+            >
+                <span class="mobile-nav__icon">
+                    <svg
+                        width="22"
+                        height="22"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                    >
+                        <path
+                            d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"
+                        />
+                    </svg>
+                </span>
+                <span class="mobile-nav__label">Profile</span>
+            </a>
+        </nav>
+
+<script src="/js/config.js"></script>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+         <script src="/js/app.js"></script>
+         <script src="/js/responsive.js"></script>
+         <script src="/js/dashboard.js"></script>
+         <script src="/js/scroll-nav.js"></script>
+         <script src="/js/call.js"></script>
+
+          <!-- Advanced Post System -->
+          <script src="/js/advanced-post.js"></script>
+
+          <!-- Advanced Attach System -->
+          <script src="/js/advanced-attach.js"></script>
+
+         <!-- Advanced Post Modal HTML -->
+         <div id="advancedPostContainer"></div>
+         <script>
+           document.addEventListener('DOMContentLoaded', async () => {
+             try {
+               const response = await fetch('/html/advanced-post-modal.html');
+               const html = await response.text();
+               let container = document.getElementById('advancedPostContainer');
+               if (!container) {
+                 container = document.createElement('div');
+                 container.id = 'advancedPostContainer';
+                 document.body.appendChild(container);
+               }
+               container.innerHTML = html;
+               // Initialize AdvancedPost after modal HTML is in the DOM
+               if (window.AdvancedPost) {
+                 setTimeout(() => AdvancedPost.init(), 50);
+               }
+             } catch (error) {
+               console.error('Failed to load advanced post modal:', error);
+             }
+           });
+         </script>
+
+         <!-- Relationship Modal -->
+         <div
+             id="relationshipModal"
+             class="modal-overlay hidden"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="relationshipModalTitle"
+             onclick="handleModalOverlayClick(event, 'relationshipModal')"
+         >
+             <div class="modal modal--sm">
+                 <div class="modal__header">
+                     <h2 class="modal__title" id="relationshipModalTitle">
+                         Add Relationship
+                     </h2>
+                     <button
+                         class="modal__close"
+                         onclick="closeRelationshipModal()"
+                         aria-label="Close"
+                     >
+                         &times;
+                     </button>
+                 </div>
+                 <div class="modal__body">
+                     <p>You and <span id="relationshipModalUserName">Someone</span> have a mutual connection!</p>
+                     <p>Select your relationship type:</p>
+                     <div class="form-group">
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relSingle" name="relType" value="single" checked>
+                             <label for="relSingle">Single</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relDating" name="relType" value="dating">
+                             <label for="relDating">Dating</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relRelationship" name="relType" value="relationship">
+                             <label for="relRelationship">In a Relationship</label>
+                         </div>
+                         <div class="form-group" style="margin-bottom: 8px;">
+                             <input type="radio" id="relMarried" name="relType" value="married">
+                             <label for="relMarried">Married</label>
+                         </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relComplicated" name="relType" value="complicated">
+                            <label for="relComplicated">It's Complicated</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relEngaged" name="relType" value="engaged">
+                            <label for="relEngaged">Engaged</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relOpen" name="relType" value="open">
+                            <label for="relOpen">Open Relationship</label>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 8px;">
+                            <input type="radio" id="relPartner" name="relType" value="partner">
+                            <label for="relPartner">Life Partner</label>
+                        </div>
+                    </div>
+                    <button class="btn btn--primary btn--full" onclick="addRelationship()">
+                        Add Relationship
+                    </button>
+                 </div>
+             </div>
+         </div>
+     </body>
+</html>

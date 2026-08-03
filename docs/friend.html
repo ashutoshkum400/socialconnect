@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Friends - SocialConnect</title>
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/responsive.css" />
+  <style>
+    .friends-page { max-width: 940px; margin: 0 auto; padding: var(--space-lg) var(--space-md); animation: fadeIn 0.3s ease both; }
+    .friends-page__header { margin-bottom: var(--space-lg); }
+    .friends-page__title { font-size: 28px; font-weight: 800; color: var(--text); margin: 0 0 4px; }
+    .friends-page__subtitle { font-size: 15px; color: var(--text-muted); margin: 0; }
+    .friends-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border-light); margin-bottom: var(--space-lg); overflow-x: auto; }
+    .friends-tab { padding: 14px 20px; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; border: none; background: none; position: relative; white-space: nowrap; transition: color 0.2s; }
+    .friends-tab:hover { color: var(--text); background: var(--hover-bg); }
+    .friends-tab.active { color: var(--primary); }
+    .friends-tab.active::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 3px; background: var(--primary); border-radius: 3px 3px 0 0; animation: slideIn 0.2s ease; }
+    .friends-tab__count { display: inline-block; background: var(--bg-tertiary); color: var(--text-secondary); font-size: 12px; font-weight: 700; padding: 1px 8px; border-radius: 20px; margin-left: 6px; }
+    .friends-tab.active .friends-tab__count { background: var(--primary-light); color: var(--primary); }
+    .friends-search { margin-bottom: var(--space-lg); }
+    .friends-search__input { width: 100%; padding: 12px 16px 12px 44px; border: 1px solid var(--border); border-radius: 24px; font-size: 15px; background: var(--input-bg); color: var(--text); transition: border-color 0.2s, box-shadow 0.2s; }
+    .friends-search__input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(88,86,214,0.12); }
+    .friends-search__wrap { position: relative; }
+    .friends-search__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+    .friends-grid { display: flex; flex-direction: column; gap: var(--space-md); animation: fadeIn 0.25s ease both; }
+    .friends-grid.empty { display: flex; }
+    .friends-box { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-light); padding: var(--space-md); overflow: hidden; }
+    .friends-box__grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-md); }
+    .friend-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--space-md) var(--space-sm); background: var(--bg-secondary); border-radius: var(--radius); transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s; animation: cardIn 0.3s ease both; position: relative; min-width: 0; }
+    .friend-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .friend-card.removing { opacity: 0; transform: scale(0.85); }
+    .friend-card__avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; cursor: pointer; border: 2px solid var(--border-light); margin-bottom: var(--space-sm); }
+    .friend-card__avatar:hover { border-color: var(--primary); }
+    .friend-card__name { font-weight: 600; font-size: 14px; color: var(--text); text-decoration: none; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .friend-card__name:hover { color: var(--primary); text-decoration: underline; }
+    .friend-card__meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .friend-card__actions { display: flex; gap: var(--space-xs); margin-top: var(--space-sm); width: 100%; justify-content: center; }
+    .friend-card__actions .btn { min-width: 80px; justify-content: center; font-size: 12px; padding: 6px 12px; }
+    .friend-skeleton { display: flex; align-items: center; gap: var(--space-md); padding: var(--space-md); background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border-light); }
+    .friend-skeleton__avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--skeleton-bg); animation: shimmer 1.4s infinite; flex-shrink: 0; }
+    .friend-skeleton__lines { flex: 1; }
+    .friend-skeleton__line { height: 14px; background: var(--skeleton-bg); border-radius: 8px; margin-bottom: 8px; animation: shimmer 1.4s infinite; }
+    .friend-skeleton__line:last-child { width: 60%; }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shimmer { 0% { opacity: 0.6; } 50% { opacity: 1; } 100% { opacity: 0.6; } }
+    @keyframes slideIn { from { width: 0; } to { width: 100%; } }
+    .empty-state--friends { padding: 60px 20px; text-align: center; }
+    .empty-state--friends .empty-state__icon { font-size: 56px; margin-bottom: 16px; }
+    .empty-state--friends .empty-state__title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .empty-state--friends .empty-state__text { font-size: 15px; color: var(--text-muted); max-width: 360px; margin: 0 auto; }
+    @media (max-width: 768px) {
+      .friends-box__grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .friends-box__grid { grid-template-columns: 1fr; }
+      .friends-page { padding: var(--space-md); }
+      .friends-tab { padding: 12px 14px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body data-page="friends">
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar__inner">
+      <a href="/dashboard.html" class="navbar__logo" aria-label="SocialConnect home">
+        <span class="navbar__logo-icon" aria-hidden="true">💜</span>
+        <span class="navbar__logo-text">SocialConnect</span>
+      </a>
+      <div class="navbar__nav">
+        <a href="/dashboard.html" class="navbar__nav-item" aria-label="Home">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        </a>
+        <div class="navbar__nav-item navbar__nav-item--profile dropdown" id="profileDropdownWrap">
+          <button class="navbar__avatar" id="navAvatar" onclick="toggleProfileDropdown()" aria-haspopup="true" aria-expanded="false" aria-label="Your profile and settings" style="background-image: url('https://ui-avatars.com/api/?name=User&background=1877f2&color=fff&size=256');"></button>
+          <div class="dropdown__menu hidden" id="profileDropdown" role="menu">
+            <a href="/profile.html" class="dropdown__item" role="menuitem" onclick="goToProfile()">Your Profile</a>
+            <a href="/settings.html" class="dropdown__item" role="menuitem">Settings & Privacy</a>
+            <a href="/help.html" class="dropdown__item" role="menuitem">Help & Support</a>
+            <div class="dropdown__divider"></div>
+            <a href="#" class="dropdown__item dropdown__item--danger" role="menuitem" onclick="logout()">Log Out</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="friends-page">
+    <div class="friends-page__header">
+      <h1 class="friends-page__title">Friends</h1>
+      <p class="friends-page__subtitle" id="friendPageSubtitle">Manage your connections</p>
+    </div>
+
+    <div class="friends-tabs" role="tablist">
+      <button class="friends-tab active" data-tab="requests" role="tab" aria-selected="true" onclick="switchTab('requests')">
+        Requests <span class="friends-tab__count" id="requestsCount">0</span>
+      </button>
+      <button class="friends-tab" data-tab="suggestions" role="tab" aria-selected="false" onclick="switchTab('suggestions')">
+        Suggestions
+      </button>
+      <button class="friends-tab" data-tab="sent" role="tab" aria-selected="false" onclick="switchTab('sent')">
+        Sent Requests
+      </button>
+      <button class="friends-tab" data-tab="all" role="tab" aria-selected="false" onclick="switchTab('all')">
+        All Friends <span class="friends-tab__count" id="allFriendsCount">0</span>
+      </button>
+      <button class="friends-tab" data-tab="discover" role="tab" aria-selected="false" onclick="switchTab('discover')">
+        Find People <span class="friends-tab__count" id="discoverCount">0</span>
+      </button>
+      <button class="friends-tab" data-tab="followers" role="tab" aria-selected="false" onclick="switchTab('followers')">
+        Followers <span class="friends-tab__count" id="followersCount">0</span>
+      </button>
+    </div>
+
+    <div class="friends-search">
+      <div class="friends-search__wrap">
+        <span class="friends-search__icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </span>
+        <input type="text" class="friends-search__input" id="friendSearch" placeholder="Search by name..." autocomplete="off">
+      </div>
+    </div>
+
+    <div class="friends-grid" id="friendsGrid">
+      <div class="friend-skeleton"><div class="friend-skeleton__avatar"></div><div class="friend-skeleton__lines"><div class="friend-skeleton__line"></div><div class="friend-skeleton__line"></div></div></div>
+      <div class="friend-skeleton"><div class="friend-skeleton__avatar"></div><div class="friend-skeleton__lines"><div class="friend-skeleton__line"></div><div class="friend-skeleton__line"></div></div></div>
+      <div class="friend-skeleton"><div class="friend-skeleton__avatar"></div><div class="friend-skeleton__lines"><div class="friend-skeleton__line"></div><div class="friend-skeleton__line"></div></div></div>
+    </div>
+  </main>
+
+  <script src="/js/config.js"></script>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/friend.js"></script>
+</body>
+</html>
