@@ -216,6 +216,7 @@ function renderGoogleButton(clientId) {
     }
     console.error('[auth] GSI renderButton error:', err);
   }
+}
 
 // Boot Google sign-in on login & signup pages
 if (page === 'login' || page === 'signup') {
