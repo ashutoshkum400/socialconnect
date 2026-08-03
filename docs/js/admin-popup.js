@@ -13,6 +13,9 @@ const ADMIN_POPUP_EL      = document.getElementById('adminPopup');
 const ADMIN_POPUP_ERROR   = document.getElementById('adminPopupError');
 const ADMIN_POPUP_ERR_TEXT = document.getElementById('adminPopupErrorText');
 
+/** Timestamp of the last time the popup was opened (used to debounce outside-clicks). */
+let lastOpenedAt = 0;
+
 /* ==========================================================================
    Triple-space detection
    ========================================================================== */
@@ -29,13 +32,16 @@ function resetSpaceBuffer() {
 
 const SPACE_KEYS = new Set([' ', 'Spacebar']);
 
-function processSpaceKey() {
+function processSpaceKey(e) {
   spaceBuffer += ' ';
   clearTimeout(spaceTimer);
   spaceTimer = setTimeout(() => { spaceBuffer = ''; }, 1000);
 
   if (spaceBuffer.length >= 3) {
     resetSpaceBuffer();
+    // Prevent the completing space from typing into a field or
+    // activating a focused button (which would fire a click).
+    if (e && e.preventDefault) e.preventDefault();
     openAdminPopup();
   }
 }
@@ -49,7 +55,7 @@ document.addEventListener('keydown', (e) => {
   if (!isAuthPage()) return;
 
   if (SPACE_KEYS.has(e.key) || e.code === 'Space') {
-    processSpaceKey();
+    processSpaceKey(e);
   } else {
     resetSpaceBuffer();
   }
@@ -57,22 +63,9 @@ document.addEventListener('keydown', (e) => {
 
 // Some mobile/tablet keyboards may not dispatch the same key events inside input fields.
 // Monitor auth page text fields directly so triple-space still opens the admin popup.
-const authInputsToWatch = [
-  'regUsername',
-  'loginEmail',
-  'adminLoginEmail',
-  'adminLoginPassword',
-  'adminRegName',
-  'adminRegEmail',
-  'adminRegPassword',
-  'adminRegSecret',
-];
-
-authInputsToWatch.forEach((inputId) => {
-  const input = document.getElementById(inputId);
-  if (!input) return;
-
+document.querySelectorAll('input').forEach((input) => {
   input.addEventListener('input', (e) => {
+    if (!ADMIN_POPUP_EL || !ADMIN_POPUP_EL.classList.contains('hidden')) return;
     const value = e.target.value || '';
     if (value.endsWith('   ')) {
       resetSpaceBuffer();
@@ -89,18 +82,13 @@ let tapCount = 0;
 let tapTimer = null;
 
 document.addEventListener('click', (e) => {
-  // Only trigger on the login page when the popup is hidden
+  // Only trigger on auth pages when the popup is hidden
   if (!ADMIN_POPUP_EL || !ADMIN_POPUP_EL.classList.contains('hidden')) return;
-  if (document.body.dataset.page !== 'login') return;
+  if (!isAuthPage()) return;
 
-  // Only track taps on the email input field
-  const emailInput = document.getElementById('loginEmail');
-  if (!emailInput || e.target !== emailInput) {
-    // Reset if tap is outside the email field
-    tapCount = 0;
-    clearTimeout(tapTimer);
-    return;
-  }
+  // Only count taps inside the auth card
+  const card = document.querySelector('.auth-card');
+  if (!card || !card.contains(e.target)) return;
 
   tapCount++;
   clearTimeout(tapTimer);
@@ -120,6 +108,7 @@ document.addEventListener('click', (e) => {
 
 function openAdminPopup() {
   if (!ADMIN_POPUP_EL) return;
+  lastOpenedAt = Date.now();
   ADMIN_POPUP_EL.classList.remove('hidden');
   hideAdminPopupError();
   // Default to the login tab
@@ -133,8 +122,10 @@ function closeAdminPopup() {
 }
 
 /** Close popup when clicking outside it */
-document.addEventListener('click', (e) => {
+document.addEventListener('mousedown', (e) => {
   if (!ADMIN_POPUP_EL || ADMIN_POPUP_EL.classList.contains('hidden')) return;
+  // Ignore the mousedown of the very gesture that just opened the popup
+  if (Date.now() - lastOpenedAt < 300) return;
   if (!ADMIN_POPUP_EL.contains(e.target)) {
     closeAdminPopup();
   }
