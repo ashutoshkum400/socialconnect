@@ -17,6 +17,8 @@ global.powerBotManager = powerBotManager;
 const { DataManager } = require('./data-manager');
 const { registerSystemVolumeRoute } = require('./system-volume');
 const { SupabaseStore } = require('./supabase-store');
+const { DynamoDBStore } = require('./dynamodb-store');
+const { importUsersFromCsvFile } = require('./backend/services/user-import.service.cjs');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -58,6 +60,7 @@ async function verifyGoogleToken(idToken) {
 }
 
 const supabaseStore = new SupabaseStore();
+const dynamoDBStore = new DynamoDBStore();
 const dataManager = new DataManager({ dataFile: DATA_FILE });
 const REEL_SAMPLE_URLS = [
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -122,6 +125,10 @@ function dbFromJSON(json) {
  */
 function saveDb() {
   dataManager.save();
+  // Also push the latest state to DynamoDB (fire-and-forget, best-effort)
+  if (dynamoDBStore.enabled) {
+    dynamoDBStore.save();
+  }
   // Also push the latest state to Supabase (fire-and-forget, best-effort)
   if (supabaseStore.enabled) {
     supabaseStore.save();
@@ -142,6 +149,15 @@ function loadDb() {
 async function loadSupabaseDb() {
   if (!supabaseStore.enabled) return false;
   return supabaseStore.load();
+}
+
+/**
+ * Load db from DynamoDB. Returns true if data was loaded from DynamoDB,
+ * false otherwise (e.g. not configured, or no data yet).
+ */
+async function loadDynamoDb() {
+  if (!dynamoDBStore.enabled) return false;
+  return dynamoDBStore.load();
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -279,6 +295,11 @@ global.dataManager = dataManager;
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 async function seedData() {
+  // If data was restored from DynamoDB, do NOT re-seed
+  if (dynamoDBStore.enabled && dynamoDBStore.db && dynamoDBStore.db.users && dynamoDBStore.db.users.size > 0) {
+    console.log("🗄️  Using persisted data from DynamoDB");
+    return;
+  }
   // If data was restored from Supabase, do NOT re-seed
   if (supabaseStore.enabled && supabaseStore.db && supabaseStore.db.users && supabaseStore.db.users.size > 0) {
     console.log("📦 Using persisted data from Supabase");
@@ -291,6 +312,16 @@ async function seedData() {
   }
 
   const hash = (pw) => bcrypt.hashSync(pw, 10);
+
+  const importedUsers = importUsersFromCsvFile(path.join(__dirname, "data", "users_rows.csv"));
+  for (const importedUser of importedUsers) {
+    if (!db.users.has(importedUser.id)) {
+      db.users.set(importedUser.id, importedUser);
+      db.notifications.set(importedUser.id, []);
+      db.friendRequests.set(importedUser.id, []);
+      db.relationships.set(importedUser.id, []);
+    }
+  }
 
   // Admin
   db.users.set("admin", {
@@ -1977,9 +2008,10 @@ app.get("/api/control/status", (req, res) => {
     totalUsers: db.users.size,
     activeUsers: onlineUsers.size,
     totalPosts: db.posts.size,
-    totalChats: db.chats.size,
+totalChats: db.chats.size,
     dataManager: dataManager.getStats(),
     supabase: supabaseStore.getStats(),
+    dynamodb: dynamoDBStore.getStats(),
     message: "Control endpoint is active",
   });
 });
@@ -2808,13 +2840,27 @@ app.use((req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 async function startServer() {
-  // Initialize the Supabase store with the db reference FIRST so that
-  // load() works (it requires this.db to be set).
+  // Initialize the stores with the db reference FIRST so that load() works
+  // (they require this.db to be set).
+  dynamoDBStore.init(db);
   supabaseStore.init(db);
 
-  // Load persisted data. Prefer Supabase if configured and has data; otherwise
-  // fall back to the local data.json file.
+  // Load persisted data. Prefer DynamoDB, then Supabase, then data.json.
   async function loadPersistedData() {
+    let loadedFromDynamo = false;
+    if (dynamoDBStore.enabled) {
+      try {
+        loadedFromDynamo = await loadDynamoDb();
+      } catch (err) {
+        console.error('⚠️ DynamoDB load failed:', err.message);
+        loadedFromDynamo = false;
+      }
+    }
+    if (loadedFromDynamo) {
+      console.log('🗄️  Using DynamoDB as the live data source');
+      return true;
+    }
+
     let loadedFromSupabase = false;
     if (supabaseStore.enabled) {
       try {

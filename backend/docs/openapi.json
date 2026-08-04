@@ -1,0 +1,29 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sathi Backend API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check",
+        "responses": {
+          "200": {
+            "description": "Service healthy"
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new user"
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Authenticate a user"
+      }
+    }
+  }
+}

@@ -21,7 +21,7 @@ services:
         value: "965817059764-nqnm69ngsr3i1h3mdqqmi2160d4n1m3u.apps.googleusercontent.com"
       - key: FORCE_DEPLOY
         value: "true"
-# ─── Supabase (live database) ─────────────────────────────
+      # ─── Supabase (live database) ─────────────────────────────
       # Replace with your project's values. Find them in Supabase
       # Dashboard → Project Settings → API.
       # The code reads SUPABASE_URL + any of these key names:
@@ -33,3 +33,15 @@ services:
         value: "sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA"
       - key: SUPABASE_PUBLISHABLE_KEY
         value: "sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA"
+      # ─── AWS DynamoDB (primary live database) ─────────────────────
+      # Replace with your AWS credentials. The code reads these env vars
+      # to use DynamoDB as the primary data source (falls back to Supabase
+      # then data.json if DynamoDB is unavailable).
+      - key: AWS_REGION
+        value: "us-east-1"
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: TABLE_NAME
+        value: "Sathi"

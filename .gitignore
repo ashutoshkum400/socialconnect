@@ -6,6 +6,7 @@ biko/
 power-bots/chunk_*.json
 backups/
 
+data/
 data.json
 data.json.tmp
 

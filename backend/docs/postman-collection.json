@@ -1,0 +1,26 @@
+{
+  "info": {
+    "name": "Sathi Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/health"
+      }
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "url": "{{baseUrl}}/api/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"demo@example.com\",\n  \"password\": \"Password123\",\n  \"name\": \"Demo User\"\n}"
+        }
+      }
+    }
+  ]
+}
