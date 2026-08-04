@@ -4,11 +4,11 @@
   "description": "Social Media & Dating Platform",
   "main": "server.js",
   "scripts": {
-    "start": "node backend/server.mjs",
-    "dev": "node --watch backend/server.mjs",
-"setup:supabase": "node scripts/setup-supabase.js",
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "setup:supabase": "node scripts/setup-supabase.js",
     "migrate:dynamodb": "node scripts/migrate-supabase-to-dynamodb.js",
-    "create:dynamodb-table": "node backend/scripts/create-dynamodb-table.mjs",
+    "create:dynamodb-table": "node scripts/create-table.js",
     "test": "node --test backend/tests/*.test.mjs"
   },
   "dependencies": {

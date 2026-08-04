@@ -1,9 +1,9 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// SocialConnect — Migrate Supabase → DynamoDB
+// SocialConnect — Migrate Supabase Users → DynamoDB
 //
-// Reads all collections from the Supabase tables (the same layout used by
-// supabase-store.js) and writes them into the DynamoDB table using the
-// DynamoDBStore persistence layer (STORE#<collection> keys).
+// Reads ONLY users from the Supabase users table and writes them into
+// the DynamoDB table. This is a one-time migration so old users can still
+// login. All new data will be created directly in DynamoDB.
 //
 // Usage:
 //   node scripts/migrate-supabase-to-dynamodb.js
@@ -23,17 +23,6 @@ const SUPABASE_KEY =
   process.env.SUPABASE_KEY ||
   '';
 
-const TABLE_MAP = {
-  users:                 { table: 'users',                 keyField: 'id' },
-  posts:                 { table: 'posts',                 keyField: 'id' },
-  reels:                 { table: 'reels',                 keyField: 'id' },
-  chats:                 { table: 'chats',                 keyField: 'key' },
-  notifications:         { table: 'notifications',         keyField: 'user_id' },
-  friendRequests:        { table: 'friend_requests',       keyField: 'user_id' },
-  relationships:         { table: 'relationships',         keyField: 'user_id' },
-  powerBotInteractions:  { table: 'power_bot_interactions', keyField: 'bot_id' },
-};
-
 async function main() {
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     console.error('❌ SUPABASE_URL and SUPABASE_KEY must be set in .env to run this migration.');
@@ -48,41 +37,86 @@ async function main() {
     process.exit(1);
   }
 
-  // Build a temp db object with Maps so we can reuse store.save()
-  const db = {};
-  for (const key of Object.keys(TABLE_MAP)) {
-    db[key] = new Map();
-  }
+  // Build a temp db object with Maps so we can reuse store.saveEntry()
+  const db = {
+    users: new Map(),
+    posts: new Map(),
+    reels: new Map(),
+    chats: new Map(),
+    notifications: new Map(),
+    friendRequests: new Map(),
+    relationships: new Map(),
+    powerBotInteractions: new Map(),
+  };
   store.init(db);
 
-  console.log('⬇️  Reading data from Supabase...');
+  console.log('⬇️  Reading users from Supabase...');
 
-  let total = 0;
-  for (const [dbKey, { table, keyField }] of Object.entries(TABLE_MAP)) {
-    const { data, error } = await supabase.from(table).select('*');
+  // Fetch all users in batches (Supabase returns max 1000 rows per query)
+  let offset = 0;
+  const batchSize = 1000;
+  let hasMore = true;
+
+  while (hasMore) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .range(offset, offset + batchSize - 1);
+
     if (error) {
-      console.error(`❌ Failed to read ${table}:`, error.message);
-      continue;
+      console.error('❌ Failed to read users from Supabase:', error.message);
+      process.exit(1);
     }
-    if (!data) continue;
+
+    if (!data || data.length === 0) {
+      hasMore = false;
+      break;
+    }
 
     for (const row of data) {
-      const id = row[keyField];
+      const id = row.id;
       if (id === undefined || id === null) continue;
-      db[dbKey].set(String(id), row.value);
+      db.users.set(String(id), row.value);
     }
-    console.log(`   ${table}: ${db[dbKey].size} rows`);
-    total += db[dbKey].size;
+
+    console.log(`   Fetched ${data.length} users (total: ${db.users.size})`);
+
+    if (data.length < batchSize) {
+      hasMore = false;
+    } else {
+      offset += batchSize;
+    }
   }
 
-  console.log(`⬆️  Writing ${total} entries to DynamoDB (table: ${store.tableName})...`);
-  await store.save();
+  if (db.users.size === 0) {
+    console.error('❌ No users found in Supabase. Nothing to migrate.');
+    process.exit(1);
+  }
 
+  console.log(`⬆️  Writing ${db.users.size} users to DynamoDB (table: ${store.tableName})...`);
+
+  // Write each user individually using saveEntry for reliability
+  let written = 0;
+  let failed = 0;
+  for (const [id, value] of db.users.entries()) {
+    try {
+      await store.saveEntry('users', id, value);
+      written++;
+    } catch (err) {
+      failed++;
+      console.error(`   ❌ Failed to write user ${id}:`, err.message);
+    }
+  }
+
+  console.log('');
   console.log('✅ Migration complete.');
-  console.log('   Summary:');
-  for (const [dbKey, map] of Object.entries(db)) {
-    console.log(`   - ${dbKey}: ${map.size}`);
+  console.log(`   Users migrated: ${written}`);
+  if (failed > 0) {
+    console.log(`   Users failed:   ${failed}`);
   }
+  console.log('');
+  console.log('   Old users can now login with their existing credentials.');
+  console.log('   All new data will be stored directly in DynamoDB.');
   process.exit(0);
 }
 

@@ -16,7 +16,6 @@ const { powerBotManager } = require('./power-bots');
 global.powerBotManager = powerBotManager;
 const { DataManager } = require('./data-manager');
 const { registerSystemVolumeRoute } = require('./system-volume');
-const { SupabaseStore } = require('./supabase-store');
 const { DynamoDBStore } = require('./dynamodb-store');
 const { importUsersFromCsvFile } = require('./backend/services/user-import.service.cjs');
 
@@ -59,7 +58,6 @@ async function verifyGoogleToken(idToken) {
   }
 }
 
-const supabaseStore = new SupabaseStore();
 const dynamoDBStore = new DynamoDBStore();
 const dataManager = new DataManager({ dataFile: DATA_FILE });
 const REEL_SAMPLE_URLS = [
@@ -129,10 +127,6 @@ function saveDb() {
   if (dynamoDBStore.enabled) {
     dynamoDBStore.save();
   }
-  // Also push the latest state to Supabase (fire-and-forget, best-effort)
-  if (supabaseStore.enabled) {
-    supabaseStore.save();
-  }
 }
 
 /**
@@ -140,15 +134,6 @@ function saveDb() {
  */
 function loadDb() {
   return dataManager.load();
-}
-
-/**
- * Load db from Supabase. Returns true if data was loaded from Supabase,
- * false otherwise (e.g. not configured, or no data yet).
- */
-async function loadSupabaseDb() {
-  if (!supabaseStore.enabled) return false;
-  return supabaseStore.load();
 }
 
 /**
@@ -298,11 +283,6 @@ async function seedData() {
   // If data was restored from DynamoDB, do NOT re-seed
   if (dynamoDBStore.enabled && dynamoDBStore.db && dynamoDBStore.db.users && dynamoDBStore.db.users.size > 0) {
     console.log("🗄️  Using persisted data from DynamoDB");
-    return;
-  }
-  // If data was restored from Supabase, do NOT re-seed
-  if (supabaseStore.enabled && supabaseStore.db && supabaseStore.db.users && supabaseStore.db.users.size > 0) {
-    console.log("📦 Using persisted data from Supabase");
     return;
   }
   // If data was restored from disk, do NOT re-seed
@@ -2010,7 +1990,6 @@ app.get("/api/control/status", (req, res) => {
     totalPosts: db.posts.size,
 totalChats: db.chats.size,
     dataManager: dataManager.getStats(),
-    supabase: supabaseStore.getStats(),
     dynamodb: dynamoDBStore.getStats(),
     message: "Control endpoint is active",
   });
@@ -2843,9 +2822,8 @@ async function startServer() {
   // Initialize the stores with the db reference FIRST so that load() works
   // (they require this.db to be set).
   dynamoDBStore.init(db);
-  supabaseStore.init(db);
 
-  // Load persisted data. Prefer DynamoDB, then Supabase, then data.json.
+  // Load persisted data. Prefer DynamoDB, then data.json.
   async function loadPersistedData() {
     let loadedFromDynamo = false;
     if (dynamoDBStore.enabled) {
@@ -2861,29 +2839,16 @@ async function startServer() {
       return true;
     }
 
-    let loadedFromSupabase = false;
-    if (supabaseStore.enabled) {
-      try {
-        loadedFromSupabase = await loadSupabaseDb();
-      } catch (err) {
-        console.error('⚠️ Supabase load failed:', err.message);
-        loadedFromSupabase = false;
-      }
-    }
-    if (loadedFromSupabase) {
-      console.log('📦 Using Supabase as the live data source');
+    // Fall back to local disk
+    if (loadDb()) {
+      console.log('📂 Using persisted data from data.json');
     } else {
-      // Fall back to local disk
-      if (loadDb()) {
-        console.log('📂 Using persisted data from data.json');
-      } else {
-        console.log('🆕 No existing data — will seed fresh data');
-      }
+      console.log('🆕 No existing data — will seed fresh data');
     }
-    return loadedFromSupabase;
+    return false;
   }
 
-  const loadedFromSupabase = await loadPersistedData();
+  await loadPersistedData();
 
   try {
     await seedData();
