@@ -25,8 +25,27 @@ Add these exactly as they appear:
 | `ADMIN_SECRET` | `Admin@2024` | Admin password |
 | `NODE_ENV` | `production` | Production environment |
 | `GOOGLE_CLIENT_ID` | Your Google OAuth Web Client ID | Enables "Sign in with Gmail" |
+| `SUPABASE_URL` | `https://ppetpuukiffexqoxghnl.supabase.co` | Your Supabase project URL |
+| `SUPABASE_ANON_KEY` | `sb_publishable_...` | Your Supabase publishable/api key |
 
 **Important:** Do NOT set `PORT` manually — Render assigns it dynamically via `process.env.PORT`.
+
+### 📋 Step-by-step: Set env vars in Render dashboard
+
+1. Login to **Render Dashboard** → open your **SocialConnect** service.
+2. Go to **Settings** tab (left sidebar).
+3. Scroll down to **Environment** section → click **Environment Variables**.
+4. Click **Add Environment Variable**.
+5. For each of these, add a new row:
+   - **Key:** `SUPABASE_URL` → **Value:** `https://ppetpuukiffexqoxghnl.supabase.co`
+   - **Key:** `SUPABASE_ANON_KEY` → **Value:** `sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA`
+   - (aur aapke baaki vars: `JWT_SECRET`, `ADMIN_SECRET`, `NODE_ENV`, `GOOGLE_CLIENT_ID` bhi hain)
+6. Click **Save Changes**.
+7. Go to **Deploy** → click **Manual Deploy** → **Deploy latest commit** (ya **Clear build cache & deploy**).
+8. Wait for the build to finish.
+9. Open your live site → check `https://your-app.onrender.com/api/control/status` — isme `supabase: { enabled: true, errors: 0 }` dikhna chahiye. ✅
+
+> **Note:** Aapke `render.yaml` me bhi ye Supabase vars already listed hain, isliye Render auto-deploy par inhe apne aap set kar leta hai. Sirf manual deploy ke liye upar wala tarika follow karo.
 
 ## Google Sign-In Setup (Sign in with Gmail)
 
