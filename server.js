@@ -16,6 +16,7 @@ const { powerBotManager } = require('./power-bots');
 global.powerBotManager = powerBotManager;
 const { DataManager } = require('./data-manager');
 const { registerSystemVolumeRoute } = require('./system-volume');
+const { SupabaseStore } = require('./supabase-store');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
@@ -56,6 +57,7 @@ async function verifyGoogleToken(idToken) {
   }
 }
 
+const supabaseStore = new SupabaseStore();
 const dataManager = new DataManager({ dataFile: DATA_FILE });
 const REEL_SAMPLE_URLS = [
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -120,6 +122,10 @@ function dbFromJSON(json) {
  */
 function saveDb() {
   dataManager.save();
+  // Also push the latest state to Supabase (fire-and-forget, best-effort)
+  if (supabaseStore.enabled) {
+    supabaseStore.save();
+  }
 }
 
 /**
@@ -127,6 +133,15 @@ function saveDb() {
  */
 function loadDb() {
   return dataManager.load();
+}
+
+/**
+ * Load db from Supabase. Returns true if data was loaded from Supabase,
+ * false otherwise (e.g. not configured, or no data yet).
+ */
+async function loadSupabaseDb() {
+  if (!supabaseStore.enabled) return false;
+  return supabaseStore.load();
 }
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
@@ -264,6 +279,11 @@ global.dataManager = dataManager;
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
 async function seedData() {
+  // If data was restored from Supabase, do NOT re-seed
+  if (supabaseStore.enabled && supabaseStore.db && supabaseStore.db.users && supabaseStore.db.users.size > 0) {
+    console.log("📦 Using persisted data from Supabase");
+    return;
+  }
   // If data was restored from disk, do NOT re-seed
   if (loadDb()) {
     console.log("📂 Using persisted data from disk");
@@ -1589,50 +1609,6 @@ app.post("/api/reels/:id/unblock", authenticate, adminOnly, (req, res) => {
 
 // ─── PIXABAY REELS PROXY ──────────────────────────────────────────────────────
 // ─── CHAT ROUTES ──────────────────────────────────────────────────────────────
-app.get("/api/chat/:userId", authenticate, (req, res) => {
-  const myId = req.user.id;
-  const otherId = req.params.userId;
-  const key = chatKey(myId, otherId);
-
-  if (!db.chats.has(key)) db.chats.set(key, []);
-  const messages = db.chats.get(key);
-
-  // Mark received messages as read and persist
-  let changed = false;
-  const newlyRead = [];
-  messages.forEach((m) => {
-    if (m.receiverId === myId && !m.read) {
-      m.read = true; changed = true;
-      newlyRead.push(m.id);
-    }
-  });
-  if (changed) saveDb();
-
-  // Notify the sender in real time so their ticks turn blue (✓✓)
-  if (newlyRead.length) {
-    const senderSocket = onlineUsers.get(otherId);
-    if (senderSocket) {
-      io.to(senderSocket).emit("messages_read", { chatKey: key, messageIds: newlyRead, byUserId: myId });
-    }
-  }
-
-  res.json(messages);
-});
-
-// TEMP DEBUG
-app.get("/api/_debug", (req, res) => {
-  const keys = [];
-  const myId = req.query.id;
-  const trace = [];
-  for (const [key, msgs] of db.chats.entries()) {
-    keys.push({ key, len: msgs.length });
-    if (myId) {
-      const parts = key.split("_");
-      trace.push({ key, parts, myId, incl: parts.includes(myId), otherId: parts.find(id => id !== myId), len: msgs.length });
-    }
-  }
-  res.json({ users: Array.from(db.users.keys()).slice(0, 20), chatKeys: keys.slice(0, 30), trace: trace.slice(0, 40) });
-});
 // GET recent conversations (WhatsApp-style chat list)
 app.get("/api/chat/recent", authenticate, (req, res) => {
   const myId = req.user.id;
@@ -1673,6 +1649,36 @@ app.get("/api/chat/unread/counts", authenticate, (req, res) => {
     }
   }
   res.json({ total, counts });
+});
+
+app.get("/api/chat/:userId", authenticate, (req, res) => {
+  const myId = req.user.id;
+  const otherId = req.params.userId;
+  const key = chatKey(myId, otherId);
+
+  if (!db.chats.has(key)) db.chats.set(key, []);
+  const messages = db.chats.get(key);
+
+  // Mark received messages as read and persist
+  let changed = false;
+  const newlyRead = [];
+  messages.forEach((m) => {
+    if (m.receiverId === myId && !m.read) {
+      m.read = true; changed = true;
+      newlyRead.push(m.id);
+    }
+  });
+  if (changed) saveDb();
+
+  // Notify the sender in real time so their ticks turn blue (✓✓)
+  if (newlyRead.length) {
+    const senderSocket = onlineUsers.get(otherId);
+    if (senderSocket) {
+      io.to(senderSocket).emit("messages_read", { chatKey: key, messageIds: newlyRead, byUserId: myId });
+    }
+  }
+
+  res.json(messages);
 });
 
 // ─── AI CHAT ROUTE ────────────────────────────────────────────────────────────
@@ -1973,6 +1979,7 @@ app.get("/api/control/status", (req, res) => {
     totalPosts: db.posts.size,
     totalChats: db.chats.size,
     dataManager: dataManager.getStats(),
+    supabase: supabaseStore.getStats(),
     message: "Control endpoint is active",
   });
 });
@@ -2801,6 +2808,37 @@ app.use((req, res) => {
 
 // ─── Start ────────────────────────────────────────────────────────────────────
 async function startServer() {
+  // Initialize the Supabase store with the db reference FIRST so that
+  // load() works (it requires this.db to be set).
+  supabaseStore.init(db);
+
+  // Load persisted data. Prefer Supabase if configured and has data; otherwise
+  // fall back to the local data.json file.
+  async function loadPersistedData() {
+    let loadedFromSupabase = false;
+    if (supabaseStore.enabled) {
+      try {
+        loadedFromSupabase = await loadSupabaseDb();
+      } catch (err) {
+        console.error('⚠️ Supabase load failed:', err.message);
+        loadedFromSupabase = false;
+      }
+    }
+    if (loadedFromSupabase) {
+      console.log('📦 Using Supabase as the live data source');
+    } else {
+      // Fall back to local disk
+      if (loadDb()) {
+        console.log('📂 Using persisted data from data.json');
+      } else {
+        console.log('🆕 No existing data — will seed fresh data');
+      }
+    }
+    return loadedFromSupabase;
+  }
+
+  const loadedFromSupabase = await loadPersistedData();
+
   try {
     await seedData();
     await seedBots(db, io);

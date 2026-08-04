@@ -21,3 +21,10 @@ services:
         value: "965817059764-nqnm69ngsr3i1h3mdqqmi2160d4n1m3u.apps.googleusercontent.com"
       - key: FORCE_DEPLOY
         value: "true"
+      # ─── Supabase (live database) ─────────────────────────────
+      # Replace with your project's values. Find them in Supabase
+      # Dashboard → Project Settings → API.
+      - key: SUPABASE_URL
+        value: "https://ppetpuukiffexqoxghnl.supabase.co"
+      - key: SUPABASE_ANON_KEY
+        value: "sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA"

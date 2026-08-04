@@ -9,6 +9,8 @@ JWT_SECRET=your-super-secret-jwt-key-here
 ADMIN_SECRET=Admin@2024
 NODE_ENV=development
 GOOGLE_CLIENT_ID=your-google-oauth-web-client-id.apps.googleusercontent.com
+SUPABASE_URL=https://ppetpuukiffexqoxghnl.supabase.co
+SUPABASE_ANON_KEY=sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA
 ```
 
 ## On Render Dashboard:
@@ -58,6 +60,41 @@ To enable the "Sign in with Gmail" button, create a **Google OAuth Web Client ID
 - Otherwise → automatically creates a new account (with profile picture from Google)
 
 > **Note:** Google-only accounts have no password. If they try the normal email/password login, they'll be prompted to use the Google button instead.
+
+## Supabase Setup (Live Database)
+
+Your app now uses **Supabase** as the live database. All data (users, posts, chats, reels, notifications, etc.) is stored in Supabase and synced automatically.
+
+### Step 1 — Set up the tables
+1. Open your Supabase Dashboard → **SQL Editor** → **New query**.
+2. Paste the entire contents of `supabase/schema.sql`.
+3. Click **Run**.
+
+Or run the helper:
+```bash
+npm run setup:supabase
+```
+
+### Step 2 — Configure env vars
+Add these to your `.env` (local) and to Render's Environment Variables (production):
+
+| Key | Value | Notes |
+|-----|-------|-------|
+| `SUPABASE_URL` | `https://ppetpuukiffexqoxghnl.supabase.co` | Your project URL |
+| `SUPABASE_ANON_KEY` | `sb_publishable_...` | Publishable key (or service role key) |
+
+### How it works
+- On server start, the app **loads** all data from Supabase into memory.
+- Every time data changes (`saveDb()`), the app **pushes** the latest state back to Supabase.
+- Real-time features (Socket.IO) still work — the server broadcasts changes live to connected clients.
+- Existing `data.json` is kept as a fallback if Supabase is not configured.
+
+### Verify
+Start the server and check:
+```
+GET /api/control/status
+```
+The response includes a `supabase` object showing `enabled`, `loads`, `saves`, and `lastSync`.
 
 ## Important:
 - `.env` file is in `.gitignore` - it won't upload to GitHub ✅
