@@ -36,16 +36,23 @@ Add these exactly as they appear:
 2. Go to **Settings** tab (left sidebar).
 3. Scroll down to **Environment** section → click **Environment Variables**.
 4. Click **Add Environment Variable**.
-5. For each of these, add a new row:
-   - **Key:** `SUPABASE_URL` → **Value:** `https://ppetpuukiffexqoxghnl.supabase.co`
-   - **Key:** `SUPABASE_ANON_KEY` → **Value:** `sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA`
-   - (aur aapke baaki vars: `JWT_SECRET`, `ADMIN_SECRET`, `NODE_ENV`, `GOOGLE_CLIENT_ID` bhi hain)
+5. **Add ALL of these vars** (har ek ke liye nayi row add karo):
+
+| Key | Value | Required? |
+|-----|-------|-----------|
+| `SUPABASE_URL` | `https://ppetpuukiffexqoxghnl.supabase.co` | ✅ Yes |
+| `SUPABASE_ANON_KEY` | `sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA` | ✅ Yes |
+| `JWT_SECRET` | koi bhi strong secret (Render generate kar sakta hai) | ✅ Yes |
+| `ADMIN_SECRET` | `Admin@2024` | ✅ Yes |
+| `NODE_ENV` | `production` | ✅ Yes |
+| `GOOGLE_CLIENT_ID` | `965817059764-nqnm69ngsr3i1h3mdqqmi2160d4n1m3u.apps.googleusercontent.com` | Optional (Google sign-in ke liye) |
+
 6. Click **Save Changes**.
 7. Go to **Deploy** → click **Manual Deploy** → **Deploy latest commit** (ya **Clear build cache & deploy**).
 8. Wait for the build to finish.
 9. Open your live site → check `https://your-app.onrender.com/api/control/status` — isme `supabase: { enabled: true, errors: 0 }` dikhna chahiye. ✅
 
-> **Note:** Aapke `render.yaml` me bhi ye Supabase vars already listed hain, isliye Render auto-deploy par inhe apne aap set kar leta hai. Sirf manual deploy ke liye upar wala tarika follow karo.
+> **Note:** Aapke `render.yaml` me bhi ye sab vars already listed hain, isliye Render auto-deploy par inhe apne aap set kar leta hai. Upar wala manual tarika tab hai jab aap manual deploy karte ho ya vars securely set karna chahte ho.
 
 ## Google Sign-In Setup (Sign in with Gmail)
 
