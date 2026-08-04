@@ -2441,6 +2441,52 @@ p {
   text-align: left;
 }
 
+/* Message status ticks (✓ sent / ✓✓ delivered / blue ✓✓ read) */
+.chat-bubble__meta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.chat-bubble__meta .chat-bubble__time {
+  margin-top: 0;
+}
+
+.chat-bubble__status {
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.chat-bubble__status svg {
+  width: 14px;
+  height: 14px;
+}
+
+.chat-bubble--sent .chat-bubble__status {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.chat-bubble__status--delivered {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.chat-bubble__status--read {
+  color: #53bdeb;
+}
+
+/* Typing indicator label */
+.chat-typing__label {
+  font-size: var(--font-size-xs);
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
 /* Typing indicator */
 .chat-typing {
   display: flex;

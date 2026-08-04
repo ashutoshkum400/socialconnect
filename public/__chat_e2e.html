@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head><body>
+<iframe id="a" src="/__login.html?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlmNmNhNzM0LTUzOWEtNGViMC04NmY3LWM0MWQzODcwNjMxNCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg1ODAyMzMyLCJleHAiOjE3ODY0MDcxMzJ9.e92Lj0gaQWgXsSMO3kIjSbfnIeordIJkYOb0gffriAo&user=%7B%22id%22%3A%229f6ca734-539a-4eb0-86f7-c41d38706314%22%2C%22name%22%3A%22Test%20Alpha%22%2C%22role%22%3A%22user%22%2C%22avatar%22%3A%22https%3A%2F%2Fui-avatars.com%2Fapi%2F%3Fname%3DTest%2BAlpha%26background%3Drandom%26size%3D128%22%7D" width="900" height="700"></iframe>
+<iframe id="b" src="/__login.html?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY2YmY1OTA2LWM3YTEtNGI5Ny1iNDcwLWViODljMmQ1M2U0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg1ODAyMzMyLCJleHAiOjE3ODY0MDcxMzJ9.gzO743m-N-kJmHaQjcYTAJn2iSIPAR2csjmEILhYbHM&user=%7B%22id%22%3A%22f6bf5906-c7a1-4b97-b470-eb89c2d53e47%22%2C%22name%22%3A%22Test%20Beta%22%2C%22role%22%3A%22user%22%2C%22avatar%22%3A%22https%3A%2F%2Fui-avatars.com%2Fapi%2F%3Fname%3DTest%2BBeta%26background%3Drandom%26size%3D128%22%7D" width="900" height="700"></iframe>
+<script>
+const A_ID = '9f6ca734-539a-4eb0-86f7-c41d38706314';
+const B_ID = 'f6bf5906-c7a1-4b97-b470-eb89c2d53e47';
+const out = [];
+function log(name, ok, extra){ out.push(name + '=' + (ok ? 'PASS' : 'FAIL') + (extra ? ' [' + extra + ']' : '')); }
+function ready(doc){
+  try{
+    if(doc && doc.defaultView && typeof doc.defaultView.openChat === 'function' && typeof doc.defaultView.sendMessageFromInput === 'function' && doc.getElementById('chatWindowsContainer')) return true;
+  }catch(e){}
+  return false;
+}
+function waitReady(cb){
+  setTimeout(function poll(){
+    const rA = ready(document.getElementById('a').contentDocument, 0);
+    const rB = ready(document.getElementById('b').contentDocument, 0);
+    if(rA === true && rB === true) cb();
+    else if(rA === 'timeout' || rB === 'timeout'){ document.body.setAttribute('data-result', 'TIMEOUT waiting ready'); }
+    else setTimeout(poll, 500);
+  }, 1500);
+}
+function sendText(W, userId, text){
+  const input = W.document.getElementById('chatInput_' + userId);
+  input.value = text;
+  W.sendMessageFromInput(userId);
+}
+let phase = 0;
+function run(){
+  const aW = document.getElementById('a').contentWindow;
+  const bW = document.getElementById('b').contentWindow;
+  const aD = document.getElementById('a').contentDocument;
+  const bD = document.getElementById('b').contentDocument;
+  if(phase === 0){
+    aW.openChat(B_ID, 'Test Beta', '');
+    setTimeout(() => { sendText(aW, B_ID, 'hello tick test'); phase = 1; setTimeout(run, 1500); }, 700);
+  } else if(phase === 1){
+    const bubble = aD.querySelector('#chatMessages_' + B_ID + ' .chat-bubble--sent');
+    const status = bubble ? bubble.querySelector('.chat-bubble__status') : null;
+    log('A_SENT_TICK', !!bubble && !!status && status.getAttribute('data-status') !== null, status ? status.getAttribute('data-status') : 'none');
+    log('A_DELIVERED_WHEN_B_ONLINE', !!status && status.getAttribute('data-status') === 'delivered', status ? status.getAttribute('data-status') : 'none');
+    bW.openChat(A_ID, 'Test Alpha', '');
+    phase = 2; setTimeout(run, 1800);
+  } else if(phase === 2){
+    const bubble = aD.querySelector('#chatMessages_' + B_ID + ' .chat-bubble--sent');
+    const status = bubble ? bubble.querySelector('.chat-bubble__status') : null;
+    log('A_READ_TICK_BLUE', !!status && status.getAttribute('data-status') === 'read', status ? status.getAttribute('data-status') : 'none');
+    const input = aD.getElementById('chatInput_' + B_ID);
+    input.dispatchEvent(new aD.defaultView.Event('input', { bubbles: true }));
+    phase = 3; setTimeout(run, 900);
+  } else if(phase === 3){
+    const typing = bD.getElementById('chatTyping_' + A_ID);
+    log('B_SAW_TYPING', !!typing && !typing.classList.contains('hidden'));
+    aW.closeChatWindow(B_ID);
+    setTimeout(() => { aW.openChat(B_ID, 'Test Beta', ''); phase = 4; setTimeout(run, 1500); }, 400);
+  } else if(phase === 4){
+    const msgs = aD.querySelectorAll('#chatMessages_' + B_ID + ' .chat-bubble');
+    const hasHello = Array.prototype.some.call(msgs, m => m.textContent.indexOf('hello tick test') !== -1);
+    log('HISTORY_PERSISTS', hasHello, 'bubbles=' + msgs.length);
+    aW.loadRecentChats().then(() => {
+      const rc = aW.recentChats[B_ID];
+      log('RECENT_CHATS_PREVIEW', !!rc && !!rc.lastMessage && rc.lastMessage.text === 'hello tick test', rc ? rc.lastMessage.text : 'none');
+      document.body.setAttribute('data-result', out.join(' | '));
+    });
+  }
+}
+waitReady(run);
+setTimeout(() => document.body.setAttribute('data-result', 'HARNESS_TIMEOUT: ' + out.join(' | ')), 45000);
+</script>
+</body></html>

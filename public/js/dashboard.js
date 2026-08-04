@@ -32,6 +32,7 @@ let chatListAllUsers = [];     // all users for chat list
 let lastMatchedUserId = null;  // for "send message" after match banner
 let unreadCounts = {};         // { userId: count }
 let totalUnread = 0;           // total unread messages across all users
+let recentChats = {};          // { userId: { user, lastMessage, unread, updatedAt } }
 
 // ─── API Helper ──────────────────────────────────────────────────────────────
 async function apiFetch(path, options = {}) {
@@ -932,6 +933,7 @@ async function loadSuggestions() {
     chatListAllUsers = allUsers;
     renderChatList(allUsers);
     loadUnreadCounts().then(() => renderChatList(allUsers));
+    loadRecentChats();
     renderStories(allUsers);
   }
 
@@ -1504,7 +1506,24 @@ socket.on('new_message_notif', ({ from, text, time }) => {
   showToast(`💬 ${senderName}: ${text}`, 'info', 5000, () => {
     openChat(senderId, senderName, senderAvatar);
   });
+
+  // Live browser notification (only when permission granted)
+  notifyBrowser(`💬 ${senderName}`, text, senderAvatar);
 });
+
+// ─── Browser Notifications (live notification system) ─────────────────────────
+function requestNotificationPermission() {
+  if (!('Notification' in window) || Notification.permission !== 'default') return;
+  try { Notification.requestPermission(); } catch {}
+}
+
+function notifyBrowser(title, body, icon) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, { body, icon, tag: 'sc-new-message', silent: true });
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch {}
+}
 
 // Position preview popup near the mouse cursor (Facebook-style)
 function positionPreview(e, el) {
@@ -1986,6 +2005,8 @@ function toggleChatListPanel() {
     loadUnreadCounts().then(() => {
       renderChatList(chatListAllUsers);
     });
+    // Ask once for browser notifications (needs a user gesture)
+    requestNotificationPermission();
     // Clear the badge when opening panel
     totalUnread = 0;
     updateChatLauncherBadge();
@@ -2018,8 +2039,11 @@ function renderChatList(users) {
     return;
   }
 
-  // Sort by unread count descending so most active conversations appear first
+  // Sort: most recently active conversations first (WhatsApp-style), then unread, then name
   const sorted = [...others].sort((a, b) => {
+    const aTime = recentChats[a.id] ? new Date(recentChats[a.id].updatedAt).getTime() : 0;
+    const bTime = recentChats[b.id] ? new Date(recentChats[b.id].updatedAt).getTime() : 0;
+    if (bTime !== aTime) return bTime - aTime;
     const aUnread = unreadCounts[a.id] || 0;
     const bUnread = unreadCounts[b.id] || 0;
     if (bUnread !== aUnread) return bUnread - aUnread;
@@ -2028,7 +2052,12 @@ function renderChatList(users) {
 
   list.innerHTML = sorted.map(u => {
     const uc = unreadCounts[u.id] || 0;
+    const rc = recentChats[u.id];
     const badgeText = formatBadgeCount(uc);
+    const preview = uc > 0
+      ? `${uc} unread message${uc !== 1 ? 's' : ''}`
+      : (rc ? lastMessagePreview(rc.lastMessage) : (onlineUserIds.has(u.id) ? 'Active now' : 'Tap to message'));
+    const timeStr = rc ? formatChatListTime(rc.updatedAt) : '';
     return `
     <div
       class="chat-list-item${uc > 0 ? ' unread' : ''}"
@@ -2050,10 +2079,66 @@ function renderChatList(users) {
       </div>
       <div class="chat-list-item__info">
         <span class="chat-list-item__name">${escapeHtml(u.name)}</span>
-        <span class="chat-list-item__preview">${uc > 0 ? `${uc} unread message${uc !== 1 ? 's' : ''}` : (onlineUserIds.has(u.id) ? 'Active now' : 'Tap to message')}</span>
+        <span class="chat-list-item__preview">${escapeHtml(preview)}</span>
+      </div>
+      <div class="chat-list-item__meta">
+        <span class="chat-list-item__time">${timeStr}</span>
+        ${uc > 0 ? '<span class="chat-list-item__unread-dot"></span>' : ''}
       </div>
     </div>
   `}).join('');
+}
+
+// --- WhatsApp-style recent chats ---
+async function loadRecentChats() {
+  const result = await apiFetch('/chat/recent');
+  if (!result || !result.ok) return;
+  const recents = result.data || [];
+  recentChats = {};
+  recents.forEach(r => {
+    if (r.user && r.user.id) recentChats[r.user.id] = r;
+  });
+  renderChatList(chatListAllUsers);
+}
+
+function updateRecentChat(userId, message) {
+  if (!userId || !message) return;
+  const user = allUsers.find(u => u.id === userId);
+  recentChats[userId] = {
+    user: user || { id: userId },
+    lastMessage: message,
+    updatedAt: message.time || new Date().toISOString(),
+  };
+  renderChatList(chatListAllUsers);
+}
+
+function lastMessagePreview(m) {
+  if (!m) return '';
+  const type = m.type || 'text';
+  if (type === 'audio') return '🎤 Voice message';
+  if (type === 'gif') return '🎞️ GIF';
+  if (type === 'sticker') return '🎭 Sticker';
+  if (type === 'emoji') return m.text || '';
+  if (type === 'image') return '🖼️ Photo';
+  if (type === 'video') return '🎬 Video';
+  if (type === 'file') return '📎 ' + (m.fileName || 'File');
+  return m.text || '';
+}
+
+function formatChatListTime(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const now = new Date();
+  if (d.toDateString() === now.toDateString()) {
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return 'Yesterday';
+  if (d.getFullYear() === now.getFullYear()) {
+    return d.toLocaleDateString([], { day: 'numeric', month: 'short' });
+  }
+  return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function filterChatList(query) {
@@ -2152,6 +2237,7 @@ function openChat(userId, userName, userAvatar) {
       <div class="chat-typing__dot"></div>
       <div class="chat-typing__dot"></div>
       <div class="chat-typing__dot"></div>
+      <span class="chat-typing__label">typing…</span>
     </div>
     <div class="chat-window__input-area" id="chatInputArea_${userId}">
       <div class="chat-window__picker-toolbar">
@@ -2242,6 +2328,9 @@ function openChat(userId, userName, userAvatar) {
   // Load history
   loadChatHistory(userId);
 
+  // Mark any pending messages as read (WhatsApp-style read receipts)
+  socket.emit('mark_read', { withUserId: userId });
+
   // Focus input
   setTimeout(() => {
     const input = document.getElementById(`chatInput_${userId}`);
@@ -2291,6 +2380,37 @@ async function loadChatHistory(userId) {
   renderChatHistory(userId, messages);
 }
 
+// ─── Message status ticks (WhatsApp-style ✓ / ✓✓) ────────────────────────────
+const TICK_SINGLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+const TICK_DOUBLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 12.5l5 5L16 7.5"/><path d="M9.5 12.5l5 5 8-9.5"/></svg>';
+
+function messageStatus(msg, isSent) {
+  if (!isSent) return '';
+  let st = 'sent';
+  if (msg.read) st = 'read';
+  else if (msg.delivered) st = 'delivered';
+  const title = st === 'read' ? 'Read' : (st === 'delivered' ? 'Delivered' : 'Sent');
+  return `<span class="chat-bubble__status chat-bubble__status--${st}" data-status="${st}" title="${title}">${st === 'sent' ? TICK_SINGLE : TICK_DOUBLE}</span>`;
+}
+
+function setBubbleStatus(el, status) {
+  const s = el.querySelector('.chat-bubble__status');
+  if (!s) return;
+  const st = status === 'read' ? 'read' : (status === 'delivered' ? 'delivered' : 'sent');
+  s.className = `chat-bubble__status chat-bubble__status--${st}`;
+  s.setAttribute('data-status', st);
+  s.title = st === 'read' ? 'Read' : (st === 'delivered' ? 'Delivered' : 'Sent');
+  s.innerHTML = st === 'sent' ? TICK_SINGLE : TICK_DOUBLE;
+}
+
+function uuidv4() {
+  if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 function renderChatMessage(msg) {
   const isSent = msg.senderId === currentUser.id;
   const type = msg.type || 'text';
@@ -2305,7 +2425,7 @@ function renderChatMessage(msg) {
     const msgId = `audio_${msg.senderId}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     content = `
-      <div class="chat-bubble--audio chat-bubble--${isSent ? 'sent' : 'received'}" id="${msgId}" data-time="${msg.time}">
+      <div class="chat-bubble--audio chat-bubble--${isSent ? 'sent' : 'received'}" id="${msgId}" data-time="${msg.time}" data-msg-id="${msg.id || ''}" data-client-id="${msg.clientId || ''}">
         <button class="chat-bubble__audio-play" onclick="toggleAudioPlayback('${msgId}', '${msg.mediaUrl}')" aria-label="Play voice message">
           <svg class="chat-audio-bubble__play-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <svg class="chat-audio-bubble__pause-icon hidden" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -2316,6 +2436,7 @@ function renderChatMessage(msg) {
         <span class="chat-bubble__audio-duration">${durationStr}</span>
         <span class="chat-bubble__audio-status ${msg.read ? 'played' : ''}"></span>
         <span class="chat-bubble__time">${formatTime(msg.time)}</span>
+        ${messageStatus(msg, isSent)}
         <audio src="${msg.mediaUrl}" preload="none" style="display:none;"></audio>
       </div>
     `;
@@ -2380,9 +2501,12 @@ function renderChatMessage(msg) {
   if (type === 'audio') return content;
 
   return `
-    <div class="chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}">
+    <div class="chat-bubble chat-bubble--${isSent ? 'sent' : 'received'}" data-msg-id="${msg.id || ''}" data-client-id="${msg.clientId || ''}">
       ${content}
-      <span class="chat-bubble__time">${formatTime(msg.time)}</span>
+      <span class="chat-bubble__meta">
+        <span class="chat-bubble__time">${formatTime(msg.time)}</span>
+        ${messageStatus(msg, isSent)}
+      </span>
     </div>
   `;
 }
@@ -2445,16 +2569,20 @@ function sendMessage(toUserId, text) {
   const emojiOnly = /^[\p{Emoji}\p{Extended_Pictographic}\s]+$/u.test(text) && text.length < 10;
   const type = emojiOnly ? 'emoji' : 'text';
 
-  socket.emit('send_message', { toUserId, text, type, mediaUrl: null, mediaType: null });
+  const clientId = uuidv4();
+  socket.emit('send_message', { toUserId, text, type, mediaUrl: null, mediaType: null, clientId });
 
-  // Optimistically append sent message
+  // Optimistically append sent message (single grey tick until server echoes)
   appendChatBubble(toUserId, {
+    clientId,
     text,
     type,
     mediaUrl: null,
     mediaType: null,
     senderId: currentUser.id,
-    time: new Date().toISOString()
+    time: new Date().toISOString(),
+    delivered: false,
+    read: false
   });
 }
 
@@ -2844,7 +2972,25 @@ socket.on('message', ({ chatKey, message }) => {
 
   // If chat window is open, append message
   if (openChatWindows[otherUserId]) {
-    appendChatBubble(otherUserId, message);
+    const win = openChatWindows[otherUserId];
+    const existing = message.clientId
+      ? win.querySelector(`[data-client-id="${message.clientId}"]`)
+      : null;
+    if (existing) {
+      // Replace optimistic bubble with the server-confirmed message (real id, ticks)
+      const tmp = document.createElement('div');
+      tmp.innerHTML = renderChatMessage(message);
+      const realBubble = tmp.firstElementChild;
+      if (realBubble) {
+        existing.replaceWith(realBubble);
+        const mc = document.getElementById(`chatMessages_${otherUserId}`);
+        if (mc) mc.scrollTop = mc.scrollHeight;
+      }
+    } else {
+      appendChatBubble(otherUserId, message);
+    }
+    // Chat is open and visible → mark these messages as read
+    socket.emit('mark_read', { withUserId: otherUserId });
   } else {
     // Otherwise show notification toast
     const sender = allUsers.find(u => u.id === message.senderId);
@@ -2862,7 +3008,27 @@ socket.on('message', ({ chatKey, message }) => {
     showToast(`💬 ${senderName}: ${preview}`, 'info', 5000, () => {
       openChat(message.senderId, senderName, senderAvatar);
     });
+    notifyBrowser(`💬 ${senderName}`, preview, senderAvatar);
   }
+
+  // Keep the WhatsApp-style recent-chats list fresh
+  if (!openChatWindows[otherUserId] && message.senderId !== currentUser.id) {
+    unreadCounts[otherUserId] = (unreadCounts[otherUserId] || 0) + 1;
+    totalUnread = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+    updateChatLauncherBadge();
+  }
+  if (message.senderId !== currentUser.id) {
+    updateRecentChat(otherUserId, message);
+  }
+});
+
+// --- Socket: Read receipts (✓✓ turns blue in real time) ---
+socket.on('messages_read', ({ chatKey, messageIds }) => {
+  (messageIds || []).forEach(id => {
+    if (!id) return;
+    const el = document.querySelector(`[data-msg-id="${id}"]`);
+    if (el) setBubbleStatus(el, 'read');
+  });
 });
 
 // --- Socket: Typing Indicator ---

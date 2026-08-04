@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"></head><body>
+<iframe id="a" src="/__login.html?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjlmNmNhNzM0LTUzOWEtNGViMC04NmY3LWM0MWQzODcwNjMxNCIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg1ODAyMzMyLCJleHAiOjE3ODY0MDcxMzJ9.e92Lj0gaQWgXsSMO3kIjSbfnIeordIJkYOb0gffriAo&user=%7B%22id%22%3A%229f6ca734-539a-4eb0-86f7-c41d38706314%22%2C%22name%22%3A%22Test%20Alpha%22%2C%22role%22%3A%22user%22%2C%22avatar%22%3A%22%22%7D" width="900" height="700"></iframe>
+<iframe id="b" src="/__login.html?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImY2YmY1OTA2LWM3YTEtNGI5Ny1iNDcwLWViODljMmQ1M2U0NyIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzg1ODAyMzMyLCJleHAiOjE3ODY0MDcxMzJ9.gzO743m-N-kJmHaQjcYTAJn2iSIPAR2csjmEILhYbHM&user=%7B%22id%22%3A%22f6bf5906-c7a1-4b97-b470-eb89c2d53e47%22%2C%22name%22%3A%22Test%20Beta%22%2C%22role%22%3A%22user%22%2C%22avatar%22%3A%22%22%7D" width="900" height="700"></iframe>
+<script>
+const A_ID = '9f6ca734-539a-4eb0-86f7-c41d38706314';
+const B_ID = 'f6bf5906-c7a1-4b97-b470-eb89c2d53e47';
+const TAG = 'uniq-' + Date.now();
+const out = [];
+const report = (k, v) => out.push(k + '=' + v);
+const evalc = (w, e) => { try { return w.eval(e); } catch (x) { return 'EVAL_ERR:' + x.message; } };
+
+function hook(w, tag){
+  w.eval(`window.__ev = window.__ev || [];
+    if (!window.__hooked){
+      window.__hooked = true;
+      window.__authd = false;
+      socket.on('connect', () => window.__ev.push('connect'));
+      socket.on('disconnect', (r) => { window.__ev.push('disconnect:' + r); window.__authd = false; });
+      socket.on('connect_error', (e) => window.__ev.push('connect_error:' + e.message));
+      socket.on('authenticated', () => { window.__authd = true; window.__ev.push('authenticated'); });
+      socket.on('auth_error', (d) => window.__ev.push('auth_error:' + JSON.stringify(d)));
+      socket.on('message', (d) => window.__ev.push('message:' + d.message.text + ':del=' + d.message.delivered + ':read=' + d.message.read));
+      socket.on('messages_read', (d) => window.__ev.push('messages_read:ids=' + (d.messageIds||[]).length + ':by=' + d.byUserId));
+      socket.on('typing', (d) => window.__ev.push('typing:' + d.userId + ':' + d.typing));
+    }`);
+}
+
+function waitReady(cb){
+  const poll = () => {
+    const a = document.getElementById('a').contentDocument;
+    const b = document.getElementById('b').contentDocument;
+    let ra = false, rb = false;
+    try {
+      ra = !!(a && typeof a.defaultView.openChat === 'function');
+      rb = !!(b && typeof b.defaultView.openChat === 'function');
+    } catch (e) {}
+    if (ra && rb) cb(); else setTimeout(poll, 300);
+  };
+  setTimeout(poll, 800);
+}
+
+function waitAuth(aW, bW, cb, tries){
+  const ra = evalc(aW, 'window.__authd === true && socket.connected');
+  const rb = evalc(bW, 'window.__authd === true && socket.connected');
+  if (ra === true && rb === true) return cb();
+  if (tries <= 0) return document.body.setAttribute('data-result', 'AUTH_TIMEOUT: a=' + ra + ' b=' + rb);
+  setTimeout(() => waitAuth(aW, bW, cb, tries - 1), 500);
+}
+
+waitReady(() => {
+  const aW = document.getElementById('a').contentWindow;
+  const bW = document.getElementById('b').contentWindow;
+  const aD = document.getElementById('a').contentDocument;
+  const bD = document.getElementById('b').contentDocument;
+  hook(aW, 'a'); hook(bW, 'b');
+  waitAuth(aW, bW, () => {
+    report('a_authed', evalc(aW, 'window.__authd'));
+    report('b_authed', evalc(bW, 'window.__authd'));
+
+    // Phase 1: A sends a unique message while B is online
+    aW.openChat(B_ID, 'Test Beta', '');
+    setTimeout(() => {
+      aD.getElementById('chatInput_' + B_ID).value = TAG;
+      aW.sendMessageFromInput(B_ID);
+      setTimeout(() => {
+        const st = evalc(aW, `(() => {
+          const ms = document.querySelectorAll('#chatMessages_${B_ID} .chat-bubble--sent');
+          for (const m of ms) { if (m.textContent.indexOf('${TAG}') !== -1) { const s = m.querySelector('.chat-bubble__status'); return s ? s.getAttribute('data-status') : 'nostatus'; } }
+          return 'notfound';
+        })()`);
+        report('A_STATUS_AFTER_SEND', st);
+        report('A_EV1', JSON.stringify(evalc(aW, 'window.__ev')));
+
+        // Phase 2: B opens the chat (reads A's message)
+        bW.openChat(A_ID, 'Test Alpha', '');
+        setTimeout(() => {
+          const st2 = evalc(aW, `(() => {
+            const ms = document.querySelectorAll('#chatMessages_${B_ID} .chat-bubble--sent');
+            for (const m of ms) { if (m.textContent.indexOf('${TAG}') !== -1) { const s = m.querySelector('.chat-bubble__status'); return s ? s.getAttribute('data-status') : 'nostatus'; } }
+            return 'notfound';
+          })()`);
+          report('A_STATUS_AFTER_B_READ', st2);
+          report('A_EV2', JSON.stringify(evalc(aW, 'window.__ev')));
+          report('B_EV2', JSON.stringify(evalc(bW, 'window.__ev')));
+
+          // Phase 3: typing — A types, B should show indicator
+          const inp = aD.getElementById('chatInput_' + B_ID);
+          inp.dispatchEvent(new aD.defaultView.Event('input', { bubbles: true }));
+          setTimeout(() => {
+            const typingVisible = evalc(bW, `(() => {
+              const el = document.getElementById('chatTyping_${A_ID}');
+              return el ? (el.classList.contains('hidden') ? 'hidden' : 'visible') : 'noel';
+            })()`);
+            report('B_TYPING_VISIBLE', typingVisible);
+            report('B_EV3', JSON.stringify(evalc(bW, 'window.__ev')));
+
+            // Phase 4: recent chats + history
+            evalc(aW, `loadRecentChats().then(() => {
+              const rc = recentChats['${B_ID}'];
+              window.__recent = rc ? (rc.lastMessage && rc.lastMessage.text) : 'none';
+              window.__recentDone = true;
+            })`);
+            setTimeout(() => {
+              report('A_RECENT_PREVIEW', evalc(aW, 'window.__recentDone ? window.__recent : "pending"'));
+              const hist = evalc(aW, `(() => {
+                const ms = document.querySelectorAll('#chatMessages_${B_ID} .chat-bubble');
+                return ms.length + ' bubbles; has ' + TAG + ': ' + Array.prototype.some.call(ms, m => m.textContent.indexOf('${TAG}') !== -1);
+              })()`);
+              report('A_HISTORY', hist);
+              document.body.setAttribute('data-result', out.join(' || '));
+            }, 2000);
+          }, 1200);
+        }, 2200);
+      }, 1800);
+    }, 600);
+  }, 20);
+});
+setTimeout(() => document.body.setAttribute('data-result', 'PROBE_TIMEOUT: ' + out.join(' || ')), 40000);
+</script>
+</body></html>

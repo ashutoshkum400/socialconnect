@@ -1599,12 +1599,61 @@ app.get("/api/chat/:userId", authenticate, (req, res) => {
 
   // Mark received messages as read and persist
   let changed = false;
+  const newlyRead = [];
   messages.forEach((m) => {
-    if (m.receiverId === myId && !m.read) { m.read = true; changed = true; }
+    if (m.receiverId === myId && !m.read) {
+      m.read = true; changed = true;
+      newlyRead.push(m.id);
+    }
   });
   if (changed) saveDb();
 
+  // Notify the sender in real time so their ticks turn blue (✓✓)
+  if (newlyRead.length) {
+    const senderSocket = onlineUsers.get(otherId);
+    if (senderSocket) {
+      io.to(senderSocket).emit("messages_read", { chatKey: key, messageIds: newlyRead, byUserId: myId });
+    }
+  }
+
   res.json(messages);
+});
+
+// TEMP DEBUG
+app.get("/api/_debug", (req, res) => {
+  const keys = [];
+  const myId = req.query.id;
+  const trace = [];
+  for (const [key, msgs] of db.chats.entries()) {
+    keys.push({ key, len: msgs.length });
+    if (myId) {
+      const parts = key.split("_");
+      trace.push({ key, parts, myId, incl: parts.includes(myId), otherId: parts.find(id => id !== myId), len: msgs.length });
+    }
+  }
+  res.json({ users: Array.from(db.users.keys()).slice(0, 20), chatKeys: keys.slice(0, 30), trace: trace.slice(0, 40) });
+});
+// GET recent conversations (WhatsApp-style chat list)
+app.get("/api/chat/recent", authenticate, (req, res) => {
+  const myId = req.user.id;
+  const recents = [];
+  for (const [key, msgs] of db.chats.entries()) {
+    const parts = key.split("_");
+    if (!parts.includes(myId)) continue;
+    const otherId = parts.find(id => id !== myId);
+    if (!otherId || !msgs.length) continue;
+    const user = db.users.get(otherId);
+    const last = msgs[msgs.length - 1];
+    const unread = msgs.filter(m => m.receiverId === myId && !m.read).length;
+    recents.push({
+      user: user ? sanitizeUser(user) : { id: otherId },
+      lastMessage: last,
+      unread,
+      updatedAt: last.time,
+    });
+  }
+  recents.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  res.json(recents);
 });
 
 // GET unread message counts per user
@@ -2092,7 +2141,7 @@ io.on("connection", (socket) => {
     socket.join(room);
   });
 
-  socket.on("send_message", async ({ toUserId, text, type, mediaUrl, mediaType, duration, fileName, fileSize }) => {
+  socket.on("send_message", async ({ toUserId, text, type, mediaUrl, mediaType, duration, fileName, fileSize, clientId }) => {
     if (!socket.userId) return;
     if (!text && !mediaUrl) return;
 
@@ -2118,8 +2167,11 @@ io.on("connection", (socket) => {
     const key = chatKey(socket.userId, toUserId);
     if (!db.chats.has(key)) db.chats.set(key, []);
 
+    const recipientSocket = onlineUsers.get(toUserId);
+
     const message = {
       id: uuidv4(),
+      clientId: clientId || null,
       senderId: socket.userId,
       receiverId: toUserId,
       text: text || '',
@@ -2130,6 +2182,7 @@ io.on("connection", (socket) => {
       fileName: fileName || null,
       fileSize: fileSize || null,
       time: new Date().toISOString(),
+      delivered: Boolean(recipientSocket),
       read: false,
     };
     db.chats.get(key).push(message);
@@ -2137,7 +2190,6 @@ io.on("connection", (socket) => {
 
     io.to(key).emit("message", { chatKey: key, message });
 
-    const recipientSocket = onlineUsers.get(toUserId);
     const sender = db.users.get(socket.userId);
 
     let recipientName = null;
@@ -2169,6 +2221,28 @@ io.on("connection", (socket) => {
     if (!socket.userId) return;
     const room = chatKey(socket.userId, toUserId);
     socket.to(room).emit("typing", { userId: socket.userId, typing });
+  });
+
+  socket.on("mark_read", ({ withUserId }) => {
+    if (!socket.userId || !withUserId) return;
+    const key = chatKey(socket.userId, withUserId);
+    const msgs = db.chats.get(key);
+    if (!msgs) return;
+    let changed = false;
+    const newlyRead = [];
+    msgs.forEach((m) => {
+      if (m.senderId === withUserId && !m.read) {
+        m.read = true; changed = true;
+        newlyRead.push(m.id);
+      }
+    });
+    if (changed) saveDb();
+    if (newlyRead.length) {
+      const senderSocket = onlineUsers.get(withUserId);
+      if (senderSocket) {
+        io.to(senderSocket).emit("messages_read", { chatKey: key, messageIds: newlyRead, byUserId: socket.userId });
+      }
+    }
   });
 
   // ─── WebRTC Calling ───────────────────────────────────────────────────────
