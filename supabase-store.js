@@ -15,8 +15,16 @@
 const { createClient } = require('@supabase/supabase-js');
 
 // ─── Config ──────────────────────────────────────────────────────────────────
+// Accept multiple possible env var names for the Supabase key so the deployed
+// app works regardless of which name the user used in the Render dashboard.
+// Supabase recently renamed the "anon" key to "publishable" key.
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_PUBLISHABLE_KEY ||
+  process.env.SUPABASE_KEY ||
+  '';
 
 // Map an in-memory db Map key to a Supabase table + primary key column / id field
 const TABLE_MAP = {

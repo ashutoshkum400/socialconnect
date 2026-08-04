@@ -54,6 +54,28 @@ Add these exactly as they appear:
 
 > **Note:** Aapke `render.yaml` me bhi ye sab vars already listed hain, isliye Render auto-deploy par inhe apne aap set kar leta hai. Upar wala manual tarika tab hai jab aap manual deploy karte ho ya vars securely set karna chahte ho.
 
+### 🚨 CRITICAL — Agar Supabase connect nahi ho raha (live logs me ye dikhta hai):
+```
+⚠️ Supabase not configured (SUPABASE_URL / SUPABASE_KEY missing). Falling back to data.json.
+```
+
+Iska matlab hai ki **Render dashboard me env vars set nahi hain** ya **redeploy nahi hua**. Ye karo:
+
+1. **Render Dashboard** → apni **SocialConnect** service kholo.
+2. **Settings** tab → **Environment** → **Environment Variables**.
+3. **Add Environment Variable** par click karo aur EXACT ye 2 vars add karo (naam bilkul same hona chahiye):
+   - `SUPABASE_URL` = `https://ppetpuukiffexqoxghnl.supabase.co`
+   - `SUPABASE_ANON_KEY` = `sb_publishable_zcSzV9eZI9M7R5OpPg7T8A_xs1aNgxA`
+4. **Save Changes** par click karo.
+5. **Deploy** tab → **Manual Deploy** → **Clear build cache & deploy**.
+6. Log me ab ye dikhna chahiye:
+   ```
+   ✅ Supabase data loaded (1449 entries)
+   📦 Using Supabase as the live data source
+   ```
+
+> **Note:** Aapka Render service **manually configured** hai (kuch `render.yaml` se nahi chalta). Isliye vars **Render dashboard me manually set** karne hi padte hain — `render.yaml` me values likhne se automatically apply nahi honge. Har baar vars badalne ke baad **redeploy** jaroor karo.
+
 ## Google Sign-In Setup (Sign in with Gmail)
 
 To enable the "Sign in with Gmail" button, create a **Google OAuth Web Client ID**:
