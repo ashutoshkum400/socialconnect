@@ -78,6 +78,25 @@ class DynamoDBStore {
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────────────
+
+  /**
+   * Deep-clone an object, converting Date instances to ISO strings so
+   * DynamoDB's marshaller won't choke on unsupported types.
+   */
+  _sanitize(value) {
+    if (value === null || value === undefined) return value;
+    if (value instanceof Date) return value.toISOString();
+    if (Array.isArray(value)) return value.map((v) => this._sanitize(v));
+    if (typeof value === 'object') {
+      const out = {};
+      for (const [k, v] of Object.entries(value)) {
+        out[k] = this._sanitize(v);
+      }
+      return out;
+    }
+    return value;
+  }
+
   _pk(collection) {
     return `STORE#${collection}`;
   }
@@ -166,7 +185,7 @@ class DynamoDBStore {
           items.push({
             PK: this._pk(collection),
             SK: this._sk(id),
-            value: value,
+            value: this._sanitize(value),
           });
         }
       }
@@ -191,7 +210,7 @@ class DynamoDBStore {
           Item: {
             PK: this._pk(collection),
             SK: this._sk(id),
-            value: value,
+            value: this._sanitize(value),
           },
         })
       );
