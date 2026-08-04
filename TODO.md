@@ -10,18 +10,14 @@ Connect SocialConnect to Supabase so all data (users, posts, chats, reels, notif
 - [x] 4. Create `supabase-store.js` (load/save module using Supabase)
 - [x] 5. Modify `server.js` to use Supabase store (load on boot, save on changes)
 - [x] 6. Update `.env.example` / `ENV_SETUP.md` / `render.yaml` with Supabase config
-- [x] 7. Add a setup script (scripts/setup-supabase.js) to test connection & print schema
-- [x] 8. Test the server boots and connects to Supabase (connection verified ✅)
+- [x] 7. Add a setup script to run the SQL schema
+- [x] 8. Test the server boots and connects to Supabase
+- [x] 9. Fix env var detection to support multiple key names (publishable/anon/service_role)
+- [x] 10. Push everything to GitHub
+- [x] 11. **LIVE DEPLOYMENT VERIFIED** — Render shows:
+      - `✅ Supabase data loaded (1449 entries)`
+      - `📦 Using Supabase as the live data source`
+      - `📦 Using persisted data from Supabase`
 
-## Remaining (user action needed)
-- [x] 9. Run `supabase/schema.sql` in the Supabase SQL Editor to create the tables
-- [x] 10. Run `supabase/fix-rls.sql` to fix Row Level Security for the publishable key
-- [x] 11. Restart the server — data now loads from and saves to Supabase
-
-## ✅ COMPLETE
-The site is now fully connected to Supabase.
-
-## Notes
-- The publishable key (`sb_publishable_...`) can read/write the tables but **cannot run DDL** (CREATE TABLE). So the schema must be run in the Supabase SQL Editor manually.
-- Verified working: `/api/control/status` shows `supabase.enabled: true`, `loads: 1`, `saves: 3`, `errors: 0`.
-- All data (users, posts, chats, reels, notifications) now persists to Supabase and loads live on server start.
+## ✅ COMPLETE — Live on https://sathi.fun
+The app is now fully connected to Supabase and serving live data!
